@@ -1,11 +1,9 @@
 let canvas = document.getElementById('game-canvas');
-let goodShip = canvas.getContext('2d');
-let badShip = canvas.getContext('2d');
+let ctx = canvas.getContext('2d');
+
+ctx.fillStyle = 'white';
+ctx.fillRect(10, 10, 75, 50);
 
 
-badShip.fillStyle = 'white';
-badShip.fillRect(10, 10, 75, 50);
-
-
-goodShip.fillStyle = '#21c521';
-goodShip.fillRect(350, 500, 100, 75);
+ctx.fillStyle = '#21c521';
+ctx.fillRect(350, 500, 100, 75);
