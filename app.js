@@ -45,7 +45,6 @@ class SpaceInvadersGame {
     constructorn(canvasId) {
         this.canvasElement = document.getElementById(canvasId);
         this.canvasWidth = 100;
-        this.players = [new GoodShip];
         this.badShipRows = 4;
         this.badShipsPerRow = 4;
         this.badShips = { // Object of rows, each row is an array of badShips
@@ -59,6 +58,10 @@ class SpaceInvadersGame {
 
     newGame() {
         this.initialiseBadShips();
+    }
+
+    startGame() {
+        this.players = [new GoodShip];
     }
 
     moveObject(object, deltaX, deltaY) {
