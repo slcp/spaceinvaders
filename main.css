@@ -1,0 +1,25 @@
+@import url('https://fonts.googleapis.com/css?family=Russo+One');
+
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Russo One', sans-serif;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    background: #1d1c1c;
+}
+
+.game-title {
+    font-size: 3.5rem;
+    margin: 1rem;
+    color: #21c521;
+    letter-spacing: .2rem;
+    text-transform: uppercase;
+}
