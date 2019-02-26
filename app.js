@@ -32,8 +32,9 @@ class BadShip extends Ship {
 }
 
 class Bullet extends Moveable {
-    constructor() {
+    constructor(owner) {
         super();
+        this.owner = owner;
     }
 }
 
