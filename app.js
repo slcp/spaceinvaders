@@ -110,8 +110,4 @@ class SpaceInvadersGame {
             }
         }
     }
-
-    checkForCollisions() {
-
-    }
 }
