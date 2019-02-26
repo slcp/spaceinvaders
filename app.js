@@ -1,11 +1,20 @@
 class Moveable {
     constructor() {
-        this.position = {x: 0, y: 0};
+        this.shapes = [];
     }
 
     move(deltaX, deltaY) {
-        // Redrawing canvas
-        // Update this.position
+        // Clear existing draw of object
+        for (let shape of this.shapes) {
+            context.clearRect(shape.x, shape.y, shape.width, shape.height);
+        }
+
+        // Draw in new position and update position
+        for (let shape of this.shapes) {
+            context.fillRect(shape.x+deltaX, shape.y+deltaY, shape.width, shape.height);
+            shape.x += deltaX;
+            shape.y += deltaY;
+        }
     }
 }
 
