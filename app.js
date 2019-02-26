@@ -73,9 +73,14 @@ class SpaceInvadersGame {
         // Draw on canvas <-- Luke
     }
 
+    isColliding(object1, object2) {
+        
+    }
+
     checkForCollisions() {
         for (bullet of this.bullets)
-
+            
+            // TODO:  Break loops if impacts occurs
             for (rocks of this.rocks) {
                 if (this.isColliding(bullet, rock)) {
                     damage rock
