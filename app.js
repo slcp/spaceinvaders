@@ -74,53 +74,60 @@ class SpaceInvadersGame {
     }
 
     checkForCollisions() {
-        for bullets
+        for (bullet of this.bullets)
 
-            for rocks
-                if bullet and rock in same place
+            for (rocks of this.rocks) {
+                if (this.isColliding(bullet, rock)) {
                     damage rock
                     remove bullet
-                if bullet and rock not in same place
+                } else {
                     do nothing
-            end for rocks
+                }
+            }
 
-            for badShips
-                if bullet and badShip in same place
-                    if enemy bullet
+            for (badShip of this.badShips) {
+                if (this.isColliding(bullet, badShip)) {
+                    if (bullet.owner instanceof BadShip) {
                         do nothing
-                    if player bullet
+                    } else if (bullet.owner instanceof GoodShip) {
                         update score
                         remove ship
                         remove bullet
                         enable shoot addEventListener
-                if bullet and badShip not in same place
+                    }
+                } else {
                     do nothing
-            end for badShips
+                }
+            }
 
-            for goodShips
-                if bullet and goodShip in same place
-                    if enemy bullet
+            for (goodShip of goodShips) {
+                if (this.isColliding(bullet, goodShip)) {
+                    if (bullet.owner instanceof BadShip) {
                         remove ship
                         lose life
                         check if game is over
-                    if player bullet
-                        do nothing - this shouldn't be possible
-                if bullet and goodShip not in same place
+                    } else if (bullet.owner instanceof GoodShip) {
+                        do nothing - this shouldnt be possible
+                    }
+                } else {
                     do nothing
-            end for goodShips
+                }
+                    
+            }
+        
+        }
 
-        end for bullets
+        for (badShip of this.badShips) {
 
-        for badShips
-
-            for rocks
-                if rock and badShip in same position
+            for (rock of this.rocks) {
+                if (this.isColliding(badShip, rock)) {
                     damage rock precisely where positions intersect
-                if rock and badShip not in same place
+                } else {
                     do nothing
-            end for rocks
+                }
+            }
 
-        end for badShips
+        }
     }
 
     // Draw a grid of badShips
