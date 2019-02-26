@@ -1,6 +1,6 @@
 class Moveable {
     constructor() {
-        this.position = {x: 0, y: 0};
+        this.position = {x: 0, y: 0}; // If drawn this is likely going to be a collection of shapes and positions
     }
 
     move(deltaX, deltaY) {
@@ -74,7 +74,7 @@ class SpaceInvadersGame {
     }
 
     isColliding(object1, object2) {
-        
+        // Implementation depends on how objects have been drawn
     }
 
     checkForCollisions() {
