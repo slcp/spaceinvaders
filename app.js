@@ -118,7 +118,3 @@ class SpaceInvadersGame {
         }
     }
 }
-
-game = new SpaceInvadersGame();
-
-game.runGame();
