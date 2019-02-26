@@ -45,6 +45,7 @@ class SpaceInvadersGame {
     constructor(canvasId) {
         this.canvasElement = document.getElementById(canvasId);
         this.canvasWidth = 100;
+        this.frameRate = 2;
         this.badShipRows = 4;
         this.badShipsPerRow = 4;
         this.badShips = { // Object of rows, each row is an array of badShips
@@ -62,6 +63,12 @@ class SpaceInvadersGame {
 
     startGame() {
         this.players = [new GoodShip];
+    }
+
+    runGame() {
+        // Arrow funciton here will ensure this is bound to SpaceInvadersGame and not window.
+        setInterval(() => {
+        }, 1000/this.frameRate);
     }
 
     moveObject(object, deltaX, deltaY) {
@@ -110,8 +117,8 @@ class SpaceInvadersGame {
             }
         }
     }
-
-    checkForCollisions() {
-
-    }
 }
+
+game = new SpaceInvadersGame();
+
+game.runGame();
