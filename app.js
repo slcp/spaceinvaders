@@ -79,7 +79,8 @@ class Rock {
 
 class SpaceInvadersGame {
     constructor(canvasId) {
-        this.canvasElement = canvasId;
+        this.canvasElement = document.getElementById(canvasId);
+        this.canvasContext = this.canvasElement.getContext("2d");
         this.canvasWidth = 1000;
         this.badShipRows = 4;
         this.badShipsPerRow = 4;
@@ -97,6 +98,7 @@ class SpaceInvadersGame {
 
     moveObject(object, deltaX, deltaY) {
         object.move(deltaX, deltaY, this.canvasElement);
+        console.log(this.canvasElement);
        // this.drawObject(object);
     }
 
