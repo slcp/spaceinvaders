@@ -73,6 +73,56 @@ class SpaceInvadersGame {
         // Draw on canvas <-- Luke
     }
 
+    checkForCollisions() {
+        for bullets
+
+            for rocks
+                if bullet and rock in same place
+                    damage rock
+                    remove bullet
+                if bullet and rock not in same place
+                    do nothing
+            end for rocks
+
+            for badShips
+                if bullet and badShip in same place
+                    if enemy bullet
+                        do nothing
+                    if player bullet
+                        update score
+                        remove ship
+                        remove bullet
+                        enable shoot addEventListener
+                if bullet and badShip not in same place
+                    do nothing
+            end for badShips
+
+            for goodShips
+                if bullet and goodShip in same place
+                    if enemy bullet
+                        remove ship
+                        lose life
+                        check if game is over
+                    if player bullet
+                        do nothing - this shouldn't be possible
+                if bullet and goodShip not in same place
+                    do nothing
+            end for goodShips
+
+        end for bullets
+
+        for badShips
+
+            for rocks
+                if rock and badShip in same position
+                    damage rock precisely where positions intersect
+                if rock and badShip not in same place
+                    do nothing
+            end for rocks
+
+        end for badShips
+    }
+
     // Draw a grid of badShips
     initialiseBadShips() {
         for (i = 0; i < this.badShipRows; i++) { // Loop for number of rows required
