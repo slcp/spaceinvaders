@@ -1,0 +1,1 @@
+canvas = document.getElementById('space-invaders');
