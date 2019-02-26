@@ -42,7 +42,7 @@ class Rock {
 }
 
 class SpaceInvadersGame {
-    constructorn(canvasId) {
+    constructor(canvasId) {
         this.canvasElement = document.getElementById(canvasId);
         this.canvasWidth = 100;
         this.badShipRows = 4;
