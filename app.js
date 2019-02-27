@@ -26,6 +26,10 @@ class Moveable {
             context.fillRect(shape.x, shape.y, shape.width, shape.height);
         }
     }
+
+    isAtExtremity() {
+        
+    }
 }
 
 class Ship extends Moveable {
