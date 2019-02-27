@@ -1,5 +1,3 @@
-let canvas = document.getElementById('space-invaders');
-let context = canvas.getContext("2d");
-
-let game = new SpaceInvadersGame(context);
-game.initialiseBadShips();
+let game = new SpaceInvadersGame('space-invaders');
+game.newGame();
+game.moveBadShips();
