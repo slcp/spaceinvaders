@@ -23,12 +23,9 @@ class Moveable {
 
         // Draw in new position and update positiong
         for (let shape of this.shapes) {
+            context.fillStyle = '#21c521';
             context.fillRect(shape.x, shape.y, shape.width, shape.height);
         }
-    }
-
-    isAtExtremity() {
-        
     }
 }
 
@@ -39,6 +36,25 @@ class Ship extends Moveable {
         this.bulletInPlay = false;
         this.width = 20; // TODO: static currently to test if it initialiseBadShips works
         this.height = 20; // TODO: static currently to test if it initialiseBadShips works
+    }
+
+    isAtExtremity(direction) {
+        let xValues = '';
+        let xValue = '';
+
+        switch(direction) {
+            case 'left':
+                xValues = this.shapes.map(shape => shape.x);
+                xValue = Math.floor(...xValues);
+                return (xValue <= 0);
+            case 'right':
+                xValues = this.shapes.map(shape => shape.x + shape.width);
+                xValue = Math.max(...xValues);
+                return (xValue >= 300);
+            default:
+                return 'fail';
+        }
+        
     }
 }
 
@@ -99,6 +115,7 @@ class SpaceInvadersGame {
         this.canvasWidth = 1000;
         this.badShipRows = 5;
         this.badShipsPerRow = 5;
+        this.badShipDirection= '';
         this.badShips = [];
         this.rocks = [];
     }
@@ -210,20 +227,20 @@ class SpaceInvadersGame {
             let firstShip = row[0];
             let lastShip = row[row.length-1];
             let maxShipHeight = 40; //Math.max(row.map(ship => ship.height));
-            let deltaX = 0;
-            let deltaY = 0;
 
             // Ships have hit left edge of canvas, deltaX needs to be +1
-            if (true) {
-                deltaX = 5;
-                deltaY = 0 // maxShipHeight+5;
+            if (firstShip.isAtExtremity('left')) {
+                this.badShipDirection = true;
             // Ships have hit right side of canvas, deltaX needs to be -1
-            } else if (lastShip.isAtExtremity()) {
-                deltaX = -1;
-                deltaY = maxShipHeight+5;
+            } else if (lastShip.isAtExtremity('right')) {
+                this.badShipDirection = false;
             }
 
+            let deltaX = this.badShipDirection ? 5 : -5;
+            let deltaY = 0;
+
             for (let ship of row) {
+                console.log(deltaX);
                 this.moveObject(ship, deltaX, deltaY);
                 this.drawObject(ship);
             }
