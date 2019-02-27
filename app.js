@@ -6,6 +6,7 @@ class Moveable {
         this.height = 0; // TODO: static currently to test if it initialiseBadShips works
     }
 
+    // Update internal x y values
     move(deltaX, deltaY) {
         for (let shape of this.shapes) {
             shape.oldX = shape.x;
@@ -21,7 +22,7 @@ class Moveable {
             context.clearRect(shape.oldX, shape.oldY, shape.width, shape.height);
         }
 
-        // Draw in new position and update positiong
+        // Draw in new position
         for (let shape of this.shapes) {
             context.fillStyle = '#21c521';
             context.fillRect(shape.x, shape.y, shape.width, shape.height);
@@ -298,6 +299,18 @@ class SpaceInvadersGame {
                 console.log(deltaX);
                 this.moveObject(ship, deltaX, deltaY);
                 this.drawObject(ship);
+            }
+        }
+    }
+
+    moveBullets() {
+        for (bullet of this.bullets) {
+            if (bullet.owner instanceof BadShip) {
+                his.moveObject(bullet, 0, 5);
+            } else if (bullet.owner instanceof GoodShip) {
+                this.moveObject(bullet, 0, -5);
+            } else {
+                // destroy bullet - this bullet has an invalid owner
             }
         }
     }
