@@ -3,10 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
+    <link rel="stylesheet" href="style.css">
+    <title>Space Invaders</title>
 </head>
+
 <body>
+    <canvas id="game-canvas" style='border: 1px solid; width:800px; height: 600px;'></canvas>
     <div class="wrap">
         <header> Space Invaders</header>
         <div class="game-wrapper">
@@ -16,11 +18,15 @@
                 <h2>You've won the game</h2>
                 <button class="btn" onclick="window.location.reload()"> Restart </button>
             </div>
+        <div class="game-over">
+                <h1> GAME OVER</h1>
+                <h2>You've lost the game</h2>
+                <button class="btn" onclick="window.location.reload()"> Restart </button>
+            </div>
         </div>
         <footer> Left/Right keys to move </footer>
     </div>
-    
-<script> src="app.js" </script>
+<script src="app.js"></script>
 
 </body>
 </html>
