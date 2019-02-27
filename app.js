@@ -139,8 +139,8 @@ class SpaceInvadersGame {
         this.canvasContext = this.canvasElement.getContext("2d");
         this.frameRate = 2;
         this.canvasWidth = 1000;
-        this.badShipRows = 5;
-        this.badShipsPerRow = 5;
+        this.badShipRows = 3;
+        this.badShipsPerRow = 10;
         this.badShipDirection= '';
         this.badShips = [];
         this.rocks = [];
