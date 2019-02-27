@@ -137,7 +137,7 @@ class SpaceInvadersGame {
     constructor(canvasId) {
         this.canvasElement = document.getElementById(canvasId);
         this.canvasContext = this.canvasElement.getContext("2d");
-        this.frameRate = 2;
+        this.frameRate = 3;
         this.canvasWidth = 1000;
         this.badShipRows = 3;
         this.badShipsPerRow = 10;
@@ -150,16 +150,16 @@ class SpaceInvadersGame {
         this.initialiseBadShips();
         this.players = [new GoodShip];
         this.initialiseGoodShip(this.players[0]);
-        console.log(this.canvasContext);
     }
 
     startGame() {
-
+        this.runGame();
     }
 
     runGame() {
         // Arrow funciton here will ensure this is bound to SpaceInvadersGame and not window.
         setInterval(() => {
+            this.moveBadShips();
         }, 1000/this.frameRate);
     }
 
