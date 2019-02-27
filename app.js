@@ -1,11 +1,21 @@
 class Moveable {
     constructor() {
         this.position = {x: 0, y: 0}; // If drawn this is likely going to be a collection of shapes and positions
+        this.shapes = [];
     }
 
-    move(deltaX, deltaY) {
-        // Redrawing canvas
-        // Update this.position
+    move(deltaX, deltaY, canvas) {
+        // Clear existing draw of object
+        for (let shape of this.shapes) {
+            context.clearRect(shape.x, shape.y, shape.width, shape.height);
+        }
+
+        // Draw in new position and update positiong
+        for (let shape of this.shapes) {
+            context.fillRect(shape.x+deltaX, shape.y+deltaY, shape.width, shape.height);
+            shape.x += deltaX;
+            shape.y += deltaY;
+        }
     }
 }
 
@@ -28,6 +38,32 @@ class GoodShip extends Ship {
 class BadShip extends Ship {
     constructor() {
         super();
+        this.shapes = [
+            {
+                x: 5,
+                y: 10,
+                width: 15,
+                height: 5
+            },
+            {
+                x: 10,
+                y: 5,
+                width: 5,
+                height: 5
+            },
+            {
+                x: 5,
+                y: 15,
+                width: 5,
+                height: 5
+            },
+            {
+                x: 15,
+                y: 15,
+                width: 5,
+                height: 5
+            }
+        ];
     }
 }
 
@@ -45,16 +81,12 @@ class Rock {
 class SpaceInvadersGame {
     constructor(canvasId) {
         this.canvasElement = document.getElementById(canvasId);
-        this.canvasWidth = 100;
+        this.canvasContext = this.canvasElement.getContext("2d");
         this.frameRate = 2;
+        this.canvasWidth = 1000;
         this.badShipRows = 4;
         this.badShipsPerRow = 4;
-        this.badShips = { // Object of rows, each row is an array of badShips
-            0: [
-
-            ]
-
-        };
+        this.badShips = [];
         this.rocks = [];
     }
 
@@ -73,8 +105,9 @@ class SpaceInvadersGame {
     }
 
     moveObject(object, deltaX, deltaY) {
-        object.move(deltaX, deltaY);
-        this.drawObject(object);
+        object.move(deltaX, deltaY, this.canvasElement);
+        console.log(this.canvasElement);
+       // this.drawObject(object);
     }
 
     drawObject() {
@@ -145,11 +178,11 @@ class SpaceInvadersGame {
 
     // Draw a grid of badShips
     initialiseBadShips() {
-        for (i = 0; i < this.badShipRows; i++) { // Loop for number of rows required
-            for (j = 0; j < this.badShipsPerRow; j ++) { // Loop for ships required on each row
-                newShip = new BadShip;
+        for (let i = 0; i < this.badShipRows; i++) { // Loop for number of rows required
+            for (let j = 0; j < this.badShipsPerRow; j ++) { // Loop for ships required on each row
+                let newShip = new BadShip;
                 this.moveObject(newShip, (newShip.width*j)+5, (newShip.height*i)+5); // For initialise delta is set relative to 0, 0. newShip.width/height*j/i should offset from the previous ship and produce a gutter
-                this.badShip[i] = []; // Initialise array
+                this.badShips[i] = []; // Initialise array
                 this.badShips[i].push(newShip);
             }
             

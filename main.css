@@ -1,0 +1,8 @@
+* {
+    box-sizing: border-box;
+}
+
+#space-invaders {
+    width: 600px;
+    height: 600px;
+}
