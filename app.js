@@ -1,6 +1,6 @@
 class Moveable {
     constructor() {
-        this.position = {x: 0, y: 0};
+        this.position = {x: 0, y: 0}; // If drawn this is likely going to be a collection of shapes and positions
     }
 
     move(deltaX, deltaY) {
@@ -72,6 +72,68 @@ class SpaceInvadersGame {
 
     drawObject() {
         // Draw on canvas <-- Luke
+    }
+
+    isColliding(object1, object2) {
+        // Implementation depends on how objects have been drawn
+    }
+
+    checkForCollisions() {
+        for (bullet of this.bullets)
+            
+            // TODO:  Break loops if impacts occurs
+            for (rocks of this.rocks) {
+                if (this.isColliding(bullet, rock)) {
+                    damage rock
+                    remove bullet
+                } else {
+                    do nothing
+                }
+            }
+
+            for (badShip of this.badShips) {
+                if (this.isColliding(bullet, badShip)) {
+                    if (bullet.owner instanceof BadShip) {
+                        do nothing
+                    } else if (bullet.owner instanceof GoodShip) {
+                        update score
+                        remove ship
+                        remove bullet
+                        enable shoot addEventListener
+                    }
+                } else {
+                    do nothing
+                }
+            }
+
+            for (goodShip of goodShips) {
+                if (this.isColliding(bullet, goodShip)) {
+                    if (bullet.owner instanceof BadShip) {
+                        remove ship
+                        lose life
+                        check if game is over
+                    } else if (bullet.owner instanceof GoodShip) {
+                        do nothing - this shouldnt be possible
+                    }
+                } else {
+                    do nothing
+                }
+                    
+            }
+        
+        }
+
+        for (badShip of this.badShips) {
+
+            for (rock of this.rocks) {
+                if (this.isColliding(badShip, rock)) {
+                    damage rock precisely where positions intersect
+                } else {
+                    do nothing
+                }
+            }
+
+        }
     }
 
     // Draw a grid of badShips
