@@ -1,3 +1,6 @@
 let game = new SpaceInvadersGame('space-invaders');
 game.newGame();
-game.moveBadShips();
+setInterval(() => {
+    console.log('moving');
+    game.moveBadShips();
+}, 1000);

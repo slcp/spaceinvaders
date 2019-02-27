@@ -6,7 +6,7 @@ class Moveable {
         this.height = 0; // TODO: static currently to test if it initialiseBadShips works
     }
 
-    move(deltaX, deltaY, ) {
+    move(deltaX, deltaY) {
         for (let shape of this.shapes) {
             shape.oldX = shape.x;
             shape.oldY = shape.y;
@@ -94,12 +94,10 @@ class SpaceInvadersGame {
         this.frameRate = 2;
         this.canvasWidth = 1000;
         this.badShipRows = 5;
-        this.badShipsPerRow = 15;
+        this.badShipsPerRow = 5;
         this.badShips = [];
         this.rocks = [];
     }
-
-    
 
     newGame() {
         this.initialiseBadShips();
@@ -121,15 +119,16 @@ class SpaceInvadersGame {
        // this.drawObject(object);
     }
 
-    drawObject() {
-        // Draw on canvas <-- Luke
+    drawObject(object) {
+        let canvasContext = this.canvasContext
+        object.draw(canvasContext);
     }
 
     isColliding(object1, object2) {
         // Implementation depends on how objects have been drawn
     }
 
-    checkForCollisions() {
+    /*checkForCollisions() {
         for (bullet of this.bullets)
             
             // TODO:  Break loops if impacts occurs
@@ -185,16 +184,16 @@ class SpaceInvadersGame {
             }
 
         }
-    }
+}*/
 
     // Draw a grid of badShips
     initialiseBadShips() {
         for (let i = 0; i < this.badShipRows; i++) { // Loop for number of rows required
+            this.badShips[i] = []; // Initialise row in array
             for (let j = 0; j < this.badShipsPerRow; j ++) { // Loop for ships required on each row
                 let newShip = new BadShip;
                 this.moveObject(newShip, (newShip.width*j)+5, (newShip.height*i)+5); // For initialise delta is set relative to 0, 0. newShip.width/height*j/i should offset from the previous ship and produce a gutter
                 newShip.draw(this.canvasContext);
-                this.badShips[i] = []; // Initialise array
                 this.badShips[i].push(newShip);
             }
             
@@ -206,22 +205,23 @@ class SpaceInvadersGame {
         for (let row of this.badShips) {
             let firstShip = row[0];
             let lastShip = row[row.length-1];
-            let maxShipHeight = Math.max(row.map(ship => ship.height));
+            let maxShipHeight = 40; //Math.max(row.map(ship => ship.height));
             let deltaX = 0;
             let deltaY = 0;
 
             // Ships have hit left edge of canvas, deltaX needs to be +1
-            if (firstShip.position.x === 0) {
-                deltaX = 1;
-                deltaY = maxShipHeight+5;
+            if (true) {
+                deltaX = 5;
+                deltaY = 0 // maxShipHeight+5;
             // Ships have hit right side of canvas, deltaX needs to be -1
-            } else if (lastShip.position.x === this.canvasWidth) {
+            } else if (lastShip.isAtExtremity()) {
                 deltaX = -1;
                 deltaY = maxShipHeight+5;
             }
 
             for (let ship of row) {
                 this.moveObject(ship, deltaX, deltaY);
+                this.drawObject(ship);
             }
         }
     }
