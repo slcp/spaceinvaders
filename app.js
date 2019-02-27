@@ -174,8 +174,29 @@ class SpaceInvadersGame {
         object.draw(canvasContext);
     }
 
+    testCollision() {
+        let testShip = new GoodShip;
+        this.moveObject(testShip, 0, 125);
+        this.drawObject(testShip);
+        this.isColliding(testShip, this.players[0]);
+    }
+
     isColliding(object1, object2) {
-        // Implementation depends on how objects have been drawn
+        let colliding = false;
+
+        for (let i = 0; i < object1.shapes.length; i++) {
+            for (let j = 0; j < object2.shapes.length; j++) {
+                colliding = !(
+                    object1.shapes[i].x > (object2.shapes[j].x + object2.shapes[j].width) || 
+                    (object1.shapes[i].x + object1.shapes[i].width) < object2.shapes[j].x || 
+                    object1.shapes[i].y > (object2.shapes[j].y + object2.shapes[j].height) ||
+                    (object1.shapes[i].y + object1.shapes[i].height) <  object2.shapes[j].y
+                );
+                
+                if (colliding) { break; }
+            }
+            if (colliding) { break; }
+        }
     }
 
     /*checkForCollisions() {
