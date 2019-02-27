@@ -61,6 +61,32 @@ class Ship extends Moveable {
 class GoodShip extends Ship {
     constructor() {
         super();
+        this.shapes = [
+            {
+                x: 5,
+                y: 10,
+                width: 15,
+                height: 5
+            },
+            {
+                x: 10,
+                y: 5,
+                width: 5,
+                height: 5
+            },
+            {
+                x: 5,
+                y: 15,
+                width: 5,
+                height: 5
+            },
+            {
+                x: 15,
+                y: 15,
+                width: 5,
+                height: 5
+            }
+        ];
     }
 }
 
@@ -122,10 +148,13 @@ class SpaceInvadersGame {
 
     newGame() {
         this.initialiseBadShips();
+        this.players = [new GoodShip];
+        this.initialiseGoodShip(this.players[0]);
+        console.log(this.canvasContext);
     }
 
     startGame() {
-        this.players = [new GoodShip];
+
     }
 
     runGame() {
@@ -219,6 +248,11 @@ class SpaceInvadersGame {
             }
             
         }
+    }
+
+    initialiseGoodShip(goodShip) {
+        this.moveObject(goodShip, 0, 125);
+        this.drawObject(goodShip);
     }
 
     // This currently just moves ships right --> TODO: hit edge of canvas and come back
