@@ -41,6 +41,10 @@ class Rock {
 
 }
 
+const key_code_left = 37;
+const key_code_right = 39;
+const key_code_space = 32;
+
 class SpaceInvadersGame {
     constructorn(canvasId) {
         this.canvasElement = document.getElementById(canvasId);
@@ -49,10 +53,7 @@ class SpaceInvadersGame {
         this.badShipRows = 4;
         this.badShipsPerRow = 4;
         this.badShips = { // Object of rows, each row is an array of badShips
-            0: [
-
-            ]
-
+            0: []
         };
         this.rocks = [];
     }
@@ -69,6 +70,27 @@ class SpaceInvadersGame {
     drawObject() {
         // Draw on canvas <-- Luke
     }
+    
+    onkeydown(e){
+        console.log(e.keyCode === key_code_left)
+        let gShip = new GoodShip 
+        if(e.keyCode === key_code_left){
+            console.log("left")
+            this.moveObject(gShip, 5, 0) -= 5;
+            const $player = document.querySelector(".player")
+            console.log($player)
+            setPosition($player, game_state.playerX, game_state.playerY);
+            
+        } else if (e.keyCode === key_code_right){
+            console.log("right")
+            this.moveObject(gShip, 5, 0) += 5;
+            const $player = document.querySelector(".player");
+            console.log($player)
+            setPosition($player, game_state.playerX, game_state.playerY);
+        }
+    }
+
+    
 
     // Draw a grid of badShips
     initialiseBadShips() {
@@ -108,6 +130,7 @@ class SpaceInvadersGame {
         }
     }
 
+    
     checkForCollisions() {
 
     }
