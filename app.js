@@ -23,7 +23,7 @@ class Moveable {
 
         // Draw in new position and update positiong
         for (let shape of this.shapes) {
-            context.fillStyle = '#21c521';
+            context.fillStyle = 'white';
             context.fillRect(shape.x, shape.y, shape.width, shape.height);
         }
     }
@@ -34,8 +34,8 @@ class Ship extends Moveable {
         super();
         this.bullet = '';
         this.bulletInPlay = false;
-        this.width = 20; // TODO: static currently to test if it initialiseBadShips works
-        this.height = 20; // TODO: static currently to test if it initialiseBadShips works
+        this.width = 30; // TODO: static currently to test if it initialiseBadShips works
+        this.height = 25; // TODO: static currently to test if it initialiseBadShips works
     }
 
     isAtExtremity(direction) {
@@ -140,7 +140,7 @@ class SpaceInvadersGame {
         this.frameRate = 2;
         this.canvasWidth = 1000;
         this.badShipRows = 3;
-        this.badShipsPerRow = 10;
+        this.badShipsPerRow = 7;
         this.badShipDirection= '';
         this.badShips = [];
         this.rocks = [];
