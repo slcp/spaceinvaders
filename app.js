@@ -34,7 +34,7 @@ class Ship extends Moveable {
         super();
         this.bullet = '';
         this.bulletInPlay = false;
-        this.width = 30; // TODO: static currently to test if it initialiseBadShips works
+        this.width = 25; // TODO: static currently to test if it initialiseBadShips works
         this.height = 25; // TODO: static currently to test if it initialiseBadShips works
     }
 
@@ -242,7 +242,7 @@ class SpaceInvadersGame {
             this.badShips[i] = []; // Initialise row in array
             for (let j = 0; j < this.badShipsPerRow; j ++) { // Loop for ships required on each row
                 let newShip = new BadShip;
-                this.moveObject(newShip, (newShip.width*j)+5, (newShip.height*i)+5); // For initialise delta is set relative to 0, 0. newShip.width/height*j/i should offset from the previous ship and produce a gutter
+                this.moveObject(newShip, (newShip.width*j + 5), (newShip.height*i + 5)); // For initialise delta is set relative to 0, 0. newShip.width/height*j/i should offset from the previous ship and produce a gutter
                 newShip.draw(this.canvasContext);
                 this.badShips[i].push(newShip);
             }
