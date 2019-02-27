@@ -15,6 +15,15 @@ class Moveable {
         }   
     }
 
+    getRandomColor() {
+        let letters = '0123456789ABCDEF';
+        let color = '#';
+        for (let i = 0; i < 6; i++) {
+          color += letters[Math.floor(Math.random() * 16)];
+        }
+        return color;
+      }
+
     draw(context) {
         // Clear existing draw of object
         for (let shape of this.shapes) {
@@ -23,7 +32,7 @@ class Moveable {
 
         // Draw in new position and update positiong
         for (let shape of this.shapes) {
-            context.fillStyle = '#21c521';
+            context.fillStyle = this.getRandomColor();
             context.fillRect(shape.x, shape.y, shape.width, shape.height);
         }
     }
