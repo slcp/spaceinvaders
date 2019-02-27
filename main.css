@@ -1,11 +1,13 @@
-@import url('https://fonts.googleapis.com/css?family=Russo+One');
+@import url('https://fonts.googleapis.com/css?family=Orbitron:400,700');
+
 
 
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Russo One', sans-serif;
+    font-family: 'Orbitron', sans-serif;
+    user-select: none; 
 }
 
 body {
@@ -17,9 +19,54 @@ body {
 }
 
 .game-title {
-    font-size: 3.5rem;
-    margin: 1rem;
+    font-size: 5.5rem;
+    font-weight: 700;
+    margin: 2rem;
     color: #21c521;
-    letter-spacing: .2rem;
+    letter-spacing: 1rem;
     text-transform: uppercase;
+}
+
+.game {
+    position: relative;
+}
+
+canvas:focus {
+    outline: none;
+}
+
+.scoreboard {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 75px;
+    width: 250px;
+    background: black;
+    position: absolute;
+    left: 64.6%;
+    border: solid 3px gray;
+}
+
+.score-label {
+    color: #21c521;
+    font-size: 1.4rem;
+}
+
+.lives {
+    display: flex;
+    justify-content: flex-end;
+    padding: 1rem;
+    align-items: center;
+    height: 75px;
+    width: 350px;
+    background: black;
+    position: absolute;
+    border: solid 3px gray;
+    font-size: 2.5rem;
+}
+
+.score {
+    color: #21c521;
+    font-size: 2.5rem;
+    margin-left: 1rem;
 }
