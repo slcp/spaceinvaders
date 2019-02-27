@@ -4,11 +4,11 @@ function draw() {
     
     // bad ship recetangle placeholder
     ctx.fillStyle = 'white';
-    ctx.fillRect(10, 10, 75, 50);
+    ctx.fillRect(10, 10, 50, 25);
     
     // good ship rectangle placeholder
     ctx.fillStyle = '#21c521';
-    ctx.fillRect(350, 500, 100, 75);
+    ctx.fillRect(325, 350, 50, 25);
 }
 
 draw();

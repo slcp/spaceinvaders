@@ -10,9 +10,18 @@
 <body>
     <h1 class='game-title'>Space Invaders</h1>
 
-    <canvas id="game-canvas" width='800' height='600' style='background: black; border: solid 3px grey'>
-    Your browser does not support the HTML5 canvas tag.
-    </canvas>
+    <div class='game'>
+        <canvas tabindex='1' id="game-canvas" width='700' height='450' style='background: black; border: solid 3px grey'>
+        Your browser does not support the HTML5 canvas tag.
+        </canvas>
+        <div class='lives'>
+            💚 💚 💚 💚
+        </div>
+        <div class='scoreboard'>
+            <span class='score-label'>score: </span>
+            <span class='score'>0</span>
+        </div>
+    </div>
 
 
 
