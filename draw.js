@@ -1,4 +1,4 @@
-let game = new SpaceInvadersGame('space-invaders');
+let game = new SpaceInvadersGame('game-canvas');
 game.newGame();
 setInterval(() => {
     game.moveBadShips();
