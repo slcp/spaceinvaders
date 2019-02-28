@@ -150,7 +150,6 @@ class SpaceInvadersGame {
         this.initialiseBadShips();
         this.players = [new GoodShip];
         this.initialiseGoodShip(this.players[0]);
-        console.log(this.canvasContext);
     }
 
     startGame() {
@@ -274,7 +273,6 @@ class SpaceInvadersGame {
             let deltaY = 0;
 
             for (let ship of row) {
-                console.log(deltaX);
                 this.moveObject(ship, deltaX, deltaY);
                 this.drawObject(ship);
             }
