@@ -119,7 +119,7 @@ class BadShip extends Ship {
             },
             {
                 x: 10,
-                y: 5,
+                y: 7,
                 width: 5,
                 height: 5,
                 color: 'white'
