@@ -182,10 +182,12 @@ class SpaceInvadersGame {
         // Arrow funciton here will ensure this is bound to SpaceInvadersGame and not window.
         setInterval(() => {
             this.moveBadShips();
+            this.checkForCollisions();
         }, 1000/this.frameRate);
         
         setInterval(() => {
             this.moveBullets();
+            this.checkForCollisions();
         }, 1000/100);
     }
 
@@ -212,7 +214,7 @@ class SpaceInvadersGame {
 
         for (let i = 0; i < object1.shapes.length; i++) {
             for (let j = 0; j < object2.shapes.length; j++) {
-                colliding = !(
+                return colliding = !(
                     object1.shapes[i].x > (object2.shapes[j].x + object2.shapes[j].width) || 
                     (object1.shapes[i].x + object1.shapes[i].width) < object2.shapes[j].x || 
                     object1.shapes[i].y > (object2.shapes[j].y + object2.shapes[j].height) ||
@@ -225,63 +227,87 @@ class SpaceInvadersGame {
         }
     }
 
-    /*checkForCollisions() {
-        for (bullet of this.bullets)
+    checkForCollisions() {
+        for (let bullet of this.bullets) {
+            let collision = false;
             
             // TODO:  Break loops if impacts occurs
-            for (rocks of this.rocks) {
+            for (let rock of this.rocks) {
                 if (this.isColliding(bullet, rock)) {
-                    damage rock
-                    remove bullet
+                    console.log('bullet + rock colliding');
+                    // damage rock
+                    // remove bullet
+                    collision = true;
+                    break;
                 } else {
-                    do nothing
+                    // do nothing
                 }
             }
 
-            for (badShip of this.badShips) {
-                if (this.isColliding(bullet, badShip)) {
-                    if (bullet.owner instanceof BadShip) {
-                        do nothing
-                    } else if (bullet.owner instanceof GoodShip) {
-                        update score
-                        remove ship
-                        remove bullet
-                        enable shoot addEventListener
+            if (collision) { continue; }
+
+            for (let row of this.badShips) {
+                for (let badShip of row) {
+                    if (this.isColliding(bullet, badShip)) {
+                        if (bullet.owner instanceof BadShip) {
+                            console.log('badShip bullet + badShip colliding');
+                            // do nothing
+                        } else if (bullet.owner instanceof GoodShip) {
+                            console.log('goodShip bullet + badShip colliding');
+                            // update score
+                            // remove ship
+                            // remove bullet
+                            // enable shoot addEventListener
+                        }
+                        collision = true;
+                        break;
+                    } else {
+                        // do nothing
                     }
-                } else {
-                    do nothing
                 }
+                if (collision) { break; }
             }
 
-            for (goodShip of goodShips) {
+            if (collision) { continue; }
+
+            for (let goodShip of this.players) {
                 if (this.isColliding(bullet, goodShip)) {
                     if (bullet.owner instanceof BadShip) {
-                        remove ship
-                        lose life
-                        check if game is over
+                        console.log('badShip bullet + goodShip colliding');
+                        // remove ship
+                        // lose life
+                        // check if game is over
                     } else if (bullet.owner instanceof GoodShip) {
-                        do nothing - this shouldnt be possible
+                        console.log('goodShip bullet + goodShip colliding');
+                        // do nothing - this shouldnt be possible
                     }
+                    collision = true;
+                    break;
                 } else {
-                    do nothing
+                    // do nothing
                 }
                     
             }
-        
+
+            if (collision) { continue; }
+
         }
 
-        for (badShip of this.badShips) {
+        for (let row of this.badShips) {
+            for (let badShip of row) {
 
-            for (rock of this.rocks) {
-                if (this.isColliding(badShip, rock)) {
-                    damage rock precisely where positions intersect
-                } else {
-                    do nothing
+                for (let rock of this.rocks) {
+                    if (this.isColliding(badShip, rock)) {
+                        console.log('badShip bullet + rock colliding');
+                        // damage rock precisely where positions intersect
+                    } else {
+                        // do nothing
+                    }
                 }
-            }
 
+            }
         }
-}*/
+}
 
     // Draw a grid of badShips
     initialiseBadShips() {
@@ -298,7 +324,7 @@ class SpaceInvadersGame {
     }
 
     initialiseGoodShip(goodShip) {
-        this.moveObject(goodShip, 0, 125);
+        this.moveObject(goodShip, 65, 125);
         this.drawObject(goodShip);
     }
 
@@ -329,7 +355,6 @@ class SpaceInvadersGame {
             let deltaY = 0;
 
             for (let ship of row) {
-                console.log(deltaX);
                 this.moveObject(ship, deltaX, deltaY);
                 this.drawObject(ship);
             }
