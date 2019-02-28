@@ -20,8 +20,15 @@ class Moveable {
         this.isAtExtremity('right');
     }
 
-    draw(context) {
+    kill(context) {
         // Clear existing draw of object
+        for (let shape of this.shapes) {
+            context.clearRect(shape.x, shape.y, shape.width, shape.height);
+        }
+        
+    }
+
+    draw(context) {
         for (let shape of this.shapes) {
             context.clearRect(shape.oldX, shape.oldY, shape.width, shape.height);
         }
@@ -174,7 +181,7 @@ class SpaceInvadersGame {
         this.moveObject(bullet, 50, 125);
         this.drawObject(bullet);
         bullet = this.createBullet(this.badShips[0][0]);
-        this.moveObject(bullet, 70, 5);
+        this.moveObject(bullet, 70, 0);
         this.drawObject(bullet);
     }
 
@@ -202,6 +209,32 @@ class SpaceInvadersGame {
         object.draw(canvasContext);
     }
 
+    destroyObject(object) {
+        let canvasContext = this.canvasContext
+
+        if (object instanceof Rock) {
+            // This is harder depending on what is impacting rock, see Trello task
+        } else if (object instanceof Bullet) {
+            object.kill(canvasContext);
+            let bulletIndex = this.bullets.indexOf(object);
+            this.bullets.splice(bulletIndex, 1);
+        } else if (object instanceof BadShip) {
+            object.kill(canvasContext);
+            // Find badShip in this.badShips and remove
+            for (let i = 0; i < this.badShips.length; i++) {
+                if (this.badShips[i].indexOf(object) >= 0) {
+                    let badShipIndex = this.badShips[i].indexOf(object);
+                    this.badShips[i].splice(badShipIndex, 1);
+                    break;
+                }
+            }
+        } else if (object instanceof GoodShip) {
+            object.kill(canvasContext);
+            let goodShipIndex = this.players.indexOf(object);
+            this.players.splice(goodShipIndex, 1);
+        }
+    }
+
     testCollision() {
         let testShip = new GoodShip;
         this.moveObject(testShip, 0, 125);
@@ -220,8 +253,6 @@ class SpaceInvadersGame {
                     object1.shapes[i].y > (object2.shapes[j].y + object2.shapes[j].height) ||
                     (object1.shapes[i].y + object1.shapes[i].height) <  object2.shapes[j].y
                 );
-                
-                if (colliding) { break; }
             }
             if (colliding) { break; }
         }
@@ -234,7 +265,7 @@ class SpaceInvadersGame {
             // TODO:  Break loops if impacts occurs
             for (let rock of this.rocks) {
                 if (this.isColliding(bullet, rock)) {
-                    console.log('bullet + rock colliding');
+                    // bullet + rock colliding
                     // damage rock
                     // remove bullet
                     collision = true;
@@ -250,10 +281,12 @@ class SpaceInvadersGame {
                 for (let badShip of row) {
                     if (this.isColliding(bullet, badShip)) {
                         if (bullet.owner instanceof BadShip) {
-                            console.log('badShip bullet + badShip colliding');
+                            // badShip bullet + badShip colliding
                             // do nothing
                         } else if (bullet.owner instanceof GoodShip) {
-                            console.log('goodShip bullet + badShip colliding');
+                            // goodShip bullet + badShip colliding
+                            this.destroyObject(badShip);
+                            this.destroyObject(bullet);
                             // update score
                             // remove ship
                             // remove bullet
@@ -273,12 +306,14 @@ class SpaceInvadersGame {
             for (let goodShip of this.players) {
                 if (this.isColliding(bullet, goodShip)) {
                     if (bullet.owner instanceof BadShip) {
-                        console.log('badShip bullet + goodShip colliding');
+                        // badShip bullet + goodShip colliding
+                        this.destroyObject(goodShip);
+                        this.destroyObject(bullet);
                         // remove ship
                         // lose life
                         // check if game is over
                     } else if (bullet.owner instanceof GoodShip) {
-                        console.log('goodShip bullet + goodShip colliding');
+                        // goodShip bullet + goodShip colliding
                         // do nothing - this shouldnt be possible
                     }
                     collision = true;
@@ -298,7 +333,7 @@ class SpaceInvadersGame {
 
                 for (let rock of this.rocks) {
                     if (this.isColliding(badShip, rock)) {
-                        console.log('badShip bullet + rock colliding');
+                        // badShip bullet + rock colliding
                         // damage rock precisely where positions intersect
                     } else {
                         // do nothing
