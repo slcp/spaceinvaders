@@ -306,7 +306,7 @@ class SpaceInvadersGame {
     moveBullets() {
         for (bullet of this.bullets) {
             if (bullet.owner instanceof BadShip) {
-                his.moveObject(bullet, 0, 5);
+                this.moveObject(bullet, 0, 5);
             } else if (bullet.owner instanceof GoodShip) {
                 this.moveObject(bullet, 0, -5);
             } else {
