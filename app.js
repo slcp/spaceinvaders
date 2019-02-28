@@ -15,6 +15,11 @@ class Moveable {
         }   
     }
 
+    getShipColor() {
+        // gets random colour
+        return "#"+((1<<24)*Math.random()|0).toString(16);
+    }
+
     draw(context) {
         // Clear existing draw of object
         for (let shape of this.shapes) {
@@ -23,7 +28,7 @@ class Moveable {
 
         // Draw in new position and update positiong
         for (let shape of this.shapes) {
-            context.fillStyle = 'white';
+            context.fillStyle = shape.color ? this.getShipColor() : 'white';
             context.fillRect(shape.x, shape.y, shape.width, shape.height);
         }
     }
@@ -34,7 +39,7 @@ class Ship extends Moveable {
         super();
         this.bullet = '';
         this.bulletInPlay = false;
-        this.width = 25; // TODO: static currently to test if it initialiseBadShips works
+        this.width = 40; // TODO: static currently to test if it initialiseBadShips works
         this.height = 25; // TODO: static currently to test if it initialiseBadShips works
     }
 
@@ -87,6 +92,7 @@ class GoodShip extends Ship {
                 height: 5
             }
         ];
+        
     }
 }
 
@@ -98,25 +104,29 @@ class BadShip extends Ship {
                 x: 5,
                 y: 10,
                 width: 15,
-                height: 5
+                height: 5,
+                color: 'white'
             },
             {
                 x: 10,
                 y: 5,
                 width: 5,
-                height: 5
+                height: 5,
+                color: 'white'
             },
             {
                 x: 5,
                 y: 15,
                 width: 5,
-                height: 5
+                height: 5,
+                color: 'white'
             },
             {
                 x: 15,
                 y: 15,
                 width: 5,
-                height: 5
+                height: 5,
+                color: 'white'
             }
         ];
     }
@@ -140,7 +150,7 @@ class SpaceInvadersGame {
         this.frameRate = 2;
         this.canvasWidth = 1000;
         this.badShipRows = 3;
-        this.badShipsPerRow = 7;
+        this.badShipsPerRow = 5;
         this.badShipDirection= '';
         this.badShips = [];
         this.rocks = [];
@@ -260,7 +270,6 @@ class SpaceInvadersGame {
             let firstShip = row[0];
             let lastShip = row[row.length-1];
             let maxShipHeight = 40; //Math.max(row.map(ship => ship.height));
-
             // Ships have hit left edge of canvas, deltaX needs to be +1
             if (firstShip.isAtExtremity('left')) {
                 this.badShipDirection = true;
