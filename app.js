@@ -4,6 +4,7 @@ class Moveable {
         this.shapes = [];
         this.width = 0; // TODO: static currently to test if it initialiseBadShips works
         this.height = 0; // TODO: static currently to test if it initialiseBadShips works
+        this.lastExtremity = '';
     }
 
     // Update internal x y values
@@ -13,7 +14,10 @@ class Moveable {
             shape.oldY = shape.y;
             shape.x += deltaX;
             shape.y += deltaY;
-        }   
+        }
+        
+        this.isAtExtremity('left');
+        this.isAtExtremity('right');
     }
 
     draw(context) {
@@ -27,16 +31,6 @@ class Moveable {
             context.fillStyle = '#21c521';
             context.fillRect(shape.x, shape.y, shape.width, shape.height);
         }
-    }
-}
-
-class Ship extends Moveable {
-    constructor() {
-        super();
-        this.bullet = '';
-        this.bulletInPlay = false;
-        this.width = 20; // TODO: static currently to test if it initialiseBadShips works
-        this.height = 20; // TODO: static currently to test if it initialiseBadShips works
     }
 
     isAtExtremity(direction) {
@@ -57,6 +51,18 @@ class Ship extends Moveable {
         }
         
     }
+}
+
+class Ship extends Moveable {
+    constructor() {
+        super();
+        this.bullet = '';
+        this.bulletInPlay = false;
+        this.width = 20; // TODO: static currently to test if it initialiseBadShips works
+        this.height = 20; // TODO: static currently to test if it initialiseBadShips works
+    }
+
+    
 }
 
 class GoodShip extends Ship {
@@ -126,6 +132,14 @@ class BadShip extends Ship {
 class Bullet extends Moveable {
     constructor(owner) {
         super();
+        this.shapes = [
+            {
+                x: 10,
+                y: 5,
+                width: 2,
+                height: 7
+            },
+        ];
         this.owner = owner;
     }
 }
@@ -144,6 +158,7 @@ class SpaceInvadersGame {
         this.badShipsPerRow = 10;
         this.badShipDirection= '';
         this.badShips = [];
+        this.bullets =[];
         this.rocks = [];
     }
 
@@ -155,6 +170,12 @@ class SpaceInvadersGame {
 
     startGame() {
         this.runGame();
+        let bullet = this.createBullet(this.players[0]);
+        this.moveObject(bullet, 50, 125);
+        this.drawObject(bullet);
+        bullet = this.createBullet(this.badShips[0][0]);
+        this.moveObject(bullet, 70, 5);
+        this.drawObject(bullet);
     }
 
     runGame() {
@@ -162,6 +183,10 @@ class SpaceInvadersGame {
         setInterval(() => {
             this.moveBadShips();
         }, 1000/this.frameRate);
+        
+        setInterval(() => {
+            this.moveBullets();
+        }, 1000/100);
     }
 
     moveObject(object, deltaX, deltaY) {
@@ -277,6 +302,14 @@ class SpaceInvadersGame {
         this.drawObject(goodShip);
     }
 
+    createBullet(ship) {
+        let bullet = new Bullet;
+        bullet.owner = ship;
+        ship.bulletInPlay = true;
+        this.bullets.push(bullet);
+        return bullet;
+    }
+
     // This currently just moves ships right --> TODO: hit edge of canvas and come back
     moveBadShips() {
         for (let row of this.badShips) {
@@ -304,11 +337,13 @@ class SpaceInvadersGame {
     }
 
     moveBullets() {
-        for (bullet of this.bullets) {
+        for (let bullet of this.bullets) {
             if (bullet.owner instanceof BadShip) {
-                this.moveObject(bullet, 0, 5);
+                this.moveObject(bullet, 0, 1);
+                this.drawObject(bullet);
             } else if (bullet.owner instanceof GoodShip) {
-                this.moveObject(bullet, 0, -5);
+                this.moveObject(bullet, 0, -1);
+                this.drawObject(bullet);
             } else {
                 // destroy bullet - this bullet has an invalid owner
             }
