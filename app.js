@@ -94,6 +94,7 @@ class GoodShip extends Ship {
 
         const x = this
 
+<<<<<<< Updated upstream
         window.addEventListener('keydown', (event) => {
             if (event.keyCode === key_code_left){
                 x.move(-5, 0)
@@ -105,6 +106,19 @@ class GoodShip extends Ship {
                 console.log('RIGHT')
             }
         });
+=======
+window.addEventListener('keydown', (event) => {
+    if (event.keyCode === key_code_left){
+        x.move(-5, 0)
+        console.log(event)
+        console.log('left')
+    } else if (event.keyCode === key_code_right){
+        x.move(+5, 0)
+        console.log(event)
+        console.log('RIGHT')
+    }
+});
+>>>>>>> Stashed changes
     }
 }
 
