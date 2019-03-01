@@ -188,7 +188,7 @@ class SpaceInvadersGame {
     constructor(canvasId) {
         this.canvasElement = document.getElementById(canvasId);
         this.canvasContext = this.canvasElement.getContext("2d");
-        this.frameRate = 10;
+        this.frameRate = 25;
         this.canvasWidth = 1000;
         this.badShipRows = 3;
         this.badShipsPerRow = 10;
@@ -418,7 +418,7 @@ class SpaceInvadersGame {
                 this.badShipDirection = false;
             }
 
-            let deltaX = this.badShipDirection ? 5 : -5;
+            let deltaX = this.badShipDirection ? 2 : -2;
             let deltaY = 0;
 
             for (let ship of row) {
