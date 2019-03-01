@@ -361,7 +361,7 @@ class SpaceInvadersGame {
     }
 
     initialiseGoodShip(goodShip) {
-        this.moveObject(goodShip, 65, 125);
+        this.moveObject(goodShip, (this.canvasElement.width/2)-(goodShip.width/2), (this.canvasElement.height)-(goodShip.height+10));
         this.drawObject(goodShip);
     }
 
