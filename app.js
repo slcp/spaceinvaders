@@ -65,6 +65,7 @@ class Moveable {
 class Ship extends Moveable {
     constructor() {
         super();
+        this.game = game;
         this.bullet = '';
         this.bulletInPlay = false;
         this.width = 20; // TODO: static currently to test if it initialiseBadShips works
@@ -103,6 +104,23 @@ class GoodShip extends Ship {
                 height: 5
             }
         ];
+    }
+
+    addEventListeners() {
+        window.addEventListener('keydown', (event) => {
+            console.log(event);
+            if (event.code === 'Space'){
+                if (!this.bulletInPlay) {
+                    let bullet = this.game.createBullet(this);
+                    this.game.moveObject(bullet, 50, 125);
+                    this.game.drawObject(bullet);
+                }
+            } else if (event.code === 'ArrowLeft') {
+
+            } else if (event.code === 'ArrowRight') {
+
+            }
+        });
     }
 }
 
@@ -173,7 +191,7 @@ class SpaceInvadersGame {
 
     newGame() {
         this.initialiseBadShips();
-        this.players = [new GoodShip];
+        this.players = [new GoodShip(this)];
         this.initialiseGoodShip(this.players[0]);
     }
 
@@ -218,6 +236,8 @@ class SpaceInvadersGame {
             // This is harder depending on what is impacting rock, see Trello task
         } else if (object instanceof Bullet) {
             object.kill(canvasContext);
+            object.owner.bulletInPlay = false;
+            object.owner.bullet = '';
             let bulletIndex = this.bullets.indexOf(object);
             this.bullets.splice(bulletIndex, 1);
         } else if (object instanceof BadShip) {
@@ -238,7 +258,7 @@ class SpaceInvadersGame {
     }
 
     testCollision() {
-        let testShip = new GoodShip;
+        let testShip = new GoodShip(this);
         this.moveObject(testShip, 0, 125);
         this.drawObject(testShip);
         this.isColliding(testShip, this.players[0]);
@@ -351,7 +371,7 @@ class SpaceInvadersGame {
         for (let i = 0; i < this.badShipRows; i++) { // Loop for number of rows required
             this.badShips[i] = []; // Initialise row in array
             for (let j = 0; j < this.badShipsPerRow; j ++) { // Loop for ships required on each row
-                let newShip = new BadShip;
+                let newShip = new BadShip(this);
                 this.moveObject(newShip, (newShip.width*j)+5, (newShip.height*i)+5); // For initialise delta is set relative to 0, 0. newShip.width/height*j/i should offset from the previous ship and produce a gutter
                 newShip.draw(this.canvasContext);
                 this.badShips[i].push(newShip);
@@ -361,6 +381,7 @@ class SpaceInvadersGame {
     }
 
     initialiseGoodShip(goodShip) {
+        goodShip.addEventListeners();
         this.moveObject(goodShip, 65, 125);
         this.drawObject(goodShip);
     }
