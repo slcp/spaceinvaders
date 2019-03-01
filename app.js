@@ -15,9 +15,6 @@ class Moveable {
             shape.x += deltaX;
             shape.y += deltaY;
         }
-        
-        this.isAtExtremity('left');
-        this.isAtExtremity('right');
     }
 
     kill(context) {
@@ -42,21 +39,33 @@ class Moveable {
         }
     }
 
-    isAtExtremity(direction) {
-        let xValues = '';
-        let xValue = '';
+    isAtExtremity(direction, canvasElement) {
+        let Values = '';
+        let Value = '';
 
         switch(direction) {
             case 'left':
-                xValues = this.shapes.map(shape => shape.x);
-                xValue = Math.floor(...xValues);
-                return (xValue <= 0);
+                Values = this.shapes.map(shape => shape.x);
+                Value = Math.floor(...Values);
+                return (Value <= 0);
+
             case 'right':
-                xValues = this.shapes.map(shape => shape.x + shape.width);
-                xValue = Math.max(...xValues);
-                return (xValue >= 300);
+                Values = this.shapes.map(shape => shape.x + shape.width);
+                Value = Math.max(...Values);
+                return (Value >= canvasElement.width);
+
+            case 'top':
+                Values = this.shapes.map(shape => shape.y);
+                Value = Math.max(...Values);
+                return (Value <= 0);
+
+            case 'bottom':
+                Values = this.shapes.map(shape => shape.y + shape.height);
+                Value = Math.max(...Values);
+                return (Value >= canvasElement.height);
+
             default:
-                return 'fail';
+            break;
         }
         
     }
@@ -104,15 +113,15 @@ class GoodShip extends Ship {
                 height: 5
             }
         ];
+        this.shootTrigger = 'Space';
     }
 
     addEventListeners() {
         window.addEventListener('keydown', (event) => {
-            console.log(event);
-            if (event.code === 'Space'){
+            if (event.code === this.shootTrigger){
                 if (!this.bulletInPlay) {
                     let bullet = this.game.createBullet(this);
-                    this.game.moveObject(bullet, 50, 125);
+                    this.game.moveObject(bullet, Math.floor(...this.shapes.map(shape => shape.x)), Math.floor(...this.shapes.map(shape => shape.y)));
                     this.game.drawObject(bullet);
                 }
             } else if (event.code === 'ArrowLeft') {
@@ -179,7 +188,7 @@ class SpaceInvadersGame {
     constructor(canvasId) {
         this.canvasElement = document.getElementById(canvasId);
         this.canvasContext = this.canvasElement.getContext("2d");
-        this.frameRate = 3;
+        this.frameRate = 10;
         this.canvasWidth = 1000;
         this.badShipRows = 3;
         this.badShipsPerRow = 10;
@@ -197,12 +206,6 @@ class SpaceInvadersGame {
 
     startGame() {
         this.runGame();
-        let bullet = this.createBullet(this.players[0]);
-        this.moveObject(bullet, 50, 125);
-        this.drawObject(bullet);
-        bullet = this.createBullet(this.badShips[0][0]);
-        this.moveObject(bullet, 70, 0);
-        this.drawObject(bullet);
     }
 
     runGame() {
@@ -210,12 +213,13 @@ class SpaceInvadersGame {
         setInterval(() => {
             this.moveBadShips();
             this.checkForCollisions();
+            this.shootBadBullets();
         }, 1000/this.frameRate);
         
         setInterval(() => {
             this.moveBullets();
             this.checkForCollisions();
-        }, 1000/100);
+        }, 1000/(this.frameRate*75));
     }
 
     moveObject(object, deltaX, deltaY) {
@@ -348,6 +352,11 @@ class SpaceInvadersGame {
 
             if (collision) { continue; }
 
+            if (bullet.isAtExtremity('top', this.canvasElement) || bullet.isAtExtremity('bottom', this.canvasElement)) {
+                console.log('bullet outof field');
+                this.destroyObject(bullet);
+            }
+
         }
 
         for (let row of this.badShips) {
@@ -402,10 +411,10 @@ class SpaceInvadersGame {
             let maxShipHeight = 40; //Math.max(row.map(ship => ship.height));
 
             // Ships have hit left edge of canvas, deltaX needs to be +1
-            if (firstShip.isAtExtremity('left')) {
+            if (firstShip.isAtExtremity('left', this.canvasElement)) {
                 this.badShipDirection = true;
             // Ships have hit right side of canvas, deltaX needs to be -1
-            } else if (lastShip.isAtExtremity('right')) {
+            } else if (lastShip.isAtExtremity('right', this.canvasElement)) {
                 this.badShipDirection = false;
             }
 
@@ -431,5 +440,10 @@ class SpaceInvadersGame {
                 // destroy bullet - this bullet has an invalid owner
             }
         }
+    }
+
+    // shoot bullets from X random bad ships
+    shootBadBullets() {
+
     }
 }
