@@ -25,6 +25,8 @@ class Moveable {
         for (let shape of this.shapes) {
             context.clearRect(shape.x, shape.y, shape.width, shape.height);
         }
+
+        // No need to explicity destroy instance but ensure no references to it exist if it needs to be destroyed - garbage collection
         
     }
 
