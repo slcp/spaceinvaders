@@ -1,89 +1,220 @@
-// function draw() {
-//     // Cache a reference to the html element
-//     let canvas = document.getElementById('game-canvas');
-    
-//     // Set the drawing surface dimensions to match the canvas
-//     canvas.width = canvas.scrollWidth;
-//     canvas.height =  canvas.scrollHeight;
+class Moveable {
+    constructor() {
+        this.position = {x: 0, y: 0};
+    }
 
-//     // bad ship recetangle placeholder
-//     // ctx.fillStyle = 'white';
-//     // ctx.fillRect(10, 10, 75, 50);
+    move(deltaX, deltaY) {
+        for (let shape of this.shapes) {
+            shape.oldX = shape.x;
+            shape.oldY = shape.y;
+            shape.x += deltaX;
+            shape.y += deltaY;
+            console.log("moving")
+        }
+        
+        this.isAtExtremity('left');
+        this.isAtExtremity('right');
+    }
 
-//     //Get a reference to the 2nd drawing context /api
-//     let ctx = canvas.getContext('2d');
+    draw(context) {
+        // Clear existing draw of object
+        for (let shape of this.shapes) {
+            context.clearRect(shape.oldX, shape.oldY, shape.width, shape.height);
+        }
 
-//     // good ship rectangle placeholder
-//     // ctx.fillStyle = '#21c521';
-//     // ctx.fillRect(350, 500, 100, 75);
-//     var goodShip = new Image();
-//     goodShip.src = "./img/PNG/playerShip1_blue.png"
+        // Draw in new position
+        for (let shape of this.shapes) {
+            context.fillStyle = '#21c521';
+            context.fillRect(shape.x, shape.y, shape.width, shape.height);
+        }
+    }
 
-//     ctx.drawImage(goodShip, 20, 20, 300, 160)
-// }
+    isAtExtremity(direction) {
+        let xValues = '';
+        let xValue = '';
+
+        switch(direction) {
+            case 'left':
+                xValues = this.shapes.map(shape => shape.x);
+                xValue = Math.floor(...xValues);
+                return (xValue <= 0);
+            case 'right':
+                xValues = this.shapes.map(shape => shape.x + shape.width);
+                xValue = Math.max(...xValues);
+                return (xValue >= 300);
+            default:
+                return 'fail';
+        }
+        
+    }
+}
+
+class Ship extends Moveable {
+    constructor() {
+        super();
+        this.bullet = '';
+        this.bulletInPlay = false;
+        this.width = 7;
+        this.heightt = 5;
+    }
+}
+
+class GoodShip extends Ship {
+    constructor() {
+        super();
+        this.shapes = [
+            {
+                x: 5,
+                y: 10,
+                width: 15,
+                height: 5
+            },
+            {
+                x: 10,
+                y: 5,
+                width: 5,
+                height: 5
+            },
+            {
+                x: 5,
+                y: 15,
+                width: 5,
+                height: 5
+            },
+            {
+                x: 15,
+                y: 15,
+                width: 5,
+                height: 5
+            }
+        ];
+        const key_code_left = 37;
+        const key_code_right = 39;
+        const key_code_space = 32;
+
+        const x = this
+
+        window.addEventListener('keydown', (event) => {
+            if (event.keyCode === key_code_left){
+                x.move(-5, 0)
+                console.log(event)
+                console.log('left')
+            } else if (event.keyCode === key_code_right){
+                x.move(+5, 0)
+                console.log(event)
+                console.log('RIGHT')
+            }
+        });
+    }
+}
 
 
+class BadShip extends Ship {
+    constructor() {
+        super();
+    }
+}
+
+class Bullet extends Moveable {
+    constructor() {
+        super();
+    }
+}
+
+class Rock {
+
+}
 
 const key_code_left = 37;
 const key_code_right = 39;
 const key_code_space = 32;
-//Area of the game using width and hieght 
-const game_width = 800;
-const game_height = 600;
 
-//
-const game_state = {
-    playerX: 0,
-    playerY: 0
-}
+class SpaceInvadersGame {
+    constructorn(canvasId) {
+        this.canvasElement = document.getElementById(canvasId);
+        this.canvasWidth = 100;
+        this.players = [new GoodShip];
+        this.badShipRows = 4;
+        this.badShipsPerRow = 4;
+        this.badShips = { // Object of rows, each row is an array of badShips
+            0: []
+        };
+        this.rocks = [];
+    }
 
-function setPosition($el, x, y) {
-    $el.style.transform = `translate(${x}px), ${y}px`;
-}
+    newGame() {
+        this.initialiseBadShips();
+    }
 
-function createPlayer($container) {
-    game_state.playerX = game_width /2;
-    game_state.playerY = game_height - 50;
+    moveObject(object, deltaX, deltaY) {
+        object.move(deltaX, deltaY);
+        this.drawObject(object);
+    }
 
-    const $player = document.createElement("img");
-    $player.src = "./img/PNG/playerShip1_red.png";
-    $player.className = "player";
-    $container.appendChild($player);
-    setPosition($player, game_state.playerX, game_state.playerY);
-}
-// Init function initialize all entaties in the game both players and enemies
-function init() {
-    //Select the emlement that we would like to put our entaties in
-    const $container = document.querySelector(".game");
-    createPlayer($container);
-     
-}
+    drawObject() {
+        // Draw on canvas <-- Luke
+    }
+    
+    onkeydown(e){
+        let gShip = new GoodShip 
+        if(e.keyCode === key_code_left){
+            console.log("left")
+            this.moveObject(gShip, 5, 0) -= 5;
+            const $player = document.querySelector(".player")
+            console.log($player)
+            setPosition($player, game_state.playerX, game_state.playerY);
+            
+        } else if (e.keyCode === key_code_right){
+            console.log("right")
+            this.moveObject(gShip, 5, 0) += 5;
+            const $player = document.querySelector(".player");
+            console.log($player)
+            setPosition($player, game_state.playerX, game_state.playerY);
+        }
+    }
 
-function onkeydown(e){
-    console.log(e.keyCode === key_code_left)
-    if(e.keyCode === key_code_left){
-        console.log("left")
-        game_state.playerX -= 5;
-        const $player = document.querySelector(".player")
-        console.log($player)
-        setPosition($player, game_state.playerX, game_state.playerY);
-    } else if (e.keyCode === key_code_right){
-        console.log("right")
-        game_state.playerX += 5;
-        const $player = document.querySelector(".player");
-        console.log($player)
-        setPosition($player, game_state.playerX, game_state.playerY);
+    
+
+    // Draw a grid of badShips
+    initialiseBadShips() {
+        for (let i = 0; i < this.badShipRows; i++) { // Loop for number of rows required
+            for (let j = 0; j < this.badShipsPerRow; j ++) { // Loop for ships required on each row
+                newShip = new BadShip;
+                this.moveObject(newShip, (newShip.width*j)+5, (newShip.height*i)+5); // For initialise delta is set relative to 0, 0. newShip.width/height*j/i should offset from the previous ship and produce a gutter
+                this.badShip[i] = []; // Initialise array
+                this.badShips[i].push(newShip);
+            }
+            
+        }
+    }
+
+    // This currently just moves ships right --> TODO: hit edge of canvas and come back
+    moveBadShips() {
+        for (row of this.badShips) {
+            firstShip = row[0];
+            lastShip = row[row.length-1];
+            maxShipHeight = Math.max(row.map(ship => ship.height));
+            deltaX = 0;
+            deltaY = 0;
+
+            // Ships have hit left edge of canvas, deltaX needs to be +1
+            if (firstShip.position.x === 0) {
+                deltaX = 1;
+                deltaY = maxShipHeight+5;
+            // Ships have hit right side of canvas, deltaX needs to be -1
+            } else if (lastShip.position.x === this.canvasWidth) {
+                deltaX = -1;
+                deltaY = maxShipHeight+5;
+            }
+
+            for (ship of row) {
+                this.moveObject(ship, deltaX, deltaY);
+            }
+        }
+    }
+
+    
+    checkForCollisions() {
+
     }
 }
-
-// function onkeydown(e){
-//     console.log(e.keyCode === key_code_space)
-//     if (e.keyCode === key_code_space){
-//         console.log("firing")
-//         Movable.Bullet += 36;
-//     }
-// }
-
-// calling Init function
-init();
-window.addEventListener("keydown", onkeydown);
