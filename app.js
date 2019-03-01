@@ -4,8 +4,53 @@ class Moveable {
     }
 
     move(deltaX, deltaY) {
+<<<<<<< Updated upstream
         // Redrawing canvas
         // Update this.position
+=======
+        for (let shape of this.shapes) {
+            shape.oldX = shape.x;
+            shape.oldY = shape.y;
+            shape.x += deltaX;
+            shape.y += deltaY;
+            console.log("moving")
+        }
+        
+        this.isAtExtremity('left');
+        this.isAtExtremity('right');
+    }
+
+    draw(context) {
+        // Clear existing draw of object
+        for (let shape of this.shapes) {
+            context.clearRect(shape.oldX, shape.oldY, shape.width, shape.height);
+        }
+
+        // Draw in new position
+        for (let shape of this.shapes) {
+            context.fillStyle = '#21c521';
+            context.fillRect(shape.x, shape.y, shape.width, shape.height);
+        }
+    }
+
+    isAtExtremity(direction) {
+        let xValues = '';
+        let xValue = '';
+
+        switch(direction) {
+            case 'left':
+                xValues = this.shapes.map(shape => shape.x);
+                xValue = Math.floor(...xValues);
+                return (xValue <= 0);
+            case 'right':
+                xValues = this.shapes.map(shape => shape.x + shape.width);
+                xValue = Math.max(...xValues);
+                return (xValue >= 300);
+            default:
+                return 'fail';
+        }
+        
+>>>>>>> Stashed changes
     }
 }
 
@@ -22,8 +67,57 @@ class Ship extends Moveable {
 class GoodShip extends Ship {
     constructor() {
         super();
+<<<<<<< Updated upstream
+=======
+        this.shapes = [
+            {
+                x: 5,
+                y: 10,
+                width: 15,
+                height: 5
+            },
+            {
+                x: 10,
+                y: 5,
+                width: 5,
+                height: 5
+            },
+            {
+                x: 5,
+                y: 15,
+                width: 5,
+                height: 5
+            },
+            {
+                x: 15,
+                y: 15,
+                width: 5,
+                height: 5
+            }
+        ];
+        const key_code_left = 37;
+        const key_code_right = 39;
+        const key_code_space = 32;
+
+        const x = this
+
+window.addEventListener('keydown', (event) => {
+    if (event.keyCode === key_code_left){
+        x.move(-5, 0)
+        console.log(event)
+        console.log('left')
+    } else if (event.keyCode === key_code_right){
+        x.move(+5, 0)
+        console.log(event)
+        console.log('RIGHT')
+    }
+});
+>>>>>>> Stashed changes
     }
 }
+
+
+
 
 class BadShip extends Ship {
     constructor() {
