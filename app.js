@@ -376,24 +376,29 @@ class SpaceInvadersGame {
     // This currently just moves ships right --> TODO: hit edge of canvas and come back
     moveBadShips() {
         for (let row of this.badShips) {
-            let firstShip = row[0];
-            let lastShip = row[row.length-1];
-            let maxShipHeight = 40; //Math.max(row.map(ship => ship.height));
+            // As badShips are destroyed rows become empty.
+            if (row.length > 0) {
+                let firstShip = row[0];
+                let lastShip = row[row.length-1];
+                let maxShipHeight = 40; //Math.max(row.map(ship => ship.height));
 
-            // Ships have hit left edge of canvas, deltaX needs to be +1
-            if (firstShip.isAtExtremity('left')) {
-                this.badShipDirection = true;
-            // Ships have hit right side of canvas, deltaX needs to be -1
-            } else if (lastShip.isAtExtremity('right')) {
-                this.badShipDirection = false;
-            }
+                // Ships have hit left edge of canvas, deltaX needs to be +1
+                if (firstShip.isAtExtremity('left')) {
+                    this.badShipDirection = true;
+                // Ships have hit right side of canvas, deltaX needs to be -1
+                } else if (lastShip.isAtExtremity('right')) {
+                    this.badShipDirection = false;
+                }
 
-            let deltaX = this.badShipDirection ? 5 : -5;
-            let deltaY = 0;
+                let deltaX = this.badShipDirection ? 5 : -5;
+                let deltaY = 0;
 
-            for (let ship of row) {
-                this.moveObject(ship, deltaX, deltaY);
-                this.drawObject(ship);
+                for (let ship of row) {
+                    this.moveObject(ship, deltaX, deltaY);
+                    this.drawObject(ship);
+                }
+            } else {
+                this.badShips.splice(indexOf(row), 1);
             }
         }
     }
