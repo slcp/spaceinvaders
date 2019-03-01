@@ -4,10 +4,6 @@ class Moveable {
     }
 
     move(deltaX, deltaY) {
-<<<<<<< Updated upstream
-        // Redrawing canvas
-        // Update this.position
-=======
         for (let shape of this.shapes) {
             shape.oldX = shape.x;
             shape.oldY = shape.y;
@@ -50,7 +46,6 @@ class Moveable {
                 return 'fail';
         }
         
->>>>>>> Stashed changes
     }
 }
 
@@ -67,8 +62,6 @@ class Ship extends Moveable {
 class GoodShip extends Ship {
     constructor() {
         super();
-<<<<<<< Updated upstream
-=======
         this.shapes = [
             {
                 x: 5,
@@ -101,18 +94,17 @@ class GoodShip extends Ship {
 
         const x = this
 
-window.addEventListener('keydown', (event) => {
-    if (event.keyCode === key_code_left){
-        x.move(-5, 0)
-        console.log(event)
-        console.log('left')
-    } else if (event.keyCode === key_code_right){
-        x.move(+5, 0)
-        console.log(event)
-        console.log('RIGHT')
-    }
-});
->>>>>>> Stashed changes
+        window.addEventListener('keydown', (event) => {
+            if (event.keyCode === key_code_left){
+                x.move(-5, 0)
+                console.log(event)
+                console.log('left')
+            } else if (event.keyCode === key_code_right){
+                x.move(+5, 0)
+                console.log(event)
+                console.log('RIGHT')
+            }
+        });
     }
 }
 
@@ -188,8 +180,8 @@ class SpaceInvadersGame {
 
     // Draw a grid of badShips
     initialiseBadShips() {
-        for (i = 0; i < this.badShipRows; i++) { // Loop for number of rows required
-            for (j = 0; j < this.badShipsPerRow; j ++) { // Loop for ships required on each row
+        for (let i = 0; i < this.badShipRows; i++) { // Loop for number of rows required
+            for (let j = 0; j < this.badShipsPerRow; j ++) { // Loop for ships required on each row
                 newShip = new BadShip;
                 this.moveObject(newShip, (newShip.width*j)+5, (newShip.height*i)+5); // For initialise delta is set relative to 0, 0. newShip.width/height*j/i should offset from the previous ship and produce a gutter
                 this.badShip[i] = []; // Initialise array
