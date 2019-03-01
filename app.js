@@ -154,7 +154,17 @@ class Bullet extends Moveable {
 }
 
 class Rock {
-
+    constructor(owner) {
+        super();
+        this.shapes = [
+            {
+                x: 10,
+                y: 5,
+                width: 1,
+                height: 1
+            },
+        ];
+    }
 }
 
 class SpaceInvadersGame {
