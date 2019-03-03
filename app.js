@@ -512,8 +512,8 @@ class SpaceInvadersGame {
     // shoot bullets from X random bad ships
     shootBadBullets() {
         for (let i = 1; i <= this.badShipsFireRate; i++) {
-            let rowIndex = Math.floor(Math.random()*this.badShipRows);
-            let shipIndex = Math.floor(Math.random()*this.badShipsPerRow);
+            let rowIndex = Math.floor(Math.random()*this.badShips.length);
+            let shipIndex = Math.floor(Math.random()*this.badShips[rowIndex].length);
             let ship = this.badShips[rowIndex][shipIndex];
             // badShip may have already been destroyed
             if (ship) { ship.fireBullet(); }
