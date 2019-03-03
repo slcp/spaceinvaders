@@ -102,7 +102,14 @@ class Ship extends Moveable {
         this.height = 20; // TODO: static currently to test if it initialiseBadShips works
     }
 
-    
+    fireBullet() {
+        if (!this.bulletInPlay) {
+            let bullet = this.game.createBullet(this);
+            // This does not exactly identify bullet exit point and also needs to be more readable
+            this.game.moveObject(bullet, Math.floor(...this.shapes.map(shape => shape.x)), Math.floor(...this.shapes.map(shape => shape.y)));
+            this.game.drawObject(bullet);
+        }
+    }
 }
 
 class GoodShip extends Ship {
@@ -135,15 +142,6 @@ class GoodShip extends Ship {
             }
         ];
         this.shootTrigger = 'Space';
-    }
-
-    fireBullet() {
-        if (!this.bulletInPlay) {
-            let bullet = this.game.createBullet(this);
-            // This does not exactly identify bullet exit point and also needs to be more readable
-            this.game.moveObject(bullet, Math.floor(...this.shapes.map(shape => shape.x)), Math.floor(...this.shapes.map(shape => shape.y)));
-            this.game.drawObject(bullet);
-        }
     }
 
     addEventListeners() {
@@ -493,6 +491,8 @@ class SpaceInvadersGame {
 
     // shoot bullets from X random bad ships
     shootBadBullets() {
-
+        let index = Math.floor(Math.random()*this.badShipsPerRow);
+        let ship = this.badShips[this.badShipRows-1][index];
+        ship.fireBullet();
     }
 }
