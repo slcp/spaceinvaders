@@ -116,6 +116,15 @@ class GoodShip extends Ship {
         this.shootTrigger = 'Space';
     }
 
+    fireBullet() {
+        if (!this.bulletInPlay) {
+            let bullet = this.game.createBullet(this);
+            // This does not exactly identify bullet exit point and also needs to be more readable
+            this.game.moveObject(bullet, Math.floor(...this.shapes.map(shape => shape.x)), Math.floor(...this.shapes.map(shape => shape.y)));
+            this.game.drawObject(bullet);
+        }
+    }
+
     addEventListeners() {
         this.keysDown = [];
         this.intervals = [];
@@ -124,15 +133,9 @@ class GoodShip extends Ship {
             if (event.code === this.shootTrigger) {
                 // Set keydown until key up
                 this.keysDown[event.keyCode] = event.type == 'keydown'; // No longer needed?
+                this.fireBullet();
                 if (!this.intervals[event.keyCode]) {
-                    this.intervals[event.keyCode] = setInterval(() => {
-                        if (!this.bulletInPlay) {
-                            let bullet = this.game.createBullet(this);
-                            // This does not exactly identify bullet exit point and also needs to be more readable
-                            this.game.moveObject(bullet, Math.floor(...this.shapes.map(shape => shape.x)), Math.floor(...this.shapes.map(shape => shape.y)));
-                            this.game.drawObject(bullet);
-                        }
-                    }, 100);
+                    this.intervals[event.keyCode] = setInterval(() => this.fireBullet(), 100);
                 }
             } else if (event.code === 'ArrowLeft') {
                 this.keysDown[event.keyCode] = event.type == 'keydown';
