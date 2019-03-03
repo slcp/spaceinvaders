@@ -117,18 +117,53 @@ class GoodShip extends Ship {
     }
 
     addEventListeners() {
+        this.keysDown = [];
+        this.intervals = [];
         window.addEventListener('keydown', (event) => {
-            if (event.code === this.shootTrigger){
-                if (!this.bulletInPlay) {
-                    let bullet = this.game.createBullet(this);
-                    this.game.moveObject(bullet, Math.floor(...this.shapes.map(shape => shape.x)), Math.floor(...this.shapes.map(shape => shape.y)));
-                    this.game.drawObject(bullet);
+            event.preventDefault();
+            if (event.code === this.shootTrigger) {
+                // Set keydown until key up
+                this.keysDown[event.keyCode] = event.type == 'keydown'; // No longer needed?
+                if (!this.intervals[event.keyCode]) {
+                    this.intervals[event.keyCode] = setInterval(() => {
+                        if (!this.bulletInPlay) {
+                            let bullet = this.game.createBullet(this);
+                            // This does not exactly identify bullet exit point and also needs to be more readable
+                            this.game.moveObject(bullet, Math.floor(...this.shapes.map(shape => shape.x)), Math.floor(...this.shapes.map(shape => shape.y)));
+                            this.game.drawObject(bullet);
+                        }
+                    }, 100);
                 }
             } else if (event.code === 'ArrowLeft') {
-
+                this.keysDown[event.keyCode] = event.type == 'keydown';
+                if (!this.intervals[event.keyCode]) {
+                    this.intervals[event.keyCode] = setInterval(() => {
+                        if (this.keysDown[event.keyCode]) {
+                            this.game.moveObject(this, -1, 0);
+                            this.game.drawObject(this);
+                        }
+                    }, 1000/100);
+                }
             } else if (event.code === 'ArrowRight') {
-
+                this.keysDown[event.keyCode] = event.type == 'keydown';
+                if (!this.intervals[event.keyCode]) {
+                    this.intervals[event.keyCode] = setInterval(() => {
+                        if (this.keysDown[event.keyCode]) {
+                            this.game.moveObject(this,1, 0);
+                            this.game.drawObject(this);
+                        }
+                    }, 1000/100);
+                }
             }
+        });
+
+        window.addEventListener('keyup', (event) => {
+                event.preventDefault();
+                console.log(event.code);
+                // Key down will only become false on key up not when another key is keydowned
+                this.keysDown[event.keyCode] = event.type == 'keydown';
+                clearInterval(this.intervals[event.keyCode]);
+                this.intervals[event.keyCode] = false;
         });
     }
 }
