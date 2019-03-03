@@ -146,6 +146,14 @@ class GoodShip extends Ship {
         this.handleKeyUp = this.handleKeyUp.bind(this);
     }
 
+    destroy() {
+        for (let interval of this.intervals) {
+            clearInterval(interval);
+            removeEventListener('keydown', this.handleKeyDown);
+            removeEventListener('keyup', this.handleKeyUp);
+        }
+    }
+
     addEventListeners() {
         this.intervals = [];
         console.log('interval');
@@ -244,7 +252,7 @@ class SpaceInvadersGame {
         this.canvasWidth = 1000;
         this.badShipRows = 3;
         this.badShipsPerRow = 10;
-        this.badShipsFireRate = 3;
+        this.badShipsFireRate = 1;
         this.badShips = [];
         this.bullets =[];
         this.rocks = [];
@@ -269,10 +277,15 @@ class SpaceInvadersGame {
 
         setInterval(() => {
             this.shootBadBullets();
-        }, 500);
+        }, 1000);
         
         setInterval(() => {
-            this.moveBullets();
+            this.moveBullets('goodShip');
+            this.checkForCollisions();
+        }, 1000/(this.frameRate*10));
+
+        setInterval(() => {
+            this.moveBullets('badShip');
             this.checkForCollisions();
         }, 1000/(this.frameRate));
     }
@@ -311,9 +324,7 @@ class SpaceInvadersGame {
             }
         } else if (object instanceof GoodShip) {
             object.kill(canvasContext);
-            // remove event listers for ship actions
-            window.removeEventListener('keydown', object.handleKeyDown);
-            window.removeEventListener('keyup', object.handleKeyUp);
+            object.destroy();
             let goodShipIndex = this.players.indexOf(object);
             this.players.splice(goodShipIndex, 1);
         }
@@ -486,25 +497,24 @@ class SpaceInvadersGame {
         }
     }
 
-    moveBullets() {
+    moveBullets(ownerType) {
         for (let bullet of this.bullets) {
-            if (bullet.owner instanceof BadShip) {
+            if (ownerType == 'badShip' && bullet.owner instanceof BadShip) {
                 this.moveObject(bullet, 0, 1);
                 this.drawObject(bullet);
-            } else if (bullet.owner instanceof GoodShip) {
+            } else if (ownerType == 'goodShip' && bullet.owner instanceof GoodShip) {
                 this.moveObject(bullet, 0, -1);
                 this.drawObject(bullet);
-            } else {
-                // destroy bullet - this bullet has an invalid owner
             }
         }
     }
 
     // shoot bullets from X random bad ships
     shootBadBullets() {
-        for (let i = 0; i <= this.badShipsFireRate; i++) {
-            let index = Math.floor(Math.random()*this.badShipsPerRow);
-            let ship = this.badShips[this.badShipRows-1][index];
+        for (let i = 1; i <= this.badShipsFireRate; i++) {
+            let rowIndex = Math.floor(Math.random()*this.badShipRows);
+            let shipIndex = Math.floor(Math.random()*this.badShipsPerRow);
+            let ship = this.badShips[rowIndex][shipIndex];
             // badShip may have already been destroyed
             if (ship) { ship.fireBullet(); }
         }
