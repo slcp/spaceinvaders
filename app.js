@@ -252,7 +252,7 @@ class SpaceInvadersGame {
         this.canvasWidth = 1000;
         this.badShipRows = 3;
         this.badShipsPerRow = 10;
-        this.badShipsFireRate = 1;
+        this.badShipsBulletsPerSecond = 1;
         this.badShips = [];
         this.bullets =[];
         this.rocks = [];
@@ -511,7 +511,7 @@ class SpaceInvadersGame {
 
     // shoot bullets from X random bad ships
     shootBadBullets() {
-        for (let i = 1; i <= this.badShipsFireRate; i++) {
+        for (let i = 1; i <= this.badShipsBulletsPerSecond; i++) {
             let rowIndex = Math.floor(Math.random()*this.badShips.length);
             let shipIndex = Math.floor(Math.random()*this.badShips[rowIndex].length);
             let ship = this.badShips[rowIndex][shipIndex];
