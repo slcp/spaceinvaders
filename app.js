@@ -238,6 +238,7 @@ class SpaceInvadersGame {
         this.canvasWidth = 1000;
         this.badShipRows = 3;
         this.badShipsPerRow = 10;
+        this.badShipsFireRate = 3;
         this.badShips = [];
         this.bullets =[];
         this.rocks = [];
@@ -258,13 +259,16 @@ class SpaceInvadersGame {
         setInterval(() => {
             this.moveBadShips();
             this.checkForCollisions();
-            this.shootBadBullets();
         }, 1000/this.frameRate);
+
+        setInterval(() => {
+            this.shootBadBullets();
+        }, 500);
         
         setInterval(() => {
             this.moveBullets();
             this.checkForCollisions();
-        }, 1000/(this.frameRate*75));
+        }, 1000/(this.frameRate));
     }
 
     moveObject(object, deltaX, deltaY) {
@@ -342,18 +346,16 @@ class SpaceInvadersGame {
                     collision = true;
                     break;
                 } else {
-                    // do nothing
+                    continue;
                 }
             }
-
             if (collision) { continue; }
 
             for (let row of this.badShips) {
                 for (let badShip of row) {
                     if (this.isColliding(bullet, badShip)) {
                         if (bullet.owner instanceof BadShip) {
-                            // badShip bullet + badShip colliding
-                            // do nothing
+                            continue;
                         } else if (bullet.owner instanceof GoodShip) {
                             // goodShip bullet + badShip colliding
                             this.destroyObject(badShip);
@@ -366,7 +368,7 @@ class SpaceInvadersGame {
                         collision = true;
                         break;
                     } else {
-                        // do nothing
+                        continue;
                     }
                 }
                 if (collision) { break; }
@@ -378,19 +380,20 @@ class SpaceInvadersGame {
                 if (this.isColliding(bullet, goodShip)) {
                     if (bullet.owner instanceof BadShip) {
                         // badShip bullet + goodShip colliding
+                        console.log('collided');
                         this.destroyObject(goodShip);
                         this.destroyObject(bullet);
                         // remove ship
                         // lose life
                         // check if game is over
                     } else if (bullet.owner instanceof GoodShip) {
-                        // goodShip bullet + goodShip colliding
                         // do nothing - this shouldnt be possible
+                        continue;
                     }
                     collision = true;
                     break;
                 } else {
-                    // do nothing
+                    continue;
                 }
                     
             }
@@ -411,7 +414,7 @@ class SpaceInvadersGame {
                         // badShip bullet + rock colliding
                         // damage rock precisely where positions intersect
                     } else {
-                        // do nothing
+                        continue;
                     }
                 }
 
@@ -491,8 +494,10 @@ class SpaceInvadersGame {
 
     // shoot bullets from X random bad ships
     shootBadBullets() {
-        let index = Math.floor(Math.random()*this.badShipsPerRow);
-        let ship = this.badShips[this.badShipRows-1][index];
-        ship.fireBullet();
+        for (let i = 0; i <= this.badShipsFireRate; i++) {
+            let index = Math.floor(Math.random()*this.badShipsPerRow);
+            let ship = this.badShips[this.badShipRows-1][index];
+            if (ship) { ship.fireBullet(); }
+        }
     }
 }
