@@ -4,7 +4,6 @@ class Moveable {
         this.shapes = [];
         this.width = 0; // TODO: static currently to test if it initialiseBadShips works
         this.height = 0; // TODO: static currently to test if it initialiseBadShips works
-        this.lastExtremity = '';
     }
 
     // Update internal x y values
@@ -47,22 +46,44 @@ class Moveable {
             case 'left':
                 Values = this.shapes.map(shape => shape.x);
                 Value = Math.floor(...Values);
-                return (Value <= 0);
+                
+                if (Value <= 0) {
+                    this.lastExtremity = 'left';
+                    return true;
+                } else {
+                    return false;
+                };
 
             case 'right':
                 Values = this.shapes.map(shape => shape.x + shape.width);
                 Value = Math.max(...Values);
-                return (Value >= canvasElement.width);
+                
+                if (Value >= canvasElement.width) {
+                    this.lastExtremity = 'right';
+                    return true;
+                } else {
+                    return false;
+                }
 
             case 'top':
                 Values = this.shapes.map(shape => shape.y);
                 Value = Math.max(...Values);
-                return (Value <= 0);
+                if (Value <= 0) {
+                    this.lastExtremity = 'top';
+                    return true;
+                } else {
+                    return false;
+                }
 
             case 'bottom':
                 Values = this.shapes.map(shape => shape.y + shape.height);
                 Value = Math.max(...Values);
-                return (Value >= canvasElement.height);
+                if (Value >= canvasElement.height) {
+                    this.lastExtremity = 'bottom';
+                    return true;
+                } else {
+                    return false;
+                }
 
             default:
             break;
@@ -126,35 +147,27 @@ class GoodShip extends Ship {
     }
 
     addEventListeners() {
-        this.keysDown = [];
         this.intervals = [];
+
         window.addEventListener('keydown', (event) => {
             event.preventDefault();
             if (event.code === this.shootTrigger) {
-                // Set keydown until key up
-                this.keysDown[event.keyCode] = event.type == 'keydown'; // No longer needed?
                 this.fireBullet();
                 if (!this.intervals[event.keyCode]) {
                     this.intervals[event.keyCode] = setInterval(() => this.fireBullet(), 100);
                 }
             } else if (event.code === 'ArrowLeft') {
-                this.keysDown[event.keyCode] = event.type == 'keydown';
                 if (!this.intervals[event.keyCode]) {
                     this.intervals[event.keyCode] = setInterval(() => {
-                        if (this.keysDown[event.keyCode]) {
-                            this.game.moveObject(this, -1, 0);
-                            this.game.drawObject(this);
-                        }
+                        this.game.moveObject(this, -1, 0);
+                        this.game.drawObject(this);
                     }, 1000/100);
                 }
             } else if (event.code === 'ArrowRight') {
-                this.keysDown[event.keyCode] = event.type == 'keydown';
                 if (!this.intervals[event.keyCode]) {
                     this.intervals[event.keyCode] = setInterval(() => {
-                        if (this.keysDown[event.keyCode]) {
-                            this.game.moveObject(this,1, 0);
-                            this.game.drawObject(this);
-                        }
+                        this.game.moveObject(this,1, 0);
+                        this.game.drawObject(this);
                     }, 1000/100);
                 }
             }
@@ -162,8 +175,6 @@ class GoodShip extends Ship {
 
         window.addEventListener('keyup', (event) => {
                 event.preventDefault();
-                // Key down will only become false on key up not when another key is keydowned
-                this.keysDown[event.keyCode] = event.type == 'keydown';
                 clearInterval(this.intervals[event.keyCode]);
                 this.intervals[event.keyCode] = false;
         });
@@ -229,7 +240,6 @@ class SpaceInvadersGame {
         this.canvasWidth = 1000;
         this.badShipRows = 3;
         this.badShipsPerRow = 10;
-        this.badShipDirection= '';
         this.badShips = [];
         this.bullets =[];
         this.rocks = [];
