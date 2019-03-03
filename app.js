@@ -159,7 +159,6 @@ class GoodShip extends Ship {
 
         window.addEventListener('keyup', (event) => {
                 event.preventDefault();
-                console.log(event.code);
                 // Key down will only become false on key up not when another key is keydowned
                 this.keysDown[event.keyCode] = event.type == 'keydown';
                 clearInterval(this.intervals[event.keyCode]);
@@ -388,7 +387,6 @@ class SpaceInvadersGame {
             if (collision) { continue; }
 
             if (bullet.isAtExtremity('top', this.canvasElement) || bullet.isAtExtremity('bottom', this.canvasElement)) {
-                console.log('bullet outof field');
                 this.destroyObject(bullet);
             }
 
