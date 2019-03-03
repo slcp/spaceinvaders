@@ -426,7 +426,7 @@ class SpaceInvadersGame {
 
     initialiseGoodShip(goodShip) {
         goodShip.addEventListeners();
-        this.moveObject(goodShip, 65, 125);
+        this.moveObject(goodShip, (this.canvasElement.width/2)-(goodShip.width/2), (this.canvasElement.height)-(goodShip.height+10));
         this.drawObject(goodShip);
     }
 
@@ -441,24 +441,27 @@ class SpaceInvadersGame {
     // This currently just moves ships right --> TODO: hit edge of canvas and come back
     moveBadShips() {
         for (let row of this.badShips) {
-            let firstShip = row[0];
-            let lastShip = row[row.length-1];
-            let maxShipHeight = 40; //Math.max(row.map(ship => ship.height));
+            // As badShips are destroyed rows become empty.
+            if (row.length > 0) {
+                let firstShip = row[0];
+                let lastShip = row[row.length-1];
+                let maxShipHeight = 40; //Math.max(row.map(ship => ship.height));
 
-            // Ships have hit left edge of canvas, deltaX needs to be +1
-            if (firstShip.isAtExtremity('left', this.canvasElement)) {
-                this.badShipDirection = true;
-            // Ships have hit right side of canvas, deltaX needs to be -1
-            } else if (lastShip.isAtExtremity('right', this.canvasElement)) {
-                this.badShipDirection = false;
-            }
+                // Ships have hit left edge of canvas, deltaX needs to be +1
+                if (firstShip.isAtExtremity('left', this.canvasElement)) {
+                    this.badShipDirection = true;
+                // Ships have hit right side of canvas, deltaX needs to be -1
+                } else if (lastShip.isAtExtremity('right', this.canvasElement)) {
+                    this.badShipDirection = false;
+                }
 
-            let deltaX = this.badShipDirection ? 2 : -2;
-            let deltaY = 0;
+                let deltaX = this.badShipDirection ? 1 : -1;
+                let deltaY = 0;
 
-            for (let ship of row) {
-                this.moveObject(ship, deltaX, deltaY);
-                this.drawObject(ship);
+                for (let ship of row) {
+                    this.moveObject(ship, deltaX, deltaY);
+                    this.drawObject(ship);
+                }
             }
         }
     }
