@@ -241,7 +241,43 @@ class Bullet extends Moveable {
 }
 
 class Rock {
+    constructor(owner) {
+        this.shapes = [
+            {
+                x: 15,
+                y: 90,
+                width: 1,
+                height: 1
+            },
+        ];
+        this.width = 40;
+        this.height = 15;
+    }
 
+    getShapes() {
+        return {
+            shapes: [
+                {
+                    x: this.shapes[0].x,
+                    y: this.shapes[0].y,
+                    width: this.width,
+                    height: this.height
+                }
+            ]
+        };
+    }
+
+    draw(context) {
+        for (let i = 0; i < this.height; i++) {
+            for (let j = 0; j < this.width; j++) {
+                for (let shape of this.shapes) {
+                    context.fillStyle = '#21c521';
+                    context.fillRect(shape.x+j, shape.y+i, shape.width, shape.height);
+                }
+            }
+            
+        }
+    }
 }
 
 class SpaceInvadersGame {
@@ -262,6 +298,7 @@ class SpaceInvadersGame {
         this.initialiseBadShips();
         this.players = [new GoodShip(this)];
         this.initialiseGoodShip(this.players[0]);
+        this.initialiseRocks();
     }
 
     startGame() {
@@ -340,6 +377,13 @@ class SpaceInvadersGame {
     isColliding(object1, object2) {
         let colliding = false;
 
+        // Rock shapes are a bit different
+        if (object1 instanceof Rock) {
+            object1 = object1.getShapes();
+        } else if (object2 instanceof Rock) {
+            object2 = object2.getShapes();
+        }
+
         for (let i = 0; i < object1.shapes.length; i++) {
             for (let j = 0; j < object2.shapes.length; j++) {
                 return colliding = !(
@@ -362,7 +406,7 @@ class SpaceInvadersGame {
                 if (this.isColliding(bullet, rock)) {
                     // bullet + rock colliding
                     // damage rock
-                    // remove bullet
+                    this.destroyObject(bullet);
                     collision = true;
                     break;
                 } else {
@@ -459,6 +503,15 @@ class SpaceInvadersGame {
         goodShip.addEventListeners();
         this.moveObject(goodShip, (this.canvasElement.width/2)-(goodShip.width/2), (this.canvasElement.height)-(goodShip.height+10));
         this.drawObject(goodShip);
+    }
+
+    initialiseRocks() {
+        for (let i = 0; i < 3; i++) {
+            let rock = new Rock;
+            this.rocks.push(rock);
+            let canvas = this.canvasContext;
+            rock.draw(canvas);
+        }
     }
 
     createBullet(ship) {
