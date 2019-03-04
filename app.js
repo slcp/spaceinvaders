@@ -155,15 +155,28 @@ class Bullet extends Moveable {
 
 class Rock {
     constructor(owner) {
-        super();
         this.shapes = [
             {
-                x: 10,
-                y: 5,
+                x: 15,
+                y: 90,
                 width: 1,
                 height: 1
             },
         ];
+        this.width = 40;
+        this.height = 15;
+    }
+
+    draw(context) {
+        for (let i = 0; i < this.height; i++) { // Loop for number of rows required
+            for (let j = 0; j < this.width; j++) { // Loop for ships required on each row
+                for (let shape of this.shapes) {
+                    context.fillStyle = '#21c521';
+                    context.fillRect(shape.x+j, shape.y+i, shape.width, shape.height);
+                }
+            }
+            
+        }
     }
 }
 
@@ -185,10 +198,15 @@ class SpaceInvadersGame {
         this.initialiseBadShips();
         this.players = [new GoodShip];
         this.initialiseGoodShip(this.players[0]);
+        let rock = new Rock;
+        let canvas = this.canvasContext;
+        rock.draw(canvas);
     }
 
     startGame() {
         this.runGame();
+
+        // Test code to work with bullets
         let bullet = this.createBullet(this.players[0]);
         this.moveObject(bullet, 50, 125);
         this.drawObject(bullet);
