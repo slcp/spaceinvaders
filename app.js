@@ -14,7 +14,6 @@ class Moveable {
             shape.x += deltaX;
             shape.y += deltaY;
         }
-<<<<<<< HEAD
     }
 
     // randomColor() {
@@ -43,10 +42,6 @@ class Moveable {
             context.fillStyle = '#21c521';
             context.fillRect(shape.x, shape.y, shape.width, shape.height);
         }
-=======
-        this.isAtExtremity('left');
-        this.isAtExtremity('right');
->>>>>>> left and right eventlisteners working
     }
 
     kill(context) {
@@ -75,7 +70,6 @@ class Moveable {
 
         switch(direction) {
             case 'left':
-<<<<<<< HEAD
                 Values = this.shapes.map(shape => shape.x);
                 Value = Math.floor(...Values);
                 
@@ -117,17 +111,6 @@ class Moveable {
                     return false;
                 }
 
-=======
-                xValues = this.shapes.map(shape => shape.x);
-                xValue = Math.floor(...xValues);
-                // console.log(xValue <= 0)
-                return (xValue <= 0);
-            case 'right':
-                xValues = this.shapes.map(shape => shape.x + shape.width);
-                xValue = Math.max(...xValues);
-                
-                return (xValue >= 300);
->>>>>>> left and right eventlisteners working
             default:
             break;
         }
@@ -143,7 +126,6 @@ class Ship extends Moveable {
         this.width = 25; // TODO: static currently to test if it initialiseBadShips works
         this.height = 10; // TODO: static currently to test if it 
     }
-<<<<<<< HEAD
 
     fireBullet() {
         if (!this.bulletInPlay) {
@@ -154,9 +136,6 @@ class Ship extends Moveable {
         }
     }
 }
-=======
-};
->>>>>>> left and right eventlisteners working
 
 class GoodShip extends Ship {
     constructor(context) {
@@ -187,7 +166,6 @@ class GoodShip extends Ship {
                 height: 5
             }
         ];
-<<<<<<< HEAD
         this.shootTrigger = 'Space';
         // this.handleKeyDown = this.handleKeyDown.bind(this);
         // this.handleKeyUp = this.handleKeyUp.bind(this);
@@ -199,47 +177,6 @@ class GoodShip extends Ship {
             removeEventListener('keydown', this.handleKeyDown);
             removeEventListener('keyup', this.handleKeyUp);
         }*/
-=======
-
-    this.context = context;
-    
-    window.addEventListener('keydown', (event) => {
-        let key_code_left  =  37//left
-        let key_code_right = 39//right
-
-        
-        if (this.isAtExtremity('left')){
-            console.log("Get back")
-            this.move(0, 0)
-            this.draw(context)
-        } else { 
-            if (event.keyCode === key_code_left){
-                this.move( -5, 0)
-                this.draw(context)
-                console.log(this.isAtExtremity('left'))
-                // console.log(event)
-                console.log('left')
-                // console.log(this.xValue)
-            }
-        } 
-
-        if (this.isAtExtremity('right')){
-            this.move(0, 0)
-            this.draw(context)
-            // console.log(this.xValue)
-        } else {
-            if (event.keyCode === key_code_right){
-                this.move(+5, 0)
-                this.draw(context)
-                console.log(this.isAtExtremity('right'))
-                // console.log(event)
-                console.log('right')
-            // console.log(this.xValue)
-            }
-        } 
-        setTimeout(10)
-    });
->>>>>>> left and right eventlisteners working
     }
 }
 
@@ -308,7 +245,6 @@ class Bullet extends Moveable {
 }
 
 class Rock {
-<<<<<<< HEAD
     constructor(owner) {
         this.shapes = [
             {
@@ -346,8 +282,6 @@ class Rock {
             
         }
     }
-=======
->>>>>>> left and right eventlisteners working
 }
 
 class SpaceInvadersGame {
@@ -367,11 +301,7 @@ class SpaceInvadersGame {
 
     newGame() {
         this.initialiseBadShips();
-<<<<<<< HEAD
         this.players = [new GoodShip(this)];
-=======
-        this.players = [new GoodShip(this.canvasContext)];
->>>>>>> left and right eventlisteners working
         this.initialiseGoodShip(this.players[0]);
         this.initialiseRocks();
     }
@@ -385,17 +315,11 @@ class SpaceInvadersGame {
         setInterval(() => {
             this.moveBadShips();
             this.checkForCollisions();
-<<<<<<< HEAD
         }, 1000/this.frameRate);
 
         setInterval(() => {
             this.shootBadBullets();
         }, 1000);
-=======
-        }, 
-        
-        1000/this.frameRate);
->>>>>>> left and right eventlisteners working
         
         setInterval(() => {
             this.moveBullets('goodShip');
@@ -542,14 +466,11 @@ class SpaceInvadersGame {
                     
             }
             if (collision) { continue; }
-<<<<<<< HEAD
 
             if (bullet.isAtExtremity('top', this.canvasElement) || bullet.isAtExtremity('bottom', this.canvasElement)) {
                 this.destroyObject(bullet);
             }
 
-=======
->>>>>>> left and right eventlisteners working
         }
 
         for (let row of this.badShips) {
@@ -581,12 +502,8 @@ class SpaceInvadersGame {
     }
 
     initialiseGoodShip(goodShip) {
-<<<<<<< HEAD
         // goodShip.addEventListeners();
         this.moveObject(goodShip, (this.canvasElement.width/2)-(goodShip.width/2), (this.canvasElement.height)-(goodShip.height+10));
-=======
-        this.moveObject(goodShip, 150, 125);
->>>>>>> left and right eventlisteners working
         this.drawObject(goodShip);
     }
 
