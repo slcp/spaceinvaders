@@ -33,7 +33,15 @@ class Moveable {
     }
 
     draw(context) {
+        for (let shape of this.shapes) {
+            context.clearRect(shape.oldX, shape.oldY, shape.width, shape.height);
+        }
 
+        // Draw in new position
+        for (let shape of this.shapes) {
+            context.fillStyle = '#21c521';
+            context.fillRect(shape.x, shape.y, shape.width, shape.height);
+        }
     }
 
     kill(context) {
