@@ -141,17 +141,17 @@ class GoodShip extends Ship {
                 height: 5
             }
         ];
-        this.shootTrigger = 'Space';
-        this.handleKeyDown = this.handleKeyDown.bind(this);
-        this.handleKeyUp = this.handleKeyUp.bind(this);
+        //this.shootTrigger = 'Space';
+        //this.handleKeyDown = this.handleKeyDown.bind(this);
+        //this.handleKeyUp = this.handleKeyUp.bind(this);
     }
 
     destroy() {
-        for (let interval of this.intervals) {
+        /*for (let interval of this.intervals) {
             clearInterval(interval);
             removeEventListener('keydown', this.handleKeyDown);
             removeEventListener('keyup', this.handleKeyUp);
-        }
+        }*/
     }
 }
 
@@ -462,7 +462,7 @@ class SpaceInvadersGame {
     }
 
     initialiseGoodShip(goodShip) {
-        goodShip.addEventListeners();
+        //goodShip.addEventListeners();
         this.moveObject(goodShip, (this.canvasElement.width/2)-(goodShip.width/2), (this.canvasElement.height)-(goodShip.height+10));
         this.drawObject(goodShip);
     }
