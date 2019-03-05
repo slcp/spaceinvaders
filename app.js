@@ -419,6 +419,7 @@ class SpaceInvadersGame {
                 for (let badShip of row) {
                     if (this.isColliding(bullet, badShip)) {
                         if (bullet.owner instanceof BadShip) {
+                            badShip.draw(this.canvasContext);
                             continue;
                         } else if (bullet.owner instanceof GoodShip) {
                             // goodShip bullet + badShip colliding
@@ -451,6 +452,7 @@ class SpaceInvadersGame {
                         // check if game is over
                     } else if (bullet.owner instanceof GoodShip) {
                         // do nothing - this shouldnt be possible
+                        goodShip.draw(this.canvasContext);
                         continue;
                     }
                     collision = true;
