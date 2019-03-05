@@ -169,6 +169,44 @@ class GoodShip extends Ship {
         this.shootTrigger = 'Space';
         // this.handleKeyDown = this.handleKeyDown.bind(this);
         // this.handleKeyUp = this.handleKeyUp.bind(this);
+
+        window.addEventListener('keydown', (event) => {
+            let key_code_left  =  37//left
+            let key_code_right = 39//right
+    
+            
+            if (this.isAtExtremity('left')){
+                console.log("Get back")
+                this.move(0, 0)
+                this.draw(context)
+            } else { 
+                if (event.keyCode === key_code_left){
+                    this.move( -5, 0)
+                    this.draw(context)
+                    console.log(this.isAtExtremity('left'))
+                    // console.log(event)
+                    console.log('left')
+                    // console.log(this.xValue)
+                }
+            } 
+    
+            if (this.isAtExtremity('right')){
+                this.move(0, 0)
+                this.draw(context)
+                // console.log(this.xValue)
+            } else {
+                if (event.keyCode === key_code_right){
+                    this.move(+5, 0)
+                    this.draw(context)
+                    console.log(this.isAtExtremity('right'))
+                    // console.log(event)
+                    console.log('right')
+                // console.log(this.xValue)
+                }
+            } 
+            setTimeout(10)
+        });
+        }
     }
 
     destroy() {
