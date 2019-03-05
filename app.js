@@ -420,7 +420,7 @@ class SpaceInvadersGame {
                 } else {
                     continue;
                 }
-                    
+                
             }
 
             if (collision) { continue; }
