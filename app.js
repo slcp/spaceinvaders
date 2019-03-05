@@ -32,18 +32,6 @@ class Moveable {
     //     }
     // }
 
-    draw(context) {
-        for (let shape of this.shapes) {
-            context.clearRect(shape.oldX, shape.oldY, shape.width, shape.height);
-        }
-
-        // Draw in new position
-        for (let shape of this.shapes) {
-            context.fillStyle = '#21c521';
-            context.fillRect(shape.x, shape.y, shape.width, shape.height);
-        }
-    }
-
     kill(context) {
         // Clear existing draw of object
         for (let shape of this.shapes) {
@@ -239,42 +227,63 @@ class Bullet extends Moveable {
 }
 
 class Rock {
-    constructor(owner) {
-        this.shapes = [
-            {
-                x: 100,
-                y: 650,
-                width: 30,
-                height: 45
-            },
-        ];
-        this.width = 30;
-        this.height = 45;
+    constructor() {
+        this.shapes = this.getShapes();
+        this.particleWidth = 4;
+        this.particleHeight = 45;
     }
 
     getShapes() {
-        return {
-            shapes: [
-                {
-                    x: this.shapes[0].x,
-                    y: this.shapes[0].y,
-                    width: this.width,
-                    height: this.height
-                }
-            ]
-        };
+        let shapes = new Array;
+
+        for (let i = 0; i < 50; i++) {
+            shapes.push({
+                x: 100+i*4,
+                y: 650,
+                width: this.particleWidth,
+                height: this.particleHeight
+            });
+        }
+
+        return shapes;
     }
 
-    draw(context) {
-        for (let i = 0; i < this.height; i++) {
-            for (let j = 0; j < this.width; j++) {
-                for (let shape of this.shapes) {
-                    context.fillStyle = '#21c521';
-                    context.fillRect(shape.x+j, shape.y+i, shape.width, shape.height);
+    draw(offSet, whiteSpace, context) {
+        // Draw in new position
+        for (let shape of this.shapes) {
+            context.fillStyle = '#21c521';
+            context.fillRect(shape.x, shape.y, shape.width, shape.height);
+        }
+    }
+
+    takeDamageFrom(object, context) {
+        if (object instanceof Bullet) {
+            let damageTaken = false;
+            for (let shape of this.shapes) {
+                if (this.isColliding(shape, object)) {
+                    context.clearRect(shape.x, shape.y, shape.width, shape.height);
+                    this.shapes.splice(this.shapes.indexOf(shape), 1);
+                    damageTaken = true
                 }
             }
-            
+
+            return damageTaken;
         }
+    }
+
+    isColliding(shape, object2) {
+        let colliding = false;
+
+        for (let j = 0; j < object2.shapes.length; j++) {
+            if (!(
+                shape.x > (object2.shapes[j].x + object2.shapes[j].width) || 
+                (shape.x + shape.width) < object2.shapes[j].x || 
+                shape.y > (object2.shapes[j].y + object2.shapes[j].height) ||
+                (shape.y + shape.height) <  object2.shapes[j].y
+            )) { colliding = true; break; }
+        }
+
+        return colliding;
     }
 }
 
@@ -287,9 +296,11 @@ class SpaceInvadersGame {
         this.badShipRows = 5;
         this.badShipsPerRow = 7;
         this.badShipDirection= '';
-        this.badShipsBulletsPerSecond = 1;
+        this.badShipsBulletsPerSecond = 10;
         this.badShips = [];
         this.bullets =[];
+        this.numRocks = 3;
+        this.rockWhiteSpace = 1;
         this.rocks = [];
     }
 
@@ -341,6 +352,8 @@ class SpaceInvadersGame {
         let canvasContext = this.canvasContext
 
         if (object instanceof Rock) {
+            // let rockIndex = this.rocks.indexOf(object);
+            // this.rocks.splice(bulletIndex, 1);
             // This is harder depending on what is impacting rock, see Trello task
         } else if (object instanceof Bullet) {
             object.kill(canvasContext);
@@ -376,24 +389,22 @@ class SpaceInvadersGame {
     isColliding(object1, object2) {
         let colliding = false;
 
-        // Rock shapes are a bit different
-        if (object1 instanceof Rock) {
-            object1 = object1.getShapes();
-        } else if (object2 instanceof Rock) {
-            object2 = object2.getShapes();
-        }
+        let shapes1 = object1.shapes;
+        let shapes2 = object2.shapes;
 
-        for (let i = 0; i < object1.shapes.length; i++) {
-            for (let j = 0; j < object2.shapes.length; j++) {
-                return colliding = !(
-                    object1.shapes[i].x > (object2.shapes[j].x + object2.shapes[j].width) || 
-                    (object1.shapes[i].x + object1.shapes[i].width) < object2.shapes[j].x || 
-                    object1.shapes[i].y > (object2.shapes[j].y + object2.shapes[j].height) ||
-                    (object1.shapes[i].y + object1.shapes[i].height) <  object2.shapes[j].y
-                );
+        for (let i = 0; i < shapes1.length; i++) {
+            for (let j = 0; j < shapes2.length; j++) {
+                if (!(
+                    shapes1[i].x > (shapes2[j].x + shapes2[j].width) || 
+                    (shapes1[i].x + shapes1[i].width) < shapes2[j].x || 
+                    shapes1[i].y > (shapes2[j].y + shapes2[j].height) ||
+                    (shapes1[i].y + shapes1[i].height) < shapes2[j].y
+                )) { colliding = true;  break; }
             }
             if (colliding) { break; }
         }
+
+        return colliding;
     }
 
     checkForCollisions() {
@@ -404,8 +415,12 @@ class SpaceInvadersGame {
             for (let rock of this.rocks) {
                 if (this.isColliding(bullet, rock)) {
                     // bullet + rock colliding
-                    // damage rock
-                    this.destroyObject(bullet);
+                    console.log(rock);
+                    let passThrough = !rock.takeDamageFrom(bullet, this.canvasContext);
+                    if (!passThrough) {
+                        this.destroyObject(bullet);
+                    }
+                    console.log(rock);
                     collision = true;
                     break;
                 } else {
@@ -505,11 +520,11 @@ class SpaceInvadersGame {
     }
 
     initialiseRocks() {
-        for (let i = 0; i < 3; i++) {
+        for (let i = 0; i < this.numRocks; i++) {
             let rock = new Rock;
             this.rocks.push(rock);
             let canvas = this.canvasContext;
-            rock.draw(canvas);
+            rock.draw(i, this.rockWhiteSpace, canvas);
         }
     }
 
