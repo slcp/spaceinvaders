@@ -61,7 +61,7 @@ class Moveable {
 
         // Draw in new position
         for (let shape of this.shapes) {
-            context.fillStyle = shape.color ? this.changeShipColor() : '#21c521';
+            context.fillStyle = shape.color ? this.changeShipColor() : 'gold';
             context.fillRect(shape.x, shape.y, shape.width, shape.height);
         }
     }
@@ -86,7 +86,7 @@ class Moveable {
                 Values = this.shapes.map(shape => shape.x + shape.width);
                 Value = Math.max(...Values);
                 
-                if (Value >= canvasElement.width) {
+                if (Value >= this.game.canvasElement.width) {
                     this.lastExtremity = 'right';
                     return true;
                 } else {
@@ -170,8 +170,8 @@ class GoodShip extends Ship {
             }
         ];
         this.shootTrigger = 'Space';
-        this.handleKeyDown = this.handleKeyDown.bind(this);
-        this.handleKeyUp = this.handleKeyUp.bind(this);
+        // this.handleKeyDown = this.handleKeyDown.bind(this);
+        // this.handleKeyUp = this.handleKeyUp.bind(this);
     }
 
     destroy() {
@@ -486,7 +486,7 @@ class SpaceInvadersGame {
             this.badShips[i] = []; // Initialise row in array
             for (let j = 0; j < this.badShipsPerRow; j ++) { // Loop for ships required on each row
                 let newShip = new BadShip(this);
-                this.moveObject(newShip, (newShip.width*j)+5, (newShip.height*i)+5); // For initialise delta is set relative to 0, 0. newShip.width/height*j/i should offset from the previous ship and produce a gutter
+                this.moveObject(newShip, (newShip.width*j)+5, (newShip.height*i)+25); // For initialise delta is set relative to 0, 0. newShip.width/height*j/i should offset from the previous ship and produce a gutter
                 newShip.draw(this.canvasContext);
                 this.badShips[i].push(newShip);
             }
@@ -495,7 +495,7 @@ class SpaceInvadersGame {
     }
 
     initialiseGoodShip(goodShip) {
-        goodShip.addEventListeners();
+        // goodShip.addEventListeners();
         this.moveObject(goodShip, (this.canvasElement.width/2)-(goodShip.width/2), (this.canvasElement.height)-(goodShip.height+10));
         this.drawObject(goodShip);
     }
