@@ -146,30 +146,30 @@ class GoodShip extends Ship {
         this.shapes = [
             {
                 x: 20,
-                y: 40,
+                y: 5,
                 width: 60,
                 height: 20,
                 color: '#21c521'
             },
             {
-                x: 40,
-                y: 20,
-                width: 20,
-                height: 20,
+                x: 45,
+                y: -5,
+                width: 10,
+                height: 40,
                 color: '#21c521'
             },
             {
-                x: 20,
-                y: 55,
-                width: 20,
-                height: 20,
+                x: 30,
+                y: 15,
+                width: 10,
+                height: 30,
                 color: '#21c521'
             },
             {
                 x: 60,
-                y: 55,
-                width: 20,
-                height: 20,
+                y: 15,
+                width: 10,
+                height: 30,
                 color: '#21c521'
             }
         ];
@@ -313,7 +313,7 @@ class SpaceInvadersGame {
 
         setInterval(() => {
             this.shootBadBullets();
-        }, 1000);
+        }, 250);
         
         setInterval(() => {
             this.moveBullets('goodShip');
@@ -423,7 +423,14 @@ class SpaceInvadersGame {
                             // goodShip bullet + badShip colliding
                             this.destroyObject(badShip);
                             this.destroyObject(bullet);
+
                             // update score
+                            const score = document.querySelector('.score');
+                            // update score
+                            let scoreNum = parseInt(score.textContent);
+                            scoreNum += 10;
+                            score.textContent = scoreNum;
+                            
                             // remove ship
                             // remove bullet
                             // enable shoot addEventListener
@@ -443,10 +450,18 @@ class SpaceInvadersGame {
                 if (this.isColliding(bullet, goodShip)) {
                     if (bullet.owner instanceof BadShip) {
                         // badShip bullet + goodShip colliding
+                        const score = document.querySelector('.score');
+                        // const life = document.getElementsByClassName('life');
+                        // console.log(life);
+                        // update score
+                        score.textContent = 0;
                         this.destroyObject(goodShip);
                         this.destroyObject(bullet);
                         // remove ship
                         // lose life
+                        const life = document.getElementsByClassName('life');
+                        life[0].remove();
+
                         // check if game is over
                     } else if (bullet.owner instanceof GoodShip) {
                         // do nothing - this shouldnt be possible
@@ -500,7 +515,7 @@ class SpaceInvadersGame {
 
     initialiseGoodShip(goodShip) {
         // goodShip.addEventListeners();
-        console.log(this.canvasElement.width);
+        // console.log(this.canvasElement.width);
         this.moveObject(goodShip, (this.canvasElement.width/2)-(goodShip.width/2), (this.canvasElement.height)-(goodShip.height+10));
         this.drawObject(goodShip);
     }
