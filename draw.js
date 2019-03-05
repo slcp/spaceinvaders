@@ -1,3 +1,3 @@
-let game = new SpaceInvadersGame('game-canvas');
-game.newGame();
-game.startGame();
+ let game = new SpaceInvadersGame('game-canvas');
+ game.newGame();
+ game.startGame();
