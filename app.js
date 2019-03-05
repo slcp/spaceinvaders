@@ -153,44 +153,6 @@ class GoodShip extends Ship {
             removeEventListener('keyup', this.handleKeyUp);
         }
     }
-
-    addEventListeners() {
-        this.intervals = [];
-        console.log('interval');
-        window.addEventListener('keydown', this.handleKeyDown);
-
-        window.addEventListener('keyup', this.handleKeyUp);
-    }
-
-    handleKeyDown(event) {
-        event.preventDefault();
-        if (event.code === this.shootTrigger) {
-            this.fireBullet();
-            if (!this.intervals[event.keyCode]) {
-                this.intervals[event.keyCode] = setInterval(() => this.fireBullet(), 100);
-            }
-        } else if (event.code === 'ArrowLeft') {
-            if (!this.intervals[event.keyCode]) {
-                this.intervals[event.keyCode] = setInterval(() => {
-                    this.game.moveObject(this, -1, 0);
-                    this.game.drawObject(this);
-                }, 1000/100);
-            }
-        } else if (event.code === 'ArrowRight') {
-            if (!this.intervals[event.keyCode]) {
-                this.intervals[event.keyCode] = setInterval(() => {
-                    this.game.moveObject(this,1, 0);
-                    this.game.drawObject(this);
-                }, 1000/100);
-            }
-        }
-    };
-
-    handleKeyUp(event) {
-        event.preventDefault();
-        clearInterval(this.intervals[event.keyCode]);
-        this.intervals[event.keyCode] = false;
-    };
 }
 
 class BadShip extends Ship {
