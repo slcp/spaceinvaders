@@ -166,7 +166,7 @@ class GoodShip extends Ship {
                 height: 5
             }
         ];
-        this.shootTrigger = 'Space';
+        
         // this.handleKeyDown = this.handleKeyDown.bind(this);
         // this.handleKeyUp = this.handleKeyUp.bind(this);
 
@@ -175,14 +175,14 @@ class GoodShip extends Ship {
             let key_code_right = 39//right
     
             
-            if (this.isAtExtremity('left')){
+            if (this.isAtExtremity('left', this.game.canvasContext)){
                 console.log("Get back")
                 this.move(0, 0)
-                this.draw(context)
+                this.draw(this.game.canvasContext)
             } else { 
                 if (event.keyCode === key_code_left){
                     this.move( -5, 0)
-                    this.draw(context)
+                    this.draw(this.game.canvasContext)
                     console.log(this.isAtExtremity('left'))
                     // console.log(event)
                     console.log('left')
@@ -190,23 +190,33 @@ class GoodShip extends Ship {
                 }
             } 
     
-            if (this.isAtExtremity('right')){
+            if (this.isAtExtremity('right', this.game.canvasContext)){
                 this.move(0, 0)
-                this.draw(context)
+                this.draw(this.game.canvasContext)
                 // console.log(this.xValue)
             } else {
                 if (event.keyCode === key_code_right){
                     this.move(+5, 0)
-                    this.draw(context)
+                    this.draw(this.game.canvasContext)
                     console.log(this.isAtExtremity('right'))
                     // console.log(event)
                     console.log('right')
                 // console.log(this.xValue)
                 }
             } 
-            setTimeout(10)
-        });
-        }
+
+            window.addEventListener('keydown', (event) => {
+                console.log(event);
+                // let bullet = new Bullet;
+                    if (event.key === ' '){
+                        this.fireBullet()
+                        console.log(event)
+                        console.log('fire')
+                        // console.log(createBullet(this.ship))
+                        // this.createBullet(this.ship)
+                    }
+                });
+        })
     }
 
     destroy() {
@@ -265,21 +275,9 @@ class Bullet extends Moveable {
                 height: 7
             },
         ];
-
         this.owner = owner;
-
-        window.addEventListener('keydown', (event) => {
-            let key_code_space = 32//Space
-            // let bullet = new Bullet;
-                if (event.keyCode === key_code_space){
-                    console.log(event)
-                    console.log('fire')
-                    // console.log(createBullet(this.ship))
-                    // this.createBullet(this.ship)
-                   this.GoodShip.createBullet(GoodShip)
-                }
-            });
     }
+    
 }
 
 class Rock {
