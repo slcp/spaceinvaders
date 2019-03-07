@@ -132,7 +132,7 @@ class Ship extends Moveable {
             let bullet = this.game.createBullet(this);
             // This does not exactly identify bullet exit point and also needs to be more readable
             this.game.moveObject(bullet, Math.floor(...this.shapes.map(shape => shape.x)), Math.floor(...this.shapes.map(shape => shape.y)));
-            this.game.drawObject(bullet);
+            this.game.drawObject(bullegit t);
         }
     }
 }
@@ -171,49 +171,34 @@ class GoodShip extends Ship {
         // this.handleKeyUp = this.handleKeyUp.bind(this);
 
         window.addEventListener('keydown', (event) => {
-            let key_code_left  =  37//left
-            let key_code_right = 39//right
+            let key_code_left  =  37 // left
+            let key_code_right = 39 // right
     
             
             if (this.isAtExtremity('left', this.game.canvasContext)){
-                console.log("Get back")
                 this.move(0, 0)
                 this.draw(this.game.canvasContext)
             } else { 
                 if (event.keyCode === key_code_left){
                     this.move( -5, 0)
                     this.draw(this.game.canvasContext)
-                    console.log(this.isAtExtremity('left'))
-                    // console.log(event)
-                    console.log('left')
-                    // console.log(this.xValue)
                 }
             } 
     
             if (this.isAtExtremity('right', this.game.canvasContext)){
                 this.move(0, 0)
                 this.draw(this.game.canvasContext)
-                // console.log(this.xValue)
             } else {
                 if (event.keyCode === key_code_right){
                     this.move(+5, 0)
                     this.draw(this.game.canvasContext)
-                    console.log(this.isAtExtremity('right'))
-                    // console.log(event)
-                    console.log('right')
-                // console.log(this.xValue)
                 }
             } 
 
             window.addEventListener('keydown', (event) => {
-                console.log(event);
-                // let bullet = new Bullet;
                     if (event.key === ' '){
+                        console.log('fired');
                         this.fireBullet()
-                        console.log(event)
-                        console.log('fire')
-                        // console.log(createBullet(this.ship))
-                        // this.createBullet(this.ship)
                     }
                 });
         })
