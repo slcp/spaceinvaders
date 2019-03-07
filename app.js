@@ -228,20 +228,22 @@ class Bullet extends Moveable {
 
 class Rock {
     constructor() {
-        this.shapes = this.getShapes();
+        this.shapes = this.getShapes(4, 45);
         this.particleWidth = 4;
         this.particleHeight = 45;
+        this.width = 4*20;
+        //this.height = ;
     }
 
-    getShapes() {
+    getShapes(particleWidth, particleHeight) {
         let shapes = new Array;
 
-        for (let i = 0; i < 50; i++) {
+        for (let i = 0; i < 20; i++) {
             shapes.push({
-                x: 100+i*4,
+                x: 100+(i*4),
                 y: 650,
-                width: this.particleWidth,
-                height: this.particleHeight
+                width: particleWidth,
+                height: particleHeight
             });
         }
 
@@ -251,8 +253,13 @@ class Rock {
     draw(offSet, whiteSpace, context) {
         // Draw in new position
         for (let shape of this.shapes) {
+            
             context.fillStyle = '#21c521';
-            context.fillRect(shape.x, shape.y, shape.width, shape.height);
+            context.fillRect(
+                shape.x+(this.width*offSet)+(this.width*whiteSpace),
+                shape.y,
+                shape.width,
+                shape.height);
         }
     }
 
@@ -266,7 +273,7 @@ class Rock {
                     damageTaken = true
                 }
             }
-
+            console.log(damageTaken);
             return damageTaken;
         }
     }
@@ -299,7 +306,7 @@ class SpaceInvadersGame {
         this.badShipsBulletsPerSecond = 10;
         this.badShips = [];
         this.bullets =[];
-        this.numRocks = 3;
+        this.numRocks = 1;
         this.rockWhiteSpace = 1;
         this.rocks = [];
     }
