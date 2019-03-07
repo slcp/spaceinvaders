@@ -120,7 +120,7 @@ class Ship extends Moveable {
             let bullet = this.game.createBullet(this);
             // This does not exactly identify bullet exit point and also needs to be more readable
             this.game.moveObject(bullet, Math.floor(...this.shapes.map(shape => shape.x)), Math.floor(...this.shapes.map(shape => shape.y)));
-            this.game.drawObject(bulle);
+            this.game.drawObject(bullet);
         }
     }
 }
