@@ -227,36 +227,38 @@ class Bullet extends Moveable {
 }
 
 class Rock {
-    constructor() {
-        this.shapes = this.getShapes(4, 45);
+    constructor(offSet, whiteSpace, width) {
+        this.shapes = this.getShapes(offSet, whiteSpace, width);
         this.particleWidth = 4;
         this.particleHeight = 45;
         this.width = 4*20;
         //this.height = ;
     }
 
-    getShapes(particleWidth, particleHeight) {
+    getShapes(offSet, whiteSpace, width) {
         let shapes = new Array;
-
+        console.log(offSet);
+        console.log(whiteSpace);
+        console.log(width);
         for (let i = 0; i < 20; i++) {
             shapes.push({
-                x: 100+(i*4),
+                x: (i*4)+(offSet*width)+(whiteSpace*offSet*width),
                 y: 650,
-                width: particleWidth,
-                height: particleHeight
+                width: 4,
+                height: 45
             });
         }
 
         return shapes;
     }
 
-    draw(offSet, whiteSpace, context) {
+    draw(context) {
         // Draw in new position
         for (let shape of this.shapes) {
-            
+            console.log(shape);
             context.fillStyle = '#21c521';
             context.fillRect(
-                shape.x+(this.width*offSet)+(this.width*whiteSpace),
+                shape.x,
                 shape.y,
                 shape.width,
                 shape.height);
@@ -306,7 +308,7 @@ class SpaceInvadersGame {
         this.badShipsBulletsPerSecond = 10;
         this.badShips = [];
         this.bullets =[];
-        this.numRocks = 1;
+        this.numRocks = 5;
         this.rockWhiteSpace = 1;
         this.rocks = [];
     }
@@ -528,10 +530,10 @@ class SpaceInvadersGame {
 
     initialiseRocks() {
         for (let i = 0; i < this.numRocks; i++) {
-            let rock = new Rock;
+            let rock = new Rock(i, this.rockWhiteSpace, 80);
             this.rocks.push(rock);
             let canvas = this.canvasContext;
-            rock.draw(i, this.rockWhiteSpace, canvas);
+            rock.draw(canvas);
         }
     }
 
