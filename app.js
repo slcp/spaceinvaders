@@ -162,6 +162,15 @@ class GoodShip extends Ship {
         // this.handleKeyDown = this.handleKeyDown.bind(this);
         // this.handleKeyUp = this.handleKeyUp.bind(this);
 
+        /* 
+         * TOOD: This works great to move left and right or shoot but does not allow us to move left or right and shoot.
+         * Using setInterval to start a loop on keydown will help you to solve this, that should be cleared on keyup to stop any action
+         * like left/right/shoot. clearInterval and interval IDs will help you with.
+         * 
+         * For what keys are used for left/right/shooting I would do something like this (event.keyCode === this.leftKey) which will
+         * allow us to dynamically assign new keys to extra players.
+         * 
+         */ 
         window.addEventListener('keydown', (event) => {
             let key_code_left  =  37 // left
             let key_code_right = 39 // right
