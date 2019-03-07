@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Space Invaders</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" media="screen" href="main.css">
+</head>
+<body>
+    <h1 class='game-title'>Space Invaders</h1>
+
+    <div class='game'>
+        <div class='scoreboard'>
+            <span class='score-label'>score: </span>
+            <span class='score'>0</span>
+        </div>
+        <div class='lives'>
+                <!-- placeholder images for hp -->
+                <img src='alien.svg' class='life'/>
+                <img src='alien.svg' class='life'/>
+                <img src='alien.svg' class='life'/>
+            </div>
+        <canvas id="game-canvas" width='1000px' height='1000px'>
+        Your browser does not support the HTML5 canvas tag.
+        </canvas>
+
+    </div>
+
+    <script type="text/javascript" src="./app.js"></script>
+    <script type="text/javascript" src="./draw.js"></script>
+
+
+</body>
+</html>

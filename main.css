@@ -1,0 +1,82 @@
+@import url('https://fonts.googleapis.com/css?family=Orbitron:400,700');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Orbitron', sans-serif;
+    user-select: none; 
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    background: #1d1c1c;
+}
+
+#game-canvas {
+    width: 1300px;
+    height: 600px;
+    background: url('bg.jpeg');
+    border: solid 3px grey;
+}
+
+.game-title {
+    font-size: 4rem;
+    font-weight: 800;
+    margin: 2rem;
+    color: #21c521;
+    text-transform: uppercase;
+}
+
+.game {
+    position: relative;
+}
+
+canvas:focus {
+    outline: none;
+}
+
+.scoreboard {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 75px;
+    width: 250px;
+    background: transparent;
+    position: absolute;
+}
+
+.score-label {
+    color: #21c521;
+    font-size: 1.4rem;
+    font-weight: bold;
+}
+
+.lives {
+    display: flex;
+    justify-content: center;
+    padding: 1rem;
+    align-items: center;
+    height: 75px;
+    width: 350px;
+    background: transparent;
+    position: absolute;
+    font-size: 2.5rem;
+    left: 75%;
+}
+
+.score {
+    color: #21c521;
+    font-size: 2.5rem;
+    margin-left: 1rem;
+    font-weight: bold;
+}
+
+.life {
+    height: 40px;
+    width: 40px;
+    margin: 0 1rem;
+}
