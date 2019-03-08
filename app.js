@@ -173,6 +173,42 @@ class GoodShip extends Ship {
             removeEventListener('keyup', this.handleKeyUp);
         }
     }
+
+    addEventListeners() {
+        this.intervals = [];
+        window.addEventListener('keydown', this.handleKeyDown);
+        window.addEventListener('keyup', this.handleKeyUp);
+    }
+
+    handleKeyDown(event) {
+        event.preventDefault();
+        if (event.code === this.shootTrigger) {
+            this.fireBullet();
+            if (!this.intervals[event.keyCode]) {
+                this.intervals[event.keyCode] = setInterval(() => this.fireBullet(), 100);
+            }
+        } else if (event.code === 'ArrowLeft') {
+            if (!this.intervals[event.keyCode]) {
+                this.intervals[event.keyCode] = setInterval(() => {
+                    this.game.moveObject(this, -1, 0);
+                    this.game.drawObject(this);
+                }, 1000/300);
+            }
+        } else if (event.code === 'ArrowRight') {
+            if (!this.intervals[event.keyCode]) {
+                this.intervals[event.keyCode] = setInterval(() => {
+                    this.game.moveObject(this,1, 0);
+                    this.game.drawObject(this);
+                }, 1000/300);
+            }
+        }
+    };
+
+    handleKeyUp(event) {
+        event.preventDefault();
+        clearInterval(this.intervals[event.keyCode]);
+        this.intervals[event.keyCode] = false;
+    };
 }
 
 class BadShip extends Ship {
@@ -296,12 +332,12 @@ class SpaceInvadersGame {
     constructor(canvasId) {
         this.canvasElement = document.getElementById(canvasId);
         this.canvasContext = this.canvasElement.getContext("2d");
-        this.frameRate = 25;
+        this.frameRate = 50;
         this.canvasWidth = 1000;
         this.badShipRows = 5;
         this.badShipsPerRow = 7;
         this.badShipDirection= '';
-        this.badShipsBulletsPerSecond = 10;
+        this.badShipsBulletsPerSecond = 2;
         this.badShips = [];
         this.bullets =[];
         this.numRocks = 5;
@@ -325,7 +361,7 @@ class SpaceInvadersGame {
         setInterval(() => {
             this.moveBadShips();
             this.checkForCollisions();
-        }, 250/this.frameRate);
+        }, 1000/this.frameRate);
 
         setInterval(() => {
             this.shootBadBullets();
@@ -334,12 +370,12 @@ class SpaceInvadersGame {
         setInterval(() => {
             this.moveBullets('goodShip');
             this.checkForCollisions();
-        }, 250/(this.frameRate*10));
+        }, 1000/(this.frameRate*16));
 
         setInterval(() => {
             this.moveBullets('badShip');
             this.checkForCollisions();
-        }, 250/(this.frameRate));
+        }, 1000/(this.frameRate));
     }
 
     moveObject(object, deltaX, deltaY) {
@@ -420,12 +456,11 @@ class SpaceInvadersGame {
             for (let rock of this.rocks) {
                 if (this.isColliding(bullet, rock)) {
                     // bullet + rock colliding
-                    console.log(rock);
                     let passThrough = !rock.takeDamageFrom(bullet, this.canvasContext);
                     if (!passThrough) {
                         this.destroyObject(bullet);
                     }
-                    console.log(rock);
+
                     collision = true;
                     break;
                 } else {
@@ -591,10 +626,10 @@ class SpaceInvadersGame {
     moveBullets(ownerType) {
         for (let bullet of this.bullets) {
             if (ownerType == 'badShip' && bullet.owner instanceof BadShip) {
-                this.moveObject(bullet, 0, 1);
+                this.moveObject(bullet, 0, 5);
                 this.drawObject(bullet);
             } else if (ownerType == 'goodShip' && bullet.owner instanceof GoodShip) {
-                this.moveObject(bullet, 0, -1);
+                this.moveObject(bullet, 0, -5);
                 this.drawObject(bullet);
             }
         }
