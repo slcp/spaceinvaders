@@ -226,8 +226,9 @@ class Bullet extends Moveable {
     }
 }
 
-class Rock {
+class Rock extends Moveable {
     constructor(offSet, whiteSpace, width) {
+        super()
         this.shapes = this.getShapes(offSet, whiteSpace, width);
         this.particleWidth = 4;
         this.particleHeight = 45;
@@ -237,13 +238,10 @@ class Rock {
 
     getShapes(offSet, whiteSpace, width) {
         let shapes = new Array;
-        console.log(offSet);
-        console.log(whiteSpace);
-        console.log(width);
         for (let i = 0; i < 20; i++) {
             shapes.push({
                 x: (i*4)+(offSet*width)+(whiteSpace*offSet*width),
-                y: 650,
+                y: 800,
                 width: 4,
                 height: 45
             });
@@ -255,7 +253,6 @@ class Rock {
     draw(context) {
         // Draw in new position
         for (let shape of this.shapes) {
-            console.log(shape);
             context.fillStyle = '#21c521';
             context.fillRect(
                 shape.x,
@@ -275,7 +272,6 @@ class Rock {
                     damageTaken = true
                 }
             }
-            console.log(damageTaken);
             return damageTaken;
         }
     }
@@ -517,8 +513,7 @@ class SpaceInvadersGame {
                 this.moveObject(newShip, (newShip.width*j)+5, (newShip.height*i)+150); // For initialise delta is set relative to 0, 0. newShip.width/height*j/i should offset from the previous ship and produce a gutter
                 newShip.draw(this.canvasContext);
                 this.badShips[i].push(newShip);
-            }
-            
+            }  
         }
     }
 
@@ -528,12 +523,30 @@ class SpaceInvadersGame {
         this.drawObject(goodShip);
     }
 
+    // Lower levels will have a central rock protecting goodPlayer spawn point
+    // Higher levels will not have a central
+    // Draw from middle and switch between positive/negative offset
     initialiseRocks() {
+        let canvasCentre = this.canvasElement.width/2;
+        let canvas = this.canvasContext;
+        let rockWidth = 80;
+        let counter = 0;
+        let offSetNegative = false;
+
         for (let i = 0; i < this.numRocks; i++) {
-            let rock = new Rock(i, this.rockWhiteSpace, 80);
+            let offSet = offSetNegative ? -counter : counter;
+            let rock = new Rock(offSet, this.rockWhiteSpace, rockWidth);
+            rock.move(canvasCentre-(rockWidth/2), 0);
             this.rocks.push(rock);
-            let canvas = this.canvasContext;
             rock.draw(canvas);
+
+            if (offSetNegative) { counter++; } 
+
+            if (i !== 0) {
+                offSetNegative = !offSetNegative;
+            } else {
+                counter++;
+            }
         }
     }
 
