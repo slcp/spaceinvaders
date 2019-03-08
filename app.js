@@ -109,17 +109,20 @@ class Moveable {
 }
 
 class Ship extends Moveable {
-    constructor() {
+    constructor(settings) {
         super();
         this.game = game;
         this.bullet = '';
         this.bulletInPlay = false;
         this.width = 80; // TODO: static currently to test if it initialiseBadShips works
-        this.height = 80; // TODO: static currently to test if it 
+        this.height = 80; // TODO: static currently to test if it
+        this.settings = settings ? settings : {
+            continuousFire: false
+        }
     }
 
     fireBullet() {
-        if (!this.bulletInPlay) {
+        if (!this.bulletInPlay || this.settings.continuousFire) {
             let bullet = this.game.createBullet(this);
             // This does not exactly identify bullet exit point and also needs to be more readable
             this.game.moveObject(bullet, Math.floor(...this.shapes.map(shape => shape.x)), Math.floor(...this.shapes.map(shape => shape.y)));
@@ -333,7 +336,6 @@ class SpaceInvadersGame {
         this.canvasElement = document.getElementById(canvasId);
         this.canvasContext = this.canvasElement.getContext("2d");
         this.frameRate = 50;
-        this.canvasWidth = 1000;
         this.badShipRows = 5;
         this.badShipsPerRow = 7;
         this.badShipDirection= '';
@@ -343,6 +345,30 @@ class SpaceInvadersGame {
         this.numRocks = 5;
         this.rockWhiteSpace = 1;
         this.rocks = [];
+        this.levelData = {
+            standard: {
+                goodShip: {
+                    continuousFire: false,
+                },
+                game: {
+                    numRocks: 5,
+                    rockWidth: 80,
+                    rockWhiteSpace: 1,
+                    badShipRows: 5,
+                    badShipsPerRow: 7,
+                    badShipsBulletsPerSecond: 2,
+                    badShipFramerate: 50,
+                }
+            },
+            special: {
+                goodShip: {
+                    continuousFire: true,
+                },
+                level: {
+                    badShipsBulletsPerSecond: 10,
+                }
+            }
+        }
     }
 
     newGame() {
