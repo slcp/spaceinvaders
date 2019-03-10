@@ -1,9 +1,8 @@
 class Moveable {
-    constructor() {
+    constructor(settings) {
         this.position = {x: 0, y: 0}; // If drawn this is likely going to be a collection of shapes and positions
         this.shapes = [];
-        this.width = 0; // TODO: static currently to test if it initialiseBadShips works
-        this.height = 0; // TODO: static currently to test if it initialiseBadShips works
+        this.settings = settings;
     }
 
     // Update internal x y values
@@ -109,16 +108,13 @@ class Moveable {
 }
 
 class Ship extends Moveable {
-    constructor(settings) {
-        super();
+    constructor(game, settings) {
+        super(settings);
         this.game = game;
         this.bullet = '';
         this.bulletInPlay = false;
-        this.width = 80; // TODO: static currently to test if it initialiseBadShips works
-        this.height = 80; // TODO: static currently to test if it
-        this.settings = settings ? settings : {
-            continuousFire: false
-        }
+        this.width = 80;
+        this.height = 80;
     }
 
     fireBullet() {
@@ -132,8 +128,8 @@ class Ship extends Moveable {
 }
 
 class GoodShip extends Ship {
-    constructor() {
-        super();
+    constructor(game, settings) {
+        super(game, settings);
         this.shapes = [
             {
                 x: 20,
@@ -215,8 +211,8 @@ class GoodShip extends Ship {
 }
 
 class BadShip extends Ship {
-    constructor() {
-        super();
+    constructor(game, settings) {
+        super(game, settings);
         this.shapes = [
             {
                 x: 20,
@@ -251,8 +247,8 @@ class BadShip extends Ship {
 }
 
 class Bullet extends Moveable {
-    constructor(owner) {
-        super();
+    constructor(owner, settings) {
+        super(settings);
         this.shapes = [
             {
                 x: 20,
@@ -266,10 +262,10 @@ class Bullet extends Moveable {
 }
 
 class Rock extends Moveable {
-    constructor(width) {
-        super()
+    constructor(width, settings) {
+        super(settings)
         this.shapes = false;
-        this.particleWidth = 50;
+        this.rockParticleWidth = 50;
         this.particleHeight = 45;
         this.width = width;
         //this.height = ;
@@ -278,12 +274,12 @@ class Rock extends Moveable {
     getShapes() {
         if (!this.shapes) {
             let shapes = new Array;
-            for (let i = 0; i < this.width/(this.particleWidth/100 * this.width); i++) {
+            for (let i = 0; i < this.width/(this.settings.rockParticleWidth/100 * this.width); i++) {
                 shapes.push({
-                    x: (i*this.particleWidth),
+                    x: (i*this.settings.rockParticleWidth),
                     y: 800,
-                    width: this.particleWidth,
-                    height: this.particleHeight
+                    width: this.settings.rockParticleWidth,
+                    height: this.settings.rockParticleHeight
                 });
             }
             
@@ -354,20 +350,23 @@ class SpaceInvadersGame {
                     game: {
                         numRocks: 5,
                         rockWidth: 80,
+                        rocKheight: 1,
                         rockWhiteSpace: 1,
-                        badShipRows: 5,
+                        badShipScale: 0.5,
+                        badShipRows: 7,
                         badShipsPerRow: 7,
-                        badShipsBulletsPerSecond: 2,
-                        badShipFramerate: 50,
+                        badShipsBulletsPerSecond: 4,
+                        badShipFramerate: 100,
                         goodBulletFramerate: 800,
                         badBulletFramerate: 50
                     },
                     goodShip: {
                         continuousFire: false,
                     },
+                    badShip: {
+                        continuousFire: true,
+                    },
                     rock: {
-                        rocKheight: 1,
-                        rockWidth: 80,
                         rockParticleWidth: 40,
                         rockParticleHeight: 45,
                     }
@@ -410,9 +409,15 @@ class SpaceInvadersGame {
         }
     }
 
+    getSettingsFor(objectType) {
+        let currentLevelData = this.levelData[this.currentLevel][this.currentLevelMode];
+
+        return currentLevelData[objectType];
+    }
+
     newGame() {
         this.initialiseBadShips();
-        this.players = [new GoodShip(this)];
+        this.players = [new GoodShip(this, this.getSettingsFor('goodShip'))];
         this.initialiseGoodShip(this.players[0]);
         this.initialiseRocks();
     }
@@ -487,7 +492,7 @@ class SpaceInvadersGame {
     }
 
     testCollision() {
-        let testShip = new GoodShip(this);
+        let testShip = new GoodShip(this, this.getSettingsFor('goodShip'));
         this.moveObject(testShip, 0, 125);
         this.drawObject(testShip);
         this.isColliding(testShip, this.players[0]);
@@ -609,7 +614,7 @@ class SpaceInvadersGame {
         for (let i = 0; i < this.getSetting('badShipRows'); i++) { // Loop for number of rows required
             this.badShips[i] = []; // Initialise row in array
             for (let j = 0; j < this.getSetting('badShipsPerRow'); j ++) { // Loop for ships required on each row
-                let newShip = new BadShip(this);
+                let newShip = new BadShip(this, this.getSettingsFor('badShip'));
                 this.moveObject(newShip, (newShip.width*j)+5, (newShip.height*i)+150); // For initialise delta is set relative to 0, 0. newShip.width/height*j/i should offset from the previous ship and produce a gutter
                 newShip.draw(this.canvasContext);
                 this.badShips[i].push(newShip);
@@ -635,7 +640,7 @@ class SpaceInvadersGame {
 
         for (let i = 0; i < this.getSetting('numRocks'); i++) {
             let offSet = offSetNegative ? -counter : counter;
-            let rock = new Rock(this.getSetting('rockWidth'));
+            let rock = new Rock(this.getSetting('rockWidth'), this.getSettingsFor('rock'));
 
             rock.move(canvasCentre-(this.getSetting('rockWidth')/2), 0);
             
@@ -654,7 +659,7 @@ class SpaceInvadersGame {
     }
 
     createBullet(ship) {
-        let bullet = new Bullet;
+        let bullet = new Bullet(this.getSettingsFor('bullet'));
         bullet.owner = ship;
         ship.bulletInPlay = true;
         this.bullets.push(bullet);
