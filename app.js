@@ -16,6 +16,22 @@ class Moveable {
         }
     }
 
+    randomColor() {
+        // gets random colour
+        return "#"+((1<<24)*Math.random()|0).toString(16);
+    }
+
+    // changeShipColor() {
+    //     // change color of ship depending on which side is hit
+    //     if(this.isAtExtremity('left')) {
+    //         return 'blue';
+    //     } else if (this.isAtExtremity('right')){
+    //         return 'red';
+    //     } else {
+    //         return 'white';
+    //     }
+    // }
+
     kill(context) {
         // Clear existing draw of object
         for (let shape of this.shapes) {
@@ -33,7 +49,7 @@ class Moveable {
 
         // Draw in new position
         for (let shape of this.shapes) {
-            context.fillStyle = '#21c521';
+            context.fillStyle = shape.color ? shape.color : this.randomColor();
             context.fillRect(shape.x, shape.y, shape.width, shape.height);
         }
     }
@@ -58,7 +74,7 @@ class Moveable {
                 Values = this.shapes.map(shape => shape.x + shape.width);
                 Value = Math.max(...Values);
                 
-                if (Value >= canvasElement.width) {
+                if (Value >= this.game.canvasElement.width) {
                     this.lastExtremity = 'right';
                     return true;
                 } else {
@@ -93,17 +109,20 @@ class Moveable {
 }
 
 class Ship extends Moveable {
-    constructor() {
+    constructor(settings) {
         super();
         this.game = game;
         this.bullet = '';
         this.bulletInPlay = false;
-        this.width = 20; // TODO: static currently to test if it initialiseBadShips works
-        this.height = 20; // TODO: static currently to test if it initialiseBadShips works
+        this.width = 80; // TODO: static currently to test if it initialiseBadShips works
+        this.height = 80; // TODO: static currently to test if it
+        this.settings = settings ? settings : {
+            continuousFire: false
+        }
     }
 
     fireBullet() {
-        if (!this.bulletInPlay) {
+        if (!this.bulletInPlay || this.settings.continuousFire) {
             let bullet = this.game.createBullet(this);
             // This does not exactly identify bullet exit point and also needs to be more readable
             this.game.moveObject(bullet, Math.floor(...this.shapes.map(shape => shape.x)), Math.floor(...this.shapes.map(shape => shape.y)));
@@ -117,28 +136,32 @@ class GoodShip extends Ship {
         super();
         this.shapes = [
             {
-                x: 5,
-                y: 10,
-                width: 15,
-                height: 5
+                x: 20,
+                y: 40,
+                width: 60,
+                height: 20,
+                color: '#21c521'
             },
             {
-                x: 10,
-                y: 5,
-                width: 5,
-                height: 5
+                x: 40,
+                y: 20,
+                width: 20,
+                height: 20,
+                color: '#21c521'
             },
             {
-                x: 5,
-                y: 15,
-                width: 5,
-                height: 5
+                x: 20,
+                y: 55,
+                width: 20,
+                height: 20,
+                color: '#21c521'
             },
             {
-                x: 15,
-                y: 15,
-                width: 5,
-                height: 5
+                x: 60,
+                y: 55,
+                width: 20,
+                height: 20,
+                color: '#21c521'
             }
         ];
         this.shootTrigger = 'Space';
@@ -156,9 +179,7 @@ class GoodShip extends Ship {
 
     addEventListeners() {
         this.intervals = [];
-        console.log('interval');
         window.addEventListener('keydown', this.handleKeyDown);
-
         window.addEventListener('keyup', this.handleKeyUp);
     }
 
@@ -174,14 +195,14 @@ class GoodShip extends Ship {
                 this.intervals[event.keyCode] = setInterval(() => {
                     this.game.moveObject(this, -1, 0);
                     this.game.drawObject(this);
-                }, 1000/100);
+                }, 1000/300);
             }
         } else if (event.code === 'ArrowRight') {
             if (!this.intervals[event.keyCode]) {
                 this.intervals[event.keyCode] = setInterval(() => {
                     this.game.moveObject(this,1, 0);
                     this.game.drawObject(this);
-                }, 1000/100);
+                }, 1000/300);
             }
         }
     };
@@ -198,28 +219,32 @@ class BadShip extends Ship {
         super();
         this.shapes = [
             {
-                x: 5,
-                y: 10,
-                width: 15,
-                height: 5
+                x: 20,
+                y: 32,
+                width: 60,
+                height: 8,
+                color: 'white'
             },
             {
-                x: 10,
-                y: 5,
-                width: 5,
-                height: 5
+                x: 40,
+                y: 28,
+                width: 20,
+                height: 20,
+                color: 'white'
             },
             {
-                x: 5,
-                y: 15,
-                width: 5,
-                height: 5
+                x: 20,
+                y: 20,
+                width: 12,
+                height: 20,
+                color: 'white'
             },
             {
-                x: 15,
-                y: 15,
-                width: 5,
-                height: 5
+                x: 68,
+                y: 20,
+                width: 12,
+                height: 20,
+                color: 'white'
             }
         ];
     }
@@ -230,38 +255,127 @@ class Bullet extends Moveable {
         super();
         this.shapes = [
             {
-                x: 10,
-                y: 5,
-                width: 2,
-                height: 7
+                x: 20,
+                y: 10,
+                width: 4,
+                height: 28
             },
         ];
         this.owner = owner;
     }
 }
 
-class Rock {
+class Rock extends Moveable {
+    constructor(offSet, whiteSpace, width) {
+        super()
+        this.shapes = this.getShapes(offSet, whiteSpace, width);
+        this.particleWidth = 4;
+        this.particleHeight = 45;
+        this.width = 4*20;
+        //this.height = ;
+    }
 
+    getShapes(offSet, whiteSpace, width) {
+        let shapes = new Array;
+        for (let i = 0; i < 20; i++) {
+            shapes.push({
+                x: (i*4)+(offSet*width)+(whiteSpace*offSet*width),
+                y: 800,
+                width: 4,
+                height: 45
+            });
+        }
+
+        return shapes;
+    }
+
+    draw(context) {
+        // Draw in new position
+        for (let shape of this.shapes) {
+            context.fillStyle = '#21c521';
+            context.fillRect(
+                shape.x,
+                shape.y,
+                shape.width,
+                shape.height);
+        }
+    }
+
+    takeDamageFrom(object, context) {
+        if (object instanceof Bullet) {
+            let damageTaken = false;
+            for (let shape of this.shapes) {
+                if (this.isColliding(shape, object)) {
+                    context.clearRect(shape.x, shape.y, shape.width, shape.height);
+                    this.shapes.splice(this.shapes.indexOf(shape), 1);
+                    damageTaken = true
+                }
+            }
+            return damageTaken;
+        }
+    }
+
+    isColliding(shape, object2) {
+        let colliding = false;
+
+        for (let j = 0; j < object2.shapes.length; j++) {
+            if (!(
+                shape.x > (object2.shapes[j].x + object2.shapes[j].width) || 
+                (shape.x + shape.width) < object2.shapes[j].x || 
+                shape.y > (object2.shapes[j].y + object2.shapes[j].height) ||
+                (shape.y + shape.height) <  object2.shapes[j].y
+            )) { colliding = true; break; }
+        }
+
+        return colliding;
+    }
 }
 
 class SpaceInvadersGame {
     constructor(canvasId) {
         this.canvasElement = document.getElementById(canvasId);
         this.canvasContext = this.canvasElement.getContext("2d");
-        this.frameRate = 25;
-        this.canvasWidth = 1000;
-        this.badShipRows = 3;
-        this.badShipsPerRow = 10;
-        this.badShipsBulletsPerSecond = 1;
+        this.frameRate = 50;
+        this.badShipRows = 5;
+        this.badShipsPerRow = 7;
+        this.badShipDirection= '';
+        this.badShipsBulletsPerSecond = 2;
         this.badShips = [];
         this.bullets =[];
+        this.numRocks = 5;
+        this.rockWhiteSpace = 1;
         this.rocks = [];
+        this.levelData = {
+            standard: {
+                goodShip: {
+                    continuousFire: false,
+                },
+                game: {
+                    numRocks: 5,
+                    rockWidth: 80,
+                    rockWhiteSpace: 1,
+                    badShipRows: 5,
+                    badShipsPerRow: 7,
+                    badShipsBulletsPerSecond: 2,
+                    badShipFramerate: 50,
+                }
+            },
+            special: {
+                goodShip: {
+                    continuousFire: true,
+                },
+                level: {
+                    badShipsBulletsPerSecond: 10,
+                }
+            }
+        }
     }
 
     newGame() {
         this.initialiseBadShips();
         this.players = [new GoodShip(this)];
         this.initialiseGoodShip(this.players[0]);
+        this.initialiseRocks();
     }
 
     startGame() {
@@ -282,7 +396,7 @@ class SpaceInvadersGame {
         setInterval(() => {
             this.moveBullets('goodShip');
             this.checkForCollisions();
-        }, 1000/(this.frameRate*10));
+        }, 1000/(this.frameRate*16));
 
         setInterval(() => {
             this.moveBullets('badShip');
@@ -305,6 +419,8 @@ class SpaceInvadersGame {
         let canvasContext = this.canvasContext
 
         if (object instanceof Rock) {
+            // let rockIndex = this.rocks.indexOf(object);
+            // this.rocks.splice(bulletIndex, 1);
             // This is harder depending on what is impacting rock, see Trello task
         } else if (object instanceof Bullet) {
             object.kill(canvasContext);
@@ -340,17 +456,22 @@ class SpaceInvadersGame {
     isColliding(object1, object2) {
         let colliding = false;
 
-        for (let i = 0; i < object1.shapes.length; i++) {
-            for (let j = 0; j < object2.shapes.length; j++) {
-                return colliding = !(
-                    object1.shapes[i].x > (object2.shapes[j].x + object2.shapes[j].width) || 
-                    (object1.shapes[i].x + object1.shapes[i].width) < object2.shapes[j].x || 
-                    object1.shapes[i].y > (object2.shapes[j].y + object2.shapes[j].height) ||
-                    (object1.shapes[i].y + object1.shapes[i].height) <  object2.shapes[j].y
-                );
+        let shapes1 = object1.shapes;
+        let shapes2 = object2.shapes;
+
+        for (let i = 0; i < shapes1.length; i++) {
+            for (let j = 0; j < shapes2.length; j++) {
+                if (!(
+                    shapes1[i].x > (shapes2[j].x + shapes2[j].width) || 
+                    (shapes1[i].x + shapes1[i].width) < shapes2[j].x || 
+                    shapes1[i].y > (shapes2[j].y + shapes2[j].height) ||
+                    (shapes1[i].y + shapes1[i].height) < shapes2[j].y
+                )) { colliding = true;  break; }
             }
             if (colliding) { break; }
         }
+
+        return colliding;
     }
 
     checkForCollisions() {
@@ -361,8 +482,11 @@ class SpaceInvadersGame {
             for (let rock of this.rocks) {
                 if (this.isColliding(bullet, rock)) {
                     // bullet + rock colliding
-                    // damage rock
-                    // remove bullet
+                    let passThrough = !rock.takeDamageFrom(bullet, this.canvasContext);
+                    if (!passThrough) {
+                        this.destroyObject(bullet);
+                    }
+
                     collision = true;
                     break;
                 } else {
@@ -375,6 +499,7 @@ class SpaceInvadersGame {
                 for (let badShip of row) {
                     if (this.isColliding(bullet, badShip)) {
                         if (bullet.owner instanceof BadShip) {
+                            badShip.draw(this.canvasContext);
                             continue;
                         } else if (bullet.owner instanceof GoodShip) {
                             // goodShip bullet + badShip colliding
@@ -407,6 +532,7 @@ class SpaceInvadersGame {
                         // check if game is over
                     } else if (bullet.owner instanceof GoodShip) {
                         // do nothing - this shouldnt be possible
+                        goodShip.draw(this.canvasContext);
                         continue;
                     }
                     collision = true;
@@ -414,7 +540,7 @@ class SpaceInvadersGame {
                 } else {
                     continue;
                 }
-                    
+                
             }
 
             if (collision) { continue; }
@@ -447,11 +573,10 @@ class SpaceInvadersGame {
             this.badShips[i] = []; // Initialise row in array
             for (let j = 0; j < this.badShipsPerRow; j ++) { // Loop for ships required on each row
                 let newShip = new BadShip(this);
-                this.moveObject(newShip, (newShip.width*j)+5, (newShip.height*i)+5); // For initialise delta is set relative to 0, 0. newShip.width/height*j/i should offset from the previous ship and produce a gutter
+                this.moveObject(newShip, (newShip.width*j)+5, (newShip.height*i)+150); // For initialise delta is set relative to 0, 0. newShip.width/height*j/i should offset from the previous ship and produce a gutter
                 newShip.draw(this.canvasContext);
                 this.badShips[i].push(newShip);
-            }
-            
+            }  
         }
     }
 
@@ -459,6 +584,33 @@ class SpaceInvadersGame {
         goodShip.addEventListeners();
         this.moveObject(goodShip, (this.canvasElement.width/2)-(goodShip.width/2), (this.canvasElement.height)-(goodShip.height+10));
         this.drawObject(goodShip);
+    }
+
+    // Lower levels will have a central rock protecting goodPlayer spawn point
+    // Higher levels will not have a central
+    // Draw from middle and switch between positive/negative offset
+    initialiseRocks() {
+        let canvasCentre = this.canvasElement.width/2;
+        let canvas = this.canvasContext;
+        let rockWidth = 80;
+        let counter = 0;
+        let offSetNegative = false;
+
+        for (let i = 0; i < this.numRocks; i++) {
+            let offSet = offSetNegative ? -counter : counter;
+            let rock = new Rock(offSet, this.rockWhiteSpace, rockWidth);
+            rock.move(canvasCentre-(rockWidth/2), 0);
+            this.rocks.push(rock);
+            rock.draw(canvas);
+
+            if (offSetNegative) { counter++; } 
+
+            if (i !== 0) {
+                offSetNegative = !offSetNegative;
+            } else {
+                counter++;
+            }
+        }
     }
 
     createBullet(ship) {
@@ -500,10 +652,10 @@ class SpaceInvadersGame {
     moveBullets(ownerType) {
         for (let bullet of this.bullets) {
             if (ownerType == 'badShip' && bullet.owner instanceof BadShip) {
-                this.moveObject(bullet, 0, 1);
+                this.moveObject(bullet, 0, 5);
                 this.drawObject(bullet);
             } else if (ownerType == 'goodShip' && bullet.owner instanceof GoodShip) {
-                this.moveObject(bullet, 0, -1);
+                this.moveObject(bullet, 0, -5);
                 this.drawObject(bullet);
             }
         }
