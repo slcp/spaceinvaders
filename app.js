@@ -266,30 +266,33 @@ class Bullet extends Moveable {
 }
 
 class Rock extends Moveable {
-    constructor(offSet, whiteSpace, width) {
+    constructor(width) {
         super()
-        this.shapes = this.getShapes(offSet, whiteSpace, width);
-        this.particleWidth = 4;
+        this.shapes = false;
+        this.particleWidth = 50;
         this.particleHeight = 45;
-        this.width = 4*20;
+        this.width = width;
         //this.height = ;
     }
 
-    getShapes(offSet, whiteSpace, width) {
-        let shapes = new Array;
-        for (let i = 0; i < 20; i++) {
-            shapes.push({
-                x: (i*4)+(offSet*width)+(whiteSpace*offSet*width),
-                y: 800,
-                width: 4,
-                height: 45
-            });
+    getShapes() {
+        if (!this.shapes) {
+            let shapes = new Array;
+            for (let i = 0; i < this.width/(this.particleWidth/100 * this.width); i++) {
+                shapes.push({
+                    x: (i*this.particleWidth),
+                    y: 800,
+                    width: this.particleWidth,
+                    height: this.particleHeight
+                });
+            }
+            
+            this.shapes = shapes;
         }
-
-        return shapes;
     }
 
     draw(context) {
+        this.getShapes();
         // Draw in new position
         for (let shape of this.shapes) {
             context.fillStyle = '#21c521';
@@ -299,6 +302,11 @@ class Rock extends Moveable {
                 shape.width,
                 shape.height);
         }
+    }
+
+    move(deltaX, deltaY) {
+        this.getShapes();
+        super.move(deltaX, deltaY);
     }
 
     takeDamageFrom(object, context) {
@@ -335,39 +343,70 @@ class SpaceInvadersGame {
     constructor(canvasId) {
         this.canvasElement = document.getElementById(canvasId);
         this.canvasContext = this.canvasElement.getContext("2d");
-        this.frameRate = 50;
-        this.badShipRows = 5;
-        this.badShipsPerRow = 7;
-        this.badShipDirection= '';
-        this.badShipsBulletsPerSecond = 2;
         this.badShips = [];
         this.bullets =[];
-        this.numRocks = 5;
-        this.rockWhiteSpace = 1;
         this.rocks = [];
-        this.levelData = {
-            standard: {
-                goodShip: {
-                    continuousFire: false,
+        this.currentLevel = 0;
+        this.currentLevelMode = 'standard';
+        this.levelData = [
+            {
+                standard: {
+                    game: {
+                        numRocks: 5,
+                        rockWidth: 80,
+                        rockWhiteSpace: 1,
+                        badShipRows: 5,
+                        badShipsPerRow: 7,
+                        badShipsBulletsPerSecond: 2,
+                        badShipFramerate: 50,
+                        goodBulletFramerate: 800,
+                        badBulletFramerate: 50
+                    },
+                    goodShip: {
+                        continuousFire: false,
+                    },
+                    rock: {
+                        rocKheight: 1,
+                        rockWidth: 80,
+                        rockParticleWidth: 40,
+                        rockParticleHeight: 45,
+                    }
                 },
-                game: {
-                    numRocks: 5,
-                    rockWidth: 80,
-                    rockWhiteSpace: 1,
-                    badShipRows: 5,
-                    badShipsPerRow: 7,
-                    badShipsBulletsPerSecond: 2,
-                    badShipFramerate: 50,
-                }
-            },
-            special: {
-                goodShip: {
-                    continuousFire: true,
-                },
-                level: {
-                    badShipsBulletsPerSecond: 10,
+                special: {
+                    goodShip: {
+                        continuousFire: true,
+                    },
+                    game: {
+                        badShipsBulletsPerSecond: 10,
+                    }
                 }
             }
+        ]
+    }
+
+    getSetting(setting) {
+        let currentLevelData = this.levelData[this.currentLevel][this.currentLevelMode];
+
+        switch (setting) {
+            case 'numRocks': 
+            case 'rockWidth':
+            case 'rockWhiteSpace':
+            case 'badShipRows':
+            case 'badShipsPerRow':
+            case 'badShipsBulletsPerSecond':
+            case 'badShipFramerate':
+            case 'goodBulletFramerate':
+            case 'badBulletFramerate':
+                return currentLevelData['game'][setting];
+
+            case 'continuousFire':
+                return currentLevelData['goodShip'][setting];
+
+            case 'rockHeight':
+            case 'rockWidth':
+            case 'rockParticleWidth':
+            case 'rockParticleHeight':
+                return currentLevelData['rock'][setting]
         }
     }
 
@@ -387,7 +426,7 @@ class SpaceInvadersGame {
         setInterval(() => {
             this.moveBadShips();
             this.checkForCollisions();
-        }, 1000/this.frameRate);
+        }, 1000/this.getSetting('badShipFramerate'));
 
         setInterval(() => {
             this.shootBadBullets();
@@ -395,19 +434,20 @@ class SpaceInvadersGame {
         
         setInterval(() => {
             this.moveBullets('goodShip');
-            this.checkForCollisions();
-        }, 1000/(this.frameRate*16));
+        }, 1000/this.getSetting('goodBulletFramerate'));
 
         setInterval(() => {
             this.moveBullets('badShip');
-            this.checkForCollisions();
-        }, 1000/(this.frameRate));
+        }, 1000/this.getSetting('badBulletFramerate'));
+    }
+
+    nextLevel() {
+        this.currentLevel++;
     }
 
     moveObject(object, deltaX, deltaY) {
         let canvasContext = this.canvasContext
         object.move(deltaX, deltaY, canvasContext);
-       // this.drawObject(object);
     }
 
     drawObject(object) {
@@ -456,16 +496,13 @@ class SpaceInvadersGame {
     isColliding(object1, object2) {
         let colliding = false;
 
-        let shapes1 = object1.shapes;
-        let shapes2 = object2.shapes;
-
-        for (let i = 0; i < shapes1.length; i++) {
-            for (let j = 0; j < shapes2.length; j++) {
+        for (let i = 0; i < object1.shapes.length; i++) {
+            for (let j = 0; j < object2.shapes.length; j++) {
                 if (!(
-                    shapes1[i].x > (shapes2[j].x + shapes2[j].width) || 
-                    (shapes1[i].x + shapes1[i].width) < shapes2[j].x || 
-                    shapes1[i].y > (shapes2[j].y + shapes2[j].height) ||
-                    (shapes1[i].y + shapes1[i].height) < shapes2[j].y
+                    object1.shapes[i].x > (object2.shapes[j].x + object2.shapes[j].width) || 
+                    (object1.shapes[i].x + object1.shapes[i].width) < object2.shapes[j].x || 
+                    object1.shapes[i].y > (object2.shapes[j].y + object2.shapes[j].height) ||
+                    (object1.shapes[i].y + object1.shapes[i].height) < object2.shapes[j].y
                 )) { colliding = true;  break; }
             }
             if (colliding) { break; }
@@ -569,9 +606,9 @@ class SpaceInvadersGame {
 
     // Draw a grid of badShips
     initialiseBadShips() {
-        for (let i = 0; i < this.badShipRows; i++) { // Loop for number of rows required
+        for (let i = 0; i < this.getSetting('badShipRows'); i++) { // Loop for number of rows required
             this.badShips[i] = []; // Initialise row in array
-            for (let j = 0; j < this.badShipsPerRow; j ++) { // Loop for ships required on each row
+            for (let j = 0; j < this.getSetting('badShipsPerRow'); j ++) { // Loop for ships required on each row
                 let newShip = new BadShip(this);
                 this.moveObject(newShip, (newShip.width*j)+5, (newShip.height*i)+150); // For initialise delta is set relative to 0, 0. newShip.width/height*j/i should offset from the previous ship and produce a gutter
                 newShip.draw(this.canvasContext);
@@ -582,6 +619,7 @@ class SpaceInvadersGame {
 
     initialiseGoodShip(goodShip) {
         goodShip.addEventListeners();
+        // Draw in centre of canvas
         this.moveObject(goodShip, (this.canvasElement.width/2)-(goodShip.width/2), (this.canvasElement.height)-(goodShip.height+10));
         this.drawObject(goodShip);
     }
@@ -592,24 +630,26 @@ class SpaceInvadersGame {
     initialiseRocks() {
         let canvasCentre = this.canvasElement.width/2;
         let canvas = this.canvasContext;
-        let rockWidth = 80;
         let counter = 0;
         let offSetNegative = false;
 
-        for (let i = 0; i < this.numRocks; i++) {
+        for (let i = 0; i < this.getSetting('numRocks'); i++) {
             let offSet = offSetNegative ? -counter : counter;
-            let rock = new Rock(offSet, this.rockWhiteSpace, rockWidth);
-            rock.move(canvasCentre-(rockWidth/2), 0);
-            this.rocks.push(rock);
-            rock.draw(canvas);
+            let rock = new Rock(this.getSetting('rockWidth'));
 
-            if (offSetNegative) { counter++; } 
-
+            rock.move(canvasCentre-(this.getSetting('rockWidth')/2), 0);
+            
+            if (offSetNegative) { counter++; }
+            
             if (i !== 0) {
+                rock.move((offSet*this.getSetting('rockWidth'))+(offSet*this.getSetting('rockWidth')*this.getSetting('rockWhiteSpace')), 0);
                 offSetNegative = !offSetNegative;
             } else {
                 counter++;
             }
+
+            this.rocks.push(rock);
+            rock.draw(canvas);
         }
     }
 
@@ -632,13 +672,13 @@ class SpaceInvadersGame {
 
                 // Ships have hit left edge of canvas, deltaX needs to be +1
                 if (firstShip.isAtExtremity('left', this.canvasElement)) {
-                    this.badShipDirection = true;
+                    this.badShipDirection = 'right';
                 // Ships have hit right side of canvas, deltaX needs to be -1
                 } else if (lastShip.isAtExtremity('right', this.canvasElement)) {
-                    this.badShipDirection = false;
+                    this.badShipDirection = 'left';
                 }
 
-                let deltaX = this.badShipDirection ? 1 : -1;
+                let deltaX = this.badShipDirection === 'right' ? 1 : -1;
                 let deltaY = 0;
 
                 for (let ship of row) {
@@ -663,7 +703,7 @@ class SpaceInvadersGame {
 
     // shoot bullets from X random bad ships
     shootBadBullets() {
-        for (let i = 1; i <= this.badShipsBulletsPerSecond; i++) {
+        for (let i = 1; i <= this.getSetting('badShipsBulletsPerSecond'); i++) {
             let rowIndex = Math.floor(Math.random()*this.badShips.length);
             let shipIndex = Math.floor(Math.random()*this.badShips[rowIndex].length);
             let ship = this.badShips[rowIndex][shipIndex];
