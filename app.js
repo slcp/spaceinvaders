@@ -339,7 +339,7 @@ class SpaceInvadersGame {
     constructor(canvasId) {
         this.canvasElement = document.getElementById(canvasId);
         this.canvasContext = this.canvasElement.getContext("2d");
-        this.gameIntervals= [];
+        this.gameIntervals = [];
         this.badShips = [];
         this.players = [];
         this.bullets =[];
@@ -455,11 +455,7 @@ class SpaceInvadersGame {
     newGame() {
         this.endGame();
         this.gameState = 'NEW_GAME';
-        this.initialiseBadShips();
         this.players.push(new GoodShip(this, this.getSettingsFor('goodShip')));
-        console.log(this.players);
-        this.initialiseGoodShip(this.players[0]);
-        this.initialiseRocks();
         this.startGame();
     }
 
@@ -477,6 +473,11 @@ class SpaceInvadersGame {
 
     startGame() {
         this.gameState = 'START_GAME';
+        this.initialiseBadShips();
+        for (let goodShip of this.players) {
+            this.initialiseGoodShip(goodShip);
+        }
+        this.initialiseRocks();
         this.runGame();
     }
 
@@ -486,6 +487,32 @@ class SpaceInvadersGame {
         this.gameIntervals.push(setInterval(() => {
             this.moveBadShips();
             this.checkForCollisions();
+            
+            switch (this.gameState) {
+                case 'LEVEL_WON':
+                    if (this.currentLevel === this.levelData.length-1) {
+                        this.gameState = 'GAME_WON';
+                        // Game won
+                        // Check highscore status
+                    } else {
+                        if (this.currentLevelMode == 'standard') {
+                            this.currentLevelMode = 'special';
+                            this.endGame();
+                            this.startGame();
+                        } else {
+                            this.currentLevelMode = 'standard'
+                            this.nextLevel();
+                        }
+                    }
+                break;
+
+                case 'PLAYER_DEAD':
+
+                break;
+
+                default:
+                break;
+            }
         }, 1000/this.getSetting('badShipFramerate')));
 
         this.gameIntervals.push(setInterval(() => {
@@ -503,7 +530,8 @@ class SpaceInvadersGame {
 
     nextLevel() {
         this.currentLevel++;
-        this.newGame();
+        this.endGame();
+        this.startGame();
     }
 
     moveObject(object, deltaX, deltaY) {
@@ -532,7 +560,7 @@ class SpaceInvadersGame {
             object.owner.bulletInPlay = false;
             object.owner.bullet = '';
 
-            if (this.gameState == 'GAME_RUNNING') {
+            if (this.gameState === 'GAME_RUNNING') {
                 let bulletIndex = this.bullets.indexOf(object);
                 this.bullets.splice(bulletIndex, 1);
             }
@@ -541,7 +569,7 @@ class SpaceInvadersGame {
             // Find badShip in this.badShips and remove
             for (let i = 0; i < this.badShips.length; i++) {
                 if (this.badShips[i].indexOf(object) >= 0) {
-                    if (this.gameState == 'GAME_RUNNING') {
+                    if (this.gameState === 'GAME_RUNNING') {
                         let badShipIndex = this.badShips[i].indexOf(object);
                         this.badShips[i].splice(badShipIndex, 1);
                     }
@@ -551,8 +579,7 @@ class SpaceInvadersGame {
         } else if (object instanceof GoodShip) {
             object.kill(canvasContext);
             object.destroy();
-            
-            if (this.gameState == 'GAME_RUNNING') {
+            if (this.gameState === 'GAME_RUNNING') {
                 let goodShipIndex = this.players.indexOf(object);
                 this.players.splice(goodShipIndex, 1);
             }
@@ -616,6 +643,14 @@ class SpaceInvadersGame {
                             this.destroyObject(badShip);
                             this.destroyObject(bullet);
                             // update score
+
+                            let badShipCount = 0;
+                            for (row of this.badShips) {
+                                badShipCount += row.length;
+                            }
+
+                            this.gameState = badShipCount === 0 ? 'LEVEL_WON' : this.gameState;
+                            
                         }
                         collision = true;
                         break;
@@ -634,8 +669,6 @@ class SpaceInvadersGame {
                         // badShip bullet + goodShip colliding
                         this.destroyObject(goodShip);
                         this.destroyObject(bullet);
-                        // lose life
-                        // check if game is over
                     } else if (bullet.owner instanceof GoodShip) {
                         // do nothing - this shouldnt be possible
                         goodShip.draw(this.canvasContext);
