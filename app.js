@@ -21,17 +21,6 @@ class Moveable {
         return "#"+((1<<24)*Math.random()|0).toString(16);
     }
 
-    // changeShipColor() {
-    //     // change color of ship depending on which side is hit
-    //     if(this.isAtExtremity('left')) {
-    //         return 'blue';
-    //     } else if (this.isAtExtremity('right')){
-    //         return 'red';
-    //     } else {
-    //         return 'white';
-    //     }
-    // }
-
     draw(context) {
         for (let shape of this.shapes) {
             context.clearRect(shape.oldX, shape.oldY, shape.width, shape.height);
@@ -49,16 +38,12 @@ class Moveable {
         for (let shape of this.shapes) {
             context.clearRect(shape.x, shape.y, shape.width, shape.height);
         }
-
-        // No need to explicity destroy instance but ensure no references to it exist if it needs to be destroyed - garbage collection
-        
     }
 
     draw(context) {
         for (let shape of this.shapes) {
             context.clearRect(shape.oldX, shape.oldY, shape.width, shape.height);
         }
-
         // Draw in new position
         for (let shape of this.shapes) {
             context.fillStyle = shape.color ? shape.color : this.randomColor();
@@ -112,11 +97,9 @@ class Moveable {
                 } else {
                     return false;
                 }
-
             default:
             break;
-        }
-        
+        } 
     }
 }
 
@@ -187,6 +170,7 @@ class GoodShip extends Ship {
     }
 }
 
+
 class BadShip extends Ship {
     constructor() {
         super();
@@ -239,7 +223,7 @@ class Bullet extends Moveable {
 }
 
 class Rock {
-    constructor(owner) {
+    constructor() {
         this.shapes = [
             {
                 x: 100,
@@ -337,32 +321,45 @@ class SpaceInvadersGame {
         object.draw(canvasContext);
     }
 
+    killBullet(object) {
+        let canvasContext = this.canvasContext
+        object.kill(canvasContext);
+        object.owner.bulletInPlay = false;
+        object.owner.bullet = '';
+        let bulletIndex = this.bullets.indexOf(object);
+        this.bullets.splice(bulletIndex, 1);
+    }
+
+    findBadShip(object) {
+        for (let i = 0; i < this.badShips.length; i++) {
+            if (this.badShips[i].indexOf(object) >= 0) {
+                let badShipIndex = this.badShips[i].indexOf(object);
+                this.badShips[i].splice(badShipIndex, 1);
+                break;
+            }
+        }
+    }
+
+    destroyGoodShip(object) {
+        let canvasContext = this.canvasContext
+        object.kill(canvasContext);
+        object.destroy();
+        let goodShipIndex = this.players.indexOf(object);
+        this.players.splice(goodShipIndex, 1);
+    }
+
     destroyObject(object) {
         let canvasContext = this.canvasContext
-
         if (object instanceof Rock) {
             // This is harder depending on what is impacting rock, see Trello task
         } else if (object instanceof Bullet) {
-            object.kill(canvasContext);
-            object.owner.bulletInPlay = false;
-            object.owner.bullet = '';
-            let bulletIndex = this.bullets.indexOf(object);
-            this.bullets.splice(bulletIndex, 1);
+            this.killBullet(object);
         } else if (object instanceof BadShip) {
             object.kill(canvasContext);
             // Find badShip in this.badShips and remove
-            for (let i = 0; i < this.badShips.length; i++) {
-                if (this.badShips[i].indexOf(object) >= 0) {
-                    let badShipIndex = this.badShips[i].indexOf(object);
-                    this.badShips[i].splice(badShipIndex, 1);
-                    break;
-                }
-            }
+            this.findBadShip(object);
         } else if (object instanceof GoodShip) {
-            object.kill(canvasContext);
-            object.destroy();
-            let goodShipIndex = this.players.indexOf(object);
-            this.players.splice(goodShipIndex, 1);
+            this.destroyGoodShip(object);
         }
     }
 
@@ -373,16 +370,18 @@ class SpaceInvadersGame {
         this.isColliding(testShip, this.players[0]);
     }
 
-    isColliding(object1, object2) {
-        let colliding = false;
-
-        // Rock shapes are a bit different
+    checkObj(object1, object2) {
         if (object1 instanceof Rock) {
             object1 = object1.getShapes();
         } else if (object2 instanceof Rock) {
             object2 = object2.getShapes();
         }
+    }
 
+    isColliding(object1, object2) {
+        let colliding = false;
+        // Rock shapes are a bit different
+        this.checkObj(object1, object2);
         for (let i = 0; i < object1.shapes.length; i++) {
             for (let j = 0; j < object2.shapes.length; j++) {
                 return colliding = !(
@@ -392,130 +391,154 @@ class SpaceInvadersGame {
                     (object1.shapes[i].y + object1.shapes[i].height) <  object2.shapes[j].y
                 );
             }
-            if (colliding) { break; }
+            if (colliding)break;
+        }
+    }
+
+    updateScore(num) {
+        const score = document.querySelector('.score');
+        let scoreNum = parseInt(score.textContent);
+        scoreNum += num;
+        score.textContent = scoreNum;
+    }
+
+    decreaseLives() {
+        const life = document.getElementsByClassName('life');
+        life[0].remove();
+    }
+
+    resetScore(num) {
+        const score = document.querySelector('.score');
+        let scoreNum = parseInt(score.textContent);
+        scoreNum = num;
+        score.textContent = scoreNum;
+    }
+
+    checkGoodShipCollision() {
+        for (let row of this.badShips) {
+            for (let badShip of row) {
+                if (this.isColliding(bullet, badShip)) {
+                    if (bullet.owner instanceof BadShip) {
+                        continue;
+                    } else if (bullet.owner instanceof GoodShip) {
+                        // goodShip bullet + badShip colliding
+                        this.destroyObject(badShip);
+                        this.destroyObject(bullet);
+                        this.updateScore(10);
+                    }
+                    collision = true;
+                    break;
+                } else {
+                    continue;
+                }
+            }
+            if (collision) break;
+        }
+    }
+
+    destoryBulletAtX(bullet) {
+        if (bullet.isAtExtremity('top', this.canvasElement) || bullet.isAtExtremity('bottom', this.canvasElement)) {
+            this.destroyObject(bullet);
+        }
+    }
+
+    isRockCollision(bullet) {
+        for (let rock of this.rocks) {
+            if (this.isColliding(bullet, rock)) {
+                // bullet + rock colliding
+                this.destroyObject(bullet);
+                let collision = true;
+                return collision;
+            } else {
+                continue;
+            }
+        }
+    }
+
+    goodBulletHasHit(bullet) {
+        let collision = false;
+        for (let row of this.badShips) {
+            for (let badShip of row) {
+                if (this.isColliding(bullet, badShip)) {
+                    if (bullet.owner instanceof BadShip) {
+                        continue;
+                    } else if (bullet.owner instanceof GoodShip) {
+                        // goodShip bullet + badShip colliding
+                        this.destroyObject(badShip);
+                        this.destroyObject(bullet);
+                        this.updateScore(10);
+                    }
+                    collision = true;
+                    break;
+                } else {
+                    continue;
+                }
+            }
+            if (collision) break;
+        }
+    }
+
+    badBulletHasHit(bullet) {
+        for (let goodShip of this.players) {
+            if (this.isColliding(bullet, goodShip)) {
+                if (bullet.owner instanceof BadShip) {
+                    // badShip bullet + goodShip colliding
+                    this.resetScore(0)
+                    this.destroyObject(goodShip);
+                    this.destroyObject(bullet);
+                    this.decreaseLives();
+                } else if (bullet.owner instanceof GoodShip) {
+                    // do nothing - this shouldnt be possible
+                    continue;
+                }
+                let collision = true;
+                return collision;
+            } else {
+                continue;
+            }  
+        }
+    }
+
+    badShipHitRock() {
+        for (let row of this.badShips) {
+            for (let badShip of row) {
+                for (let rock of this.rocks) {
+                    if (this.isColliding(badShip, rock)) {
+                        // badShip bullet + rock colliding
+                        // damage rock precisely where positions intersect
+                    }  continue;
+                }
+            }
         }
     }
 
     checkForCollisions() {
         for (let bullet of this.bullets) {
             let collision = false;
-            
             // TODO:  Break loops if impacts occurs
-            for (let rock of this.rocks) {
-                if (this.isColliding(bullet, rock)) {
-                    // bullet + rock colliding
-                    // damage rock
-                    this.destroyObject(bullet);
-                    collision = true;
-                    break;
-                } else {
-                    continue;
-                }
-            }
-            if (collision) { continue; }
-
-            for (let row of this.badShips) {
-                for (let badShip of row) {
-                    if (this.isColliding(bullet, badShip)) {
-                        if (bullet.owner instanceof BadShip) {
-                            continue;
-                        } else if (bullet.owner instanceof GoodShip) {
-                            // goodShip bullet + badShip colliding
-                            this.destroyObject(badShip);
-                            this.destroyObject(bullet);
-
-                            // update score
-                            const score = document.querySelector('.score');
-                            // update score
-                            let scoreNum = parseInt(score.textContent);
-                            scoreNum += 10;
-                            score.textContent = scoreNum;
-                            
-                            // remove ship
-                            // remove bullet
-                            // enable shoot addEventListener
-                        }
-                        collision = true;
-                        break;
-                    } else {
-                        continue;
-                    }
-                }
-                if (collision) { break; }
-            }
-
-            if (collision) { continue; }
-
-            for (let goodShip of this.players) {
-                if (this.isColliding(bullet, goodShip)) {
-                    if (bullet.owner instanceof BadShip) {
-                        // badShip bullet + goodShip colliding
-                        const score = document.querySelector('.score');
-                        // const life = document.getElementsByClassName('life');
-                        // console.log(life);
-                        // update score
-                        score.textContent = 0;
-                        this.destroyObject(goodShip);
-                        this.destroyObject(bullet);
-                        // remove ship
-                        // lose life
-                        const life = document.getElementsByClassName('life');
-                        life[0].remove();
-
-                        // check if game is over
-                    } else if (bullet.owner instanceof GoodShip) {
-                        // do nothing - this shouldnt be possible
-                        continue;
-                    }
-                    collision = true;
-                    break;
-                } else {
-                    continue;
-                }
-                    
-            }
-
-            if (collision) { continue; }
-
-            if (bullet.isAtExtremity('top', this.canvasElement) || bullet.isAtExtremity('bottom', this.canvasElement)) {
-                this.destroyObject(bullet);
-            }
-
+                this.isRockCollision(bullet);
+                this.goodBulletHasHit(bullet);
+                this.badBulletHasHit(bullet);
+            if (collision) continue;
+            this.destoryBulletAtX(bullet) 
         }
-
-        for (let row of this.badShips) {
-            for (let badShip of row) {
-
-                for (let rock of this.rocks) {
-                    if (this.isColliding(badShip, rock)) {
-                        // badShip bullet + rock colliding
-                        // damage rock precisely where positions intersect
-                    } else {
-                        continue;
-                    }
-                }
-
-            }
-        }
+        this.badShipHitRock();
 }
 
     // Draw a grid of badShips
     initialiseBadShips() {
         for (let i = 0; i < this.badShipRows; i++) { // Loop for number of rows required
             this.badShips[i] = []; // Initialise row in array
-            for (let j = 0; j < this.badShipsPerRow; j ++) { // Loop for ships required on each row
+            for (let j = 0; j < this.badShipsPerRow; j ++) { 
                 let newShip = new BadShip(this);
-                this.moveObject(newShip, (newShip.width*j)+5, (newShip.height*i)+150); // For initialise delta is set relative to 0, 0. newShip.width/height*j/i should offset from the previous ship and produce a gutter
+                this.moveObject(newShip, (newShip.width*j)+5, (newShip.height*i)+150);
                 newShip.draw(this.canvasContext);
                 this.badShips[i].push(newShip);
-            }
-            
+            }   
         }
     }
 
     initialiseGoodShip(goodShip) {
-        // goodShip.addEventListeners();
-        // console.log(this.canvasElement.width);
         this.moveObject(goodShip, (this.canvasElement.width/2)-(goodShip.width/2), (this.canvasElement.height)-(goodShip.height+10));
         this.drawObject(goodShip);
     }
@@ -537,26 +560,23 @@ class SpaceInvadersGame {
         return bullet;
     }
 
-    // This currently just moves ships right --> TODO: hit edge of canvas and come back
+    shipsLeftCanvas(firstShip, lastShip) {
+        if (firstShip.isAtExtremity('left', this.canvasElement)) {
+            this.badShipDirection = true;
+        // Ships have hit right side of canvas, deltaX needs to be -1
+        } else if (lastShip.isAtExtremity('right', this.canvasElement)) {
+            this.badShipDirection = false;
+        }
+    }
+
     moveBadShips() {
         for (let row of this.badShips) {
-            // As badShips are destroyed rows become empty.
+            let firstShip = row[0];
+            let lastShip = row[row.length-1];
             if (row.length > 0) {
-                let firstShip = row[0];
-                let lastShip = row[row.length-1];
-                let maxShipHeight = 40; //Math.max(row.map(ship => ship.height));
-
-                // Ships have hit left edge of canvas, deltaX needs to be +1
-                if (firstShip.isAtExtremity('left', this.canvasElement)) {
-                    this.badShipDirection = true;
-                // Ships have hit right side of canvas, deltaX needs to be -1
-                } else if (lastShip.isAtExtremity('right', this.canvasElement)) {
-                    this.badShipDirection = false;
-                }
-
+                this.shipsLeftCanvas(firstShip, lastShip);
                 let deltaX = this.badShipDirection ? 1 : -1;
                 let deltaY = 0;
-
                 for (let ship of row) {
                     this.moveObject(ship, deltaX, deltaY);
                     this.drawObject(ship);
@@ -569,11 +589,10 @@ class SpaceInvadersGame {
         for (let bullet of this.bullets) {
             if (ownerType == 'badShip' && bullet.owner instanceof BadShip) {
                 this.moveObject(bullet, 0, 1);
-                this.drawObject(bullet);
             } else if (ownerType == 'goodShip' && bullet.owner instanceof GoodShip) {
                 this.moveObject(bullet, 0, -1);
-                this.drawObject(bullet);
             }
+            this.drawObject(bullet);
         }
     }
 
