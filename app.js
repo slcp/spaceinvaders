@@ -160,6 +160,7 @@ class GoodShip extends Ship {
                 color: '#21c521'
             }
         ];
+        this.score = 0;
         this.shootTrigger = 'Space';
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.handleKeyUp = this.handleKeyUp.bind(this);
@@ -171,6 +172,10 @@ class GoodShip extends Ship {
             removeEventListener('keydown', this.handleKeyDown);
             removeEventListener('keyup', this.handleKeyUp);
         }
+    }
+
+    updateScore(delta) {
+        this.score += delta;
     }
 
     addEventListeners() {
@@ -546,6 +551,11 @@ class SpaceInvadersGame {
         }
     }
 
+    updateScore(player, delta) {
+        player.updateScore(delta);
+        score.textContent = player.score;
+    }
+
     moveObject(object, deltaX, deltaY) {
         let canvasContext = this.canvasContext
         object.move(deltaX, deltaY, canvasContext);
@@ -667,7 +677,7 @@ class SpaceInvadersGame {
                             // goodShip bullet + badShip colliding
                             this.destroyObject(badShip);
                             this.destroyObject(bullet);
-                            // update score
+                            this.updateScore(bullet.owner, 100);
 
                             let badShipCount = 0;
                             for (row of this.badShips) {
@@ -694,6 +704,10 @@ class SpaceInvadersGame {
                         // badShip bullet + goodShip colliding
                         this.destroyObject(goodShip);
                         this.destroyObject(bullet);
+                        
+                        if (goodShip.hasLives()) {
+                            this.initialiseGoodShip(goodship);
+                        }
                     } else if (bullet.owner instanceof GoodShip) {
                         // do nothing - this shouldnt be possible
                         goodShip.draw(this.canvasContext);
