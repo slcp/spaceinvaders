@@ -80,3 +80,11 @@ canvas:focus {
     width: 40px;
     margin: 0 1rem;
 }
+
+.game-message {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    color: white;
+    font-size: 100px;
+}

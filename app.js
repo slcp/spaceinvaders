@@ -355,8 +355,8 @@ class SpaceInvadersGame {
                         rocKheight: 1,
                         rockWhiteSpace: 1,
                         badShipScale: 0.5,
-                        badShipRows: 7,
-                        badShipsPerRow: 7,
+                        badShipRows: 1,
+                        badShipsPerRow: 1,
                         badShipsBulletsPerSecond: 4,
                         badShipFramerate: 100,
                         goodBulletFramerate: 800,
@@ -390,8 +390,8 @@ class SpaceInvadersGame {
                         rocKheight: 1,
                         rockWhiteSpace: 2,
                         badShipScale: 0.5,
-                        badShipRows: 5,
-                        badShipsPerRow: 4,
+                        badShipRows: 1,
+                        badShipsPerRow: 1,
                         badShipsBulletsPerSecond: 10,
                         badShipFramerate: 100,
                         goodBulletFramerate: 800,
@@ -460,11 +460,7 @@ class SpaceInvadersGame {
     }
 
     endGame() {
-        this.gameState = 'END_GAME';
-        for (let interval of this.gameIntervals) {
-            clearInterval(interval);
-        }
-
+        this.clearGameIntervals();
         this.destroyGoodShips();
         this.destroyRocks();
         this.destroyBullets();
@@ -481,38 +477,17 @@ class SpaceInvadersGame {
         this.runGame();
     }
 
+    gameWon() {
+        this.clearGameIntervals();
+        this.destroyBullets();
+        this.setGameMessage();
+    }
+
     runGame() {
         this.gameState = 'GAME_RUNNING'
         // Arrow funciton here will ensure this is bound to SpaceInvadersGame and not window.
         this.gameIntervals.push(setInterval(() => {
             this.moveBadShips();
-            this.checkForCollisions();
-            
-            switch (this.gameState) {
-                case 'LEVEL_WON':
-                    if (this.currentLevel === this.levelData.length-1) {
-                        this.gameState = 'GAME_WON';
-                        // Game won
-                        // Check highscore status
-                    } else {
-                        if (this.currentLevelMode == 'standard') {
-                            this.currentLevelMode = 'special';
-                            this.endGame();
-                            this.startGame();
-                        } else {
-                            this.currentLevelMode = 'standard'
-                            this.nextLevel();
-                        }
-                    }
-                break;
-
-                case 'PLAYER_DEAD':
-
-                break;
-
-                default:
-                break;
-            }
         }, 1000/this.getSetting('badShipFramerate')));
 
         this.gameIntervals.push(setInterval(() => {
@@ -526,12 +501,49 @@ class SpaceInvadersGame {
         this.gameIntervals.push(setInterval(() => {
             this.moveBullets('badShip');
         }, 1000/this.getSetting('badBulletFramerate')));
+
+        this.gameIntervals.push(setInterval(() => {
+            this.checkForCollisions();
+            
+            switch (this.gameState) {
+                case 'LEVEL_WON':
+                    if (this.currentLevel === this.levelData.length-1) {
+                        this.gameState = 'GAME_WON';
+                        this.gameWon();
+                        // Check highscore status
+                    } else {
+                        this.nextLevel();
+                    }
+                break;
+
+                case 'PLAYER_DEAD':
+
+                break;
+
+                default:
+                break;
+            }
+        }, 100));
     }
 
     nextLevel() {
         this.currentLevel++;
         this.endGame();
         this.startGame();
+    }
+
+    clearGameIntervals() {
+        for (let interval of this.gameIntervals) {
+            clearInterval(interval);
+        }
+    }
+
+    setGameMessage() {
+        switch(this.gameState) {
+            case 'GAME_WON':
+                gameMessage.textContent = 'Well done, you have won!';
+                break;
+        }
     }
 
     moveObject(object, deltaX, deltaY) {
@@ -577,11 +589,24 @@ class SpaceInvadersGame {
                 }
             }
         } else if (object instanceof GoodShip) {
-            object.kill(canvasContext);
-            object.destroy();
-            if (this.gameState === 'GAME_RUNNING') {
-                let goodShipIndex = this.players.indexOf(object);
-                this.players.splice(goodShipIndex, 1);
+            
+            switch(this.gameState) {
+                case 'GAME_WON':
+
+                    break;
+                
+                case 'LEVEL_WON':
+                    break;
+
+                case 'GAME_RUNNING':
+                    object.kill(canvasContext);
+                    object.destroy();
+                    let goodShipIndex = this.players.indexOf(object);
+                    this.players.splice(goodShipIndex, 1);
+                    break;
+                
+                default:
+                    break;
             }
         }
     }
