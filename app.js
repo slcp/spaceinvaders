@@ -362,10 +362,10 @@ class SpaceInvadersGame {
                         badShipScale: 0.5,
                         badShipRows: 7,
                         badShipsPerRow: 5,
-                        badShipsBulletsPerSecond: 25,
-                        badShipFramerate: 400,
+                        badShipsBulletsPerSecond: 4,
+                        badShipFramerate: 200,
                         goodBulletFramerate: 800,
-                        badBulletFramerate: 50
+                        badBulletFramerate: 100
                     },
                     goodShip: {
                         continuousFire: false,
