@@ -161,6 +161,7 @@ class GoodShip extends Ship {
             }
         ];
         this.score = 0;
+        this.lives = 3;
         this.shootTrigger = 'Space';
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.handleKeyUp = this.handleKeyUp.bind(this);
@@ -176,6 +177,18 @@ class GoodShip extends Ship {
 
     updateScore(delta) {
         this.score += delta;
+    }
+
+    loseLife() {
+        this.lives -= 1;
+    }
+
+    gainLife() {
+        this.lives += 1;
+    }
+
+    isDead() {
+        return this.lives > 0;
     }
 
     addEventListeners() {
@@ -337,6 +350,16 @@ class Rock extends Moveable {
         }
 
         return colliding;
+    }
+}
+
+class LevelData {
+    constructor() {
+
+    }
+
+    isComplete() {
+
     }
 }
 
@@ -528,13 +551,18 @@ class SpaceInvadersGame {
                 default:
                 break;
             }
-        }, 100));
+        }, 10));
     }
 
     nextLevel() {
+        this.gameState = 'NEXT_LEVEL';
         this.currentLevel++;
+        this.setGameMessage();
         this.endGame();
-        this.startGame();
+        setTimeout(() => {
+            this.clearGameMessage();
+            this.startGame();
+        }, 5000);
     }
 
     clearGameIntervals() {
@@ -548,7 +576,15 @@ class SpaceInvadersGame {
             case 'GAME_WON':
                 gameMessage.textContent = 'Well done, you have won!';
                 break;
+
+            case 'NEXT_LEVEL':
+                gameMessage.textContent = `Level ${this.currentLevel+1}`;
+                break;
         }
+    }
+
+    clearGameMessage() {
+        gameMessage.textContent = '';
     }
 
     updateScore(player, delta) {
@@ -704,9 +740,13 @@ class SpaceInvadersGame {
                         // badShip bullet + goodShip colliding
                         this.destroyObject(goodShip);
                         this.destroyObject(bullet);
+
+                        goodShip.loseLife();
                         
-                        if (goodShip.hasLives()) {
+                        if (!goodShip.isDead()) {
                             this.initialiseGoodShip(goodship);
+                        } else {
+                            this.gameState = 'PLAYER_DEAD';
                         }
                     } else if (bullet.owner instanceof GoodShip) {
                         // do nothing - this shouldnt be possible
