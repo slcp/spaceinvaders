@@ -271,8 +271,8 @@ class Bullet extends Moveable {
             {
                 x: 20,
                 y: 10,
-                width: 4,
-                height: 28
+                width: 2,
+                height: 10
             },
         ];
         this.owner = owner;
@@ -378,17 +378,17 @@ class SpaceInvadersGame {
             {
                 standard: {
                     game: {
-                        numRocks: 5,
-                        rockWidth: 80,
+                        numRocks: 3,
+                        rockWidth: 100,
                         rocKheight: 1,
                         rockWhiteSpace: 1,
                         badShipScale: 0.5,
-                        badShipRows: 1,
-                        badShipsPerRow: 1,
+                        badShipRows: 7,
+                        badShipsPerRow: 5,
                         badShipsBulletsPerSecond: 4,
-                        badShipFramerate: 100,
+                        badShipFramerate: 200,
                         goodBulletFramerate: 800,
-                        badBulletFramerate: 50
+                        badBulletFramerate: 100
                     },
                     goodShip: {
                         continuousFire: false,
@@ -397,7 +397,7 @@ class SpaceInvadersGame {
                         continuousFire: true,
                     },
                     rock: {
-                        rockParticleWidth: 10,
+                        rockParticleWidth: 1,
                         rockParticleHeight: 45,
                     }
                 },
@@ -420,19 +420,19 @@ class SpaceInvadersGame {
                         badShipScale: 0.5,
                         badShipRows: 1,
                         badShipsPerRow: 1,
-                        badShipsBulletsPerSecond: 10,
-                        badShipFramerate: 100,
+                        badShipsBulletsPerSecond: 25,
+                        badShipFramerate: 200,
                         goodBulletFramerate: 800,
-                        badBulletFramerate: 50
+                        badBulletFramerate: 100
                     },
                     goodShip: {
-                        continuousFire: false,
+                        continuousFire: true,
                     },
                     badShip: {
                         continuousFire: true,
                     },
                     rock: {
-                        rockParticleWidth: 5,
+                        rockParticleWidth: 20,
                         rockParticleHeight: 45,
                     }
                 },
@@ -528,9 +528,6 @@ class SpaceInvadersGame {
 
         this.gameIntervals.push(setInterval(() => {
             this.moveBullets('badShip');
-        }, 1000/this.getSetting('badBulletFramerate')));
-
-        this.gameIntervals.push(setInterval(() => {
             this.checkForCollisions();
             
             switch (this.gameState) {
@@ -551,7 +548,11 @@ class SpaceInvadersGame {
                 default:
                 break;
             }
-        }, 10));
+        }, 1000/this.getSetting('badBulletFramerate')));
+
+        this.gameIntervals.push(setInterval(() => {
+            
+        }, 100));
     }
 
     nextLevel() {
