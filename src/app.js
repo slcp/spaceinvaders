@@ -1,0 +1,9 @@
+class LevelData {
+    constructor() {
+
+    }
+
+    isComplete() {
+
+    }
+}
