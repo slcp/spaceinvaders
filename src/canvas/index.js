@@ -43,7 +43,6 @@ class Canvas {
   }
 
   draw(shapes) {
-    const context = this.getContext();
     // Remove from canvas
     for (let shape of shapes) {
       this.clearShape(shape);
@@ -55,51 +54,30 @@ class Canvas {
   }
 
   isAtExtremity(direction, shapes) {
-    let Values = "";
-    let Value = "";
-
     switch (direction) {
       case "left":
-        Values = shapes.map((shape) => shape.x);
-        Value = Math.floor(...Values);
-
-        if (Value <= 0) {
-          //   this.lastExtremity = "left";
-          return true;
-        } else {
-          return false;
-        }
+        const leftMostXValue = Math.floor(...shapes.map((shape) => shape.x));
+        return leftMostXValue <= 0;
+      //   this.lastExtremity = "left";
 
       case "right":
-        Values = shapes.map((shape) => shape.x + shape.width);
-        Value = Math.max(...Values);
-
-        if (Value >= this.getWidth()) {
-          //   this.lastExtremity = "right";
-          return true;
-        } else {
-          return false;
-        }
+        const rightMostXValue = Math.max(
+          ...shapes.map((shape) => shape.x + shape.width)
+        );
+        return rightMostXValue >= this.getWidth();
+      //   this.lastExtremity = "right";
 
       case "top":
-        Values = shapes.map((shape) => shape.y);
-        Value = Math.max(...Values);
-        if (Value <= 0) {
-          //   this.lastExtremity = "top";
-          return true;
-        } else {
-          return false;
-        }
+        const topMostYValue = Math.max(...shapes.map((shape) => shape.y));
+        return topMostYValue <= 0;
+      //   this.lastExtremity = "top";
 
       case "bottom":
-        Values = shapes.map((shape) => shape.y + shape.height);
-        Value = Math.max(...Values);
-        if (Value >= this.getHeight()) {
-          //   this.lastExtremity = "bottom";
-          return true;
-        } else {
-          return false;
-        }
+        const bottomMostYValue = Math.max(
+          ...shapes.map((shape) => shape.y + shape.height)
+        );
+        return bottomMostYValue >= this.getHeight();
+      //   this.lastExtremity = "bottom";
 
       default:
         break;
