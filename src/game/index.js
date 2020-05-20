@@ -4,6 +4,7 @@ import Canvas from "../canvas";
 import GoodShip from "../goodShip";
 import levels from "../levels";
 import Rock from "../rock";
+import GameAnimation from "./animation";
 import getSetting, { getSettingFor } from "./getSetting";
 import { isBadShipBullet, isGoodShipBullet } from "./helpers";
 
@@ -27,6 +28,35 @@ export default class SpaceInvadersGame {
     this.currentLevelMode = "standard";
     // Configuration for game levels
     this.levelData = [...levels];
+
+    this.frameActions = [
+      {
+        id: Symbol("moveGoodBullets"),
+        ms: 1000 / this.getSetting("goodBulletFramerate"),
+        action: () => this.moveBullets("goodShip"),
+      },
+      {
+        id: Symbol("shootBadBullets"),
+        ms: 1000,
+        action: () => this.shootBadBullets(),
+      },
+      {
+        id: Symbol("moveBadBullets"),
+        ms: 1000 / this.getSetting("badBulletFramerate"),
+        action: () => this.moveBullets("badShip"),
+      },
+      {
+        id: Symbol("moveBadShips"),
+        ms: 1000 / this.getSetting("badShipFramerate"),
+        action: () => this.moveBadShips(),
+      },
+      {
+        id: Symbol("checkForCollisions"),
+        // Run on every frame
+        ms: 0,
+        action: () => this.checkForCollisions(),
+      },
+    ];
 
     // METHODS
     // this.newGame = newGame.bind(this);
@@ -54,7 +84,7 @@ export default class SpaceInvadersGame {
   }
 
   endGame() {
-    this.clearGameIntervals();
+    // this.clearGameIntervals();
     this.destroyGoodShips();
     this.destroyRocks();
     this.destroyBullets();
@@ -72,58 +102,50 @@ export default class SpaceInvadersGame {
   }
 
   gameWon() {
-    this.clearGameIntervals();
+    // this.clearGameIntervals();
     this.destroyBullets();
     this.setGameMessage();
   }
 
+  // TODO: How to handle the movement of the good ship.
+  // Run a counter of moves for the good ship and move them, all at once? Need a framerate?
+  //   - Max moves for goodship per frame = 1 so just need bool for key press -> move
+  startAnimation() {
+    // Pass in a callback to the game to check game state on each frame
+    // The frame can you use this to know when to stop animating
+    // The game can use this to know when the animation is stopped and game status needs to be managed
+    const animation = new GameAnimation();
+    window.requestAnimationFrame((frameStartTime) =>
+      animation.runFrame(frameStartTime, this.frameActions, () => this.checkGameState())
+    );
+  }
+
+  checkGameState() {
+    switch (this.gameState) {
+      case "LEVEL_WON":
+        if (this.currentLevel === this.levelData.length - 1) {
+          this.gameState = "GAME_WON";
+          this.gameWon();
+          // Should cancel animation
+          return true;
+          // Check highscore status
+        } else {
+          this.nextLevel();
+          // Should cancel animation
+          return true;
+        }
+
+      case "PLAYER_DEAD":
+        break;
+
+      default:
+        break;
+    }
+  }
+
   runGame() {
     this.gameState = "GAME_RUNNING";
-    // Arrow funciton here will ensure this is bound to SpaceInvadersGame and not window.
-    this.gameIntervals.push(
-      setInterval(() => {
-        this.moveBadShips();
-      }, 1000 / this.getSetting("badShipFramerate"))
-    );
-
-    this.gameIntervals.push(
-      setInterval(() => {
-        this.shootBadBullets();
-      }, 1000)
-    );
-
-    this.gameIntervals.push(
-      setInterval(() => {
-        this.moveBullets("goodShip");
-      }, 1000 / this.getSetting("goodBulletFramerate"))
-    );
-
-    this.gameIntervals.push(
-      setInterval(() => {
-        this.moveBullets("badShip");
-        this.checkForCollisions();
-
-        switch (this.gameState) {
-          case "LEVEL_WON":
-            if (this.currentLevel === this.levelData.length - 1) {
-              this.gameState = "GAME_WON";
-              this.gameWon();
-              // Check highscore status
-            } else {
-              this.nextLevel();
-            }
-            break;
-
-          case "PLAYER_DEAD":
-            break;
-
-          default:
-            break;
-        }
-      }, 1000 / this.getSetting("badBulletFramerate"))
-    );
-
-    this.gameIntervals.push(setInterval(() => {}, 100));
+    this.startAnimation();
   }
 
   nextLevel() {
@@ -281,7 +303,7 @@ export default class SpaceInvadersGame {
         // bullet + rock colliding
         let shape = rock.findDamageFrom(bullet);
         if (!shape) {
-            throw new Error("something has gone wrong, check the logging");
+          throw new Error("something has gone wrong, check the logging");
         }
         this.destroyObject(bullet);
         this.canvas.remove([shape]);
@@ -392,7 +414,7 @@ export default class SpaceInvadersGame {
           newShip.width * j + 5,
           newShip.height * i + 150
         ); // For initialise delta is set relative to 0, 0. newShip.width/height*j/i should offset from the previous ship and produce a gutter
-        this.canvas.draw(newShip.shapes);
+        this.drawObject(newShip);
         this.badShips[i].push(newShip);
       }
     }
@@ -490,7 +512,6 @@ export default class SpaceInvadersGame {
     this.bullets = [];
   }
 
-  // This currently just moves ships right --> TODO: hit edge of canvas and come back
   moveBadShips() {
     for (let row of this.badShips) {
       // As badShips are destroyed rows become empty.
