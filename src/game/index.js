@@ -472,7 +472,7 @@ export default class SpaceInvadersGame {
 
       // First rock is in the middle
       if (i === 0) {
-        rock.move(xValueOfMiddleRock / 2, 0);
+        rock.move(xValueOfMiddleRock, 0);
       } else {
         // All other rocks are drawn in pairs with an equal offset but alternatig
         // between positive and negative.
