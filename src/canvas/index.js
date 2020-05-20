@@ -28,7 +28,8 @@ class Canvas {
   clearShape(shape) {
     const context = this.getContext();
     context.clearRect(shape.oldX, shape.oldY, shape.width, shape.height);
-  }
+    context.clearRect(shape.x, shape.y, shape.width, shape.height);
+}
 
   fillShape(shape) {
     const context = this.getContext();
@@ -58,26 +59,22 @@ class Canvas {
       case "left":
         const leftMostXValue = Math.floor(...shapes.map((shape) => shape.x));
         return leftMostXValue <= 0;
-      //   this.lastExtremity = "left";
 
       case "right":
         const rightMostXValue = Math.max(
           ...shapes.map((shape) => shape.x + shape.width)
         );
         return rightMostXValue >= this.getWidth();
-      //   this.lastExtremity = "right";
 
       case "top":
         const topMostYValue = Math.max(...shapes.map((shape) => shape.y));
         return topMostYValue <= 0;
-      //   this.lastExtremity = "top";
 
       case "bottom":
         const bottomMostYValue = Math.max(
           ...shapes.map((shape) => shape.y + shape.height)
         );
         return bottomMostYValue >= this.getHeight();
-      //   this.lastExtremity = "bottom";
 
       default:
         break;

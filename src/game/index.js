@@ -116,7 +116,9 @@ export default class SpaceInvadersGame {
     // The game can use this to know when the animation is stopped and game status needs to be managed
     const animation = new GameAnimation();
     window.requestAnimationFrame((frameStartTime) =>
-      animation.runFrame(frameStartTime, this.frameActions, () => this.checkGameState())
+      animation.runFrame(frameStartTime, this.frameActions, () =>
+        this.checkGameState()
+      )
     );
   }
 
@@ -451,36 +453,41 @@ export default class SpaceInvadersGame {
 
   // Lower levels will have a central rock protecting goodPlayer spawn point
   // Higher levels will not have a central
-  // Draw from middle and switch between positive/negative offset
+  // 1. Draw rock in the middle
+  // 2. Draw rock to left offset n
+  // 3. Draw rock to right offset -n
+  // 4. Draw rock to left offset n+1
+  // 5. Draw rock to right offset -n+1
+  // Repeat 2-5
   initialiseRocks() {
-    let canvasCentre = this.canvas.getWidth() / 2;
-    let counter = 0;
-    let offSetNegative = false;
+    const canvasCentre = this.canvas.getWidth() / 2;
+    const xValueOfMiddleRock = canvasCentre - this.getSetting("rockWidth") / 2;
+    let rockPair = 1;
 
     for (let i = 0; i < this.getSetting("numRocks"); i++) {
-      let offSet = offSetNegative ? -counter : counter;
       let rock = new Rock(
         this.getSetting("rockWidth"),
         this.getSettingsFor("rock")
       );
 
-      rock.move(canvasCentre - this.getSetting("rockWidth") / 2, 0);
+      // First rock is in the middle
+      if (i === 0) {
+        rock.move(xValueOfMiddleRock / 2, 0);
+      } else {
+        // All other rocks are drawn in pairs with an equal offset but alternatig
+        // between positive and negative.
+        const offSet = i % 2 === 0 ? rockPair : -rockPair;
 
-      if (offSetNegative) {
-        counter++;
-      }
-
-      if (i !== 0) {
-        rock.move(
-          offSet * this.getSetting("rockWidth") +
+        // This works but I cannot remember why
+        const deltaX =
+          xValueOfMiddleRock +
+          (offSet * this.getSetting("rockWidth") +
             offSet *
               this.getSetting("rockWidth") *
-              this.getSetting("rockWhiteSpace"),
-          0
-        );
-        offSetNegative = !offSetNegative;
-      } else {
-        counter++;
+              this.getSetting("rockWhiteSpace"));
+        rock.move(deltaX, 0);
+        console.log("drawing non middle rock", offSet, rock);
+        rockPair = i % 2 === 0 ? rockPair + 1 : rockPair;
       }
 
       this.rocks.push(rock);

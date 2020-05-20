@@ -58,20 +58,6 @@ class Rock extends Moveable {
     }
   }
 
-  //   takeDamageFrom(object, context) {
-  //     if (object instanceof Bullet) {
-  //       let damageTaken = false;
-  //       for (let shape of this.shapes) {
-  //         if (this.isColliding(shape, object)) {
-  //           context.clearRect(shape.x, shape.y, shape.width, shape.height);
-  //           this.shapes.splice(this.shapes.indexOf(shape), 1);
-  //           damageTaken = true;
-  //         }
-  //       }
-  //       return damageTaken;
-  //     }
-  //   }
-
   isColliding(shape, object2) {
     let colliding = false;
 
