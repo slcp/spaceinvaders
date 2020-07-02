@@ -12,8 +12,6 @@ export default class SpaceInvadersGame {
   constructor(canvasId) {
     // The canvas take is responsible for drawing the game
     this.canvas = new Canvas(canvasId);
-    // TOOD: Document
-    this.gameIntervals = [];
     // The bad ships that are in play
     this.badShips = [];
     // The good ships (or players) that in play
@@ -57,9 +55,6 @@ export default class SpaceInvadersGame {
         action: () => this.checkForCollisions(),
       },
     ];
-
-    // METHODS
-    // this.newGame = newGame.bind(this);
   }
 
   getSetting(setting) {
@@ -84,7 +79,6 @@ export default class SpaceInvadersGame {
   }
 
   endGame() {
-    // this.clearGameIntervals();
     this.destroyGoodShips();
     this.destroyRocks();
     this.destroyBullets();
@@ -102,7 +96,6 @@ export default class SpaceInvadersGame {
   }
 
   gameWon() {
-    // this.clearGameIntervals();
     this.destroyBullets();
     this.setGameMessage();
   }
@@ -159,12 +152,6 @@ export default class SpaceInvadersGame {
       this.clearGameMessage();
       this.startGame();
     }, 5000);
-  }
-
-  clearGameIntervals() {
-    for (let interval of this.gameIntervals) {
-      clearInterval(interval);
-    }
   }
 
   setGameMessage() {
@@ -405,12 +392,14 @@ export default class SpaceInvadersGame {
 
   // Draw a grid of badShips
   initialiseBadShips() {
+    const settings = this.getSettingsFor("badShip")
+    const shipsPerRow = this.getSetting("badShipsPerRow")
     for (let i = 0; i < this.getSetting("badShipRows"); i++) {
       // Loop for number of rows required
       this.badShips[i] = []; // Initialise row in array
-      for (let j = 0; j < this.getSetting("badShipsPerRow"); j++) {
+      for (let j = 0; j < shipsPerRow; j++) {
         // Loop for ships required on each row
-        let newShip = new BadShip(this, this.getSettingsFor("badShip"));
+        let newShip = new BadShip(this, settings);
         this.moveObject(
           newShip,
           newShip.width * j + 5,

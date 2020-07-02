@@ -8,13 +8,13 @@ const levelOne = {
       badShipScale: 0.5,
       badShipRows: 7,
       badShipsPerRow: 5,
-      badShipsBulletsPerSecond: 4,
+      badShipsBulletsPerSecond: 1,
       badShipFramerate: 200,
       goodBulletFramerate: 800,
       badBulletFramerate: 100,
     },
     goodShip: {
-      continuousFire: false,
+      continuousFire: true,
     },
     badShip: {
       continuousFire: true,

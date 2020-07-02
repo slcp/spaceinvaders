@@ -1,16 +1,10 @@
 import Moveable from './moveable';
+import Shape from "./shape";
 
 class Bullet extends Moveable {
   constructor(owner, settings) {
     super(settings);
-    this.shapes = [
-      {
-        x: 20,
-        y: 10,
-        width: 2,
-        height: 10,
-      },
-    ];
+    this.shapes = [new Shape(20, 10, 5, 20)];
     this.owner = owner;
   }
 }

@@ -16,9 +16,12 @@ class GameAnimation {
       if (!this.lastActionFrame[def.id]) {
         this.lastActionFrame[def.id] = frameStartTime;
         def.action();
-      } else if (frameStartTime - this.lastActionFrame[def.id] > def.ms) {
+        return;
+      }
+      if (frameStartTime - this.lastActionFrame[def.id] > def.ms) {
         this.lastActionFrame[def.id] = frameStartTime;
         def.action();
+        return;
       }
     });
 

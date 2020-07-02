@@ -1,43 +1,29 @@
-import Ship from './ship'
+import GameAnimation from "./game/animation";
+import {ARROW_LEfT, ARROW_RIGHT, SPACE} from "./keyCodes";
+import Ship from "./ship";
+import Shape from "./shape";
 
 class GoodShip extends Ship {
   constructor(game, settings) {
     super(game, settings);
     this.shapes = [
-      {
-        x: 20,
-        y: 40,
-        width: 60,
-        height: 20,
-        color: "#21c521",
-      },
-      {
-        x: 40,
-        y: 20,
-        width: 20,
-        height: 20,
-        color: "#21c521",
-      },
-      {
-        x: 20,
-        y: 55,
-        width: 20,
-        height: 20,
-        color: "#21c521",
-      },
-      {
-        x: 60,
-        y: 55,
-        width: 20,
-        height: 20,
-        color: "#21c521",
-      },
+      new Shape(20, 40, 60, 20, "#21c521"),
+      new Shape(40, 20, 20, 20, "#21c521"),
+      new Shape(20, 55, 20, 20, "#21c521"),
+      new Shape(60, 55, 20, 20, "#21c521"),
     ];
     this.score = 0;
     this.lives = 3;
-    this.shootTrigger = "Space";
+    this.shootTrigger = SPACE;
     this.handleKeyDown = this.handleKeyDown.bind(this);
     this.handleKeyUp = this.handleKeyUp.bind(this);
+    this.frameActions = [
+      {
+        id: Symbol("moveGoodShip"),
+        ms: 4,
+        action: () => this.moveShip(),
+      },
+    ];
   }
 
   destroy() {
@@ -70,37 +56,68 @@ class GoodShip extends Ship {
     window.addEventListener("keyup", this.handleKeyUp);
   }
 
+  startAnimation() {
+    // Pass in a callback to the game to check the frame
+    // can you use to know when to stop animating
+    const animation = new GameAnimation();
+    window.requestAnimationFrame((frameStartTime) =>
+      animation.runFrame(frameStartTime, this.frameActions, () =>
+        this.shouldMove()
+      )
+    );
+  }
+
+  shouldMove() {
+    return !this.direction;
+  }
+
+  moveShip() {
+    const deltaX = this.direction === "LEFT" ? -1 : 1;
+    this.game.moveObject(this, deltaX, 0);
+    this.game.drawObject(this);
+  }
+
   handleKeyDown(event) {
     event.preventDefault();
     if (event.code === this.shootTrigger) {
       this.fireBullet();
+      // TODO: how to throttle fire rate, should be using settings
       if (!this.intervals[event.keyCode]) {
         this.intervals[event.keyCode] = setInterval(
           () => this.fireBullet(),
           100
         );
       }
-    } else if (event.code === "ArrowLeft") {
-      if (!this.intervals[event.keyCode]) {
-        this.intervals[event.keyCode] = setInterval(() => {
-          this.game.moveObject(this, -1, 0);
-          this.game.drawObject(this);
-        }, 1000 / 300);
-      }
-    } else if (event.code === "ArrowRight") {
-      if (!this.intervals[event.keyCode]) {
-        this.intervals[event.keyCode] = setInterval(() => {
-          this.game.moveObject(this, 1, 0);
-          this.game.drawObject(this);
-        }, 1000 / 300);
-      }
+      return;
+      // TODO: Inspect sequencee of keyup/down events
+    }
+    if (event.code === ARROW_LEfT && !this.direction) {
+      this.direction = "LEFT";
+      this.startAnimation();
+      return;
+    }
+    if (event.code === ARROW_RIGHT && !this.direction) {
+      this.direction = "RIGHT";
+      this.startAnimation();
+      return;
     }
   }
 
   handleKeyUp(event) {
     event.preventDefault();
-    clearInterval(this.intervals[event.keyCode]);
-    this.intervals[event.keyCode] = false;
+    if (event.code === this.shootTrigger) {
+      clearInterval(this.intervals[event.keyCode]);
+      this.intervals[event.keyCode] = false;
+      return;
+    }
+    if (event.code === ARROW_LEfT && this.direction === "LEFT") {
+      this.direction = null;
+      return;
+    }
+    if (event.code === ARROW_RIGHT && this.direction === "RIGHT") {
+      this.direction = null;
+      return;
+    }
   }
 }
 

@@ -11,7 +11,8 @@
     "webpack-cli": "^3.3.11"
   },
   "scripts": {
-    "build": "npx webpack"
+    "build": "npx webpack",
+    "start": "yarn build && serve ./dist"
   },
   "husky": {
     "hooks": {

@@ -1,39 +1,16 @@
 import Ship from './ship';
+import Shape from './shape';
 
 class BadShip extends Ship {
-  constructor(game, settings) {
-    super(game, settings);
-    this.shapes = [
-      {
-        x: 20,
-        y: 32,
-        width: 60,
-        height: 8,
-        color: "white",
-      },
-      {
-        x: 40,
-        y: 28,
-        width: 20,
-        height: 20,
-        color: "white",
-      },
-      {
-        x: 20,
-        y: 20,
-        width: 12,
-        height: 20,
-        color: "white",
-      },
-      {
-        x: 68,
-        y: 20,
-        width: 12,
-        height: 20,
-        color: "white",
-      },
-    ];
-  }
+    constructor(game, settings) {
+        super(game, settings);
+        this.shapes = [
+            new Shape(20, 32, 60, 9, "white"),
+            new Shape(40, 28, 20, 20, "white"),
+            new Shape(20, 20, 12, 20, "white"),
+            new Shape(68, 20, 12, 20, "white"),
+        ];
+    }
 }
 
 export default BadShip;
