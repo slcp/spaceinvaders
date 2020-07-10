@@ -1,5 +1,4 @@
-import Shape from "../shape";
-import SAT from "sat"
+import Shape from "../canvas/shape";
 
 const isShape = (x) => x instanceof Shape
 const isArrayOfShapes = (x) => Array.isArray(x) && x.every(y => isShape(y))

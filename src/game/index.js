@@ -1,9 +1,9 @@
-import BadShip from "../badShip";
-import Bullet from "../bullet";
+import BadShip from "../entitiies/badShip";
+import Bullet from "../entitiies/bullet";
 import Canvas2D from "../canvas";
-import GoodShip from "../goodShip";
+import GoodShip from "../entitiies/goodShip";
 import levels from "../levels";
-import Rock from "../rock";
+import Rock from "../entitiies/rock";
 import GameAnimation from "../animation";
 import AnimationFrame from "../animation/animationFrame";
 import getSetting, {getSettingFor} from "./getSetting";
@@ -27,10 +27,6 @@ export default class SpaceInvadersGame {
         this.context = context;
         // The event bus for the game
         this.eventBus = eventBus;
-        // Score POC
-        const score = new Score(eventBus, document.getElementById('score'))
-        score.init();
-        this.score = score;
         // The bad ships that are in play
         this.badShips = [];
         // The good ships (or players) that in play
@@ -279,7 +275,6 @@ export default class SpaceInvadersGame {
         for (let bullet of this.bullets) {
             let collision = false;
 
-            // TODO: Rocks only (visibly) take damage after 5 hits - why?????
             for (let rock of this.rocks) {
                 if (!this.isColliding(bullet, rock)) continue;
 

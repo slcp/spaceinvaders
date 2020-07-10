@@ -1,5 +1,5 @@
 import Ship from './ship';
-import Shape from './shape';
+import Shape from '../canvas/shape';
 
 class BadShip extends Ship {
     constructor(game, settings) {

@@ -1,5 +1,5 @@
 import CollisionCheck from "./collision";
-import Shape from "../shape";
+import Shape from "../canvas/shape";
 
 const makeShape = ({x = 0, y = 0, width = 100, height = 100} = {}) => new Shape(x, y, width, height, undefined);
 const makeNotAShape = () => "string";

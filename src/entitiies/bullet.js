@@ -1,5 +1,5 @@
 import Moveable from './moveable';
-import Shape from "./shape";
+import Shape from "../canvas/shape";
 
 class Bullet extends Moveable {
   constructor(owner, settings) {

@@ -1,8 +1,8 @@
-import GameAnimation from "./animation";
-import {ARROW_LEfT, ARROW_RIGHT, SPACE} from "./keyCodes";
+import GameAnimation from "../animation";
+import {ARROW_LEfT, ARROW_RIGHT, SPACE} from "../keyCodes";
 import Ship from "./ship";
-import Shape from "./shape";
-import {GOOD_SHIP_KILLED_BY_BAD_BULLET, GOOD_SHIP_OUT_OF_LIVES} from "./events/events";
+import Shape from "../canvas/shape";
+import {GOOD_SHIP_KILLED_BY_BAD_BULLET, GOOD_SHIP_OUT_OF_LIVES} from "../events/events";
 
 class GoodShip extends Ship {
     constructor(game, settings, eventBus) {

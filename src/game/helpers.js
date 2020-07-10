@@ -1,5 +1,5 @@
-import BadShip from "../badShip";
-import GoodShip from "../goodShip";
+import BadShip from "../entitiies/badShip";
+import GoodShip from "../entitiies/goodShip";
 
 export const isBadShipBullet = bullet => bullet.owner instanceof BadShip;
 
