@@ -1,14 +1,14 @@
 import Moveable from "./moveable";
 
 class Ship extends Moveable {
-  constructor(game, settings, symbol) {
+  constructor(game, settings, eventBus) {
     super(settings);
     this.game = game;
+    this.eventBus = eventBus;
     this.bullet = "";
     this.bulletInPlay = false;
     this.width = 80;
     this.height = 80;
-    this.id = symbol
   }
 
   fireBullet() {

@@ -13,7 +13,7 @@ class Score {
     }
 
     setScore(delta) {
-        this.element.innerText = this.element.innerText + delta;
+        this.element.innerText = parseInt(this.element.innerText,10) + delta;
     }
 }
 

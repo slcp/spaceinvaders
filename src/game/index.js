@@ -1,16 +1,16 @@
 import BadShip from "../badShip";
 import Bullet from "../bullet";
-import Canvas from "../canvas";
+import Canvas2D from "../canvas";
 import GoodShip from "../goodShip";
 import levels from "../levels";
 import Rock from "../rock";
-import GameAnimation from "./animation";
-import AnimationFrame from "./animationFrame";
+import GameAnimation from "../animation";
+import AnimationFrame from "../animation/animationFrame";
 import getSetting, {getSettingFor} from "./getSetting";
 import {isBadShipBullet, isGoodShipBullet} from "./helpers";
 import EventBus, {
     BAD_SHIP_KILLED_BY_GOOD_BULLET,
-    GOOD_SHIP_KILLED_BY_BAD_BULLET,
+    GOOD_SHIP_KILLED_BY_BAD_BULLET, NEW_GAME_BUTTON_PRESSED,
     ROCK_SLICE_KILLED_BY_BAD_BULLET,
     ROCK_SLICE_KILLED_BY_GOOD_BULLET
 } from "../events/events";
@@ -20,10 +20,11 @@ import Score from "./score";
 // TOOD: Build canvas operations that in an animation frame into the frame queue - killing objects
 
 export default class SpaceInvadersGame {
-    constructor(canvasId) {
+    constructor({canvas, ...context}) {
         const eventBus = new EventBus();
         // The canvas take is responsible for drawing the game
-        this.canvas = new Canvas(canvasId);
+        this.canvas = new Canvas2D(canvas);
+        this.context = context;
         // The event bus for the game
         this.eventBus = eventBus;
         // Score POC
@@ -75,6 +76,14 @@ export default class SpaceInvadersGame {
         ];
     }
 
+    init() {
+        const { newGameButton } = this.context;
+        newGameButton.addEventListener('click', function() {
+            this.eventBus.publish(NEW_GAME_BUTTON_PRESSED)
+        }.bind(this))
+        this.eventBus.subscribe(NEW_GAME_BUTTON_PRESSED, this.newGame.bind(this))
+    }
+
     getSetting(setting) {
         return getSetting(
             setting,
@@ -92,7 +101,7 @@ export default class SpaceInvadersGame {
     newGame() {
         this.endGame();
         this.gameState = "NEW_GAME";
-        this.players.push(new GoodShip(this, this.getSettingsFor("goodShip")));
+        this.players.push(new GoodShip(this, this.getSettingsFor("goodShip"), this.eventBus));
         this.startGame();
     }
 
@@ -125,26 +134,8 @@ export default class SpaceInvadersGame {
     // Run a counter of moves for the good ship and move them, all at once? Need a framerate?
     //   - Max moves for goodship per frame = 1 so just need bool for key press -> move
     startAnimation() {
-        // Pass in a callback to the game to check game state on each frame
-        // The frame can you use this to know when to stop animating
-        // The game can use this to know when the animation is stopped and game status needs to be managed
-        this.animation = new GameAnimation(this.i);
+        this.animation = new GameAnimation();
         this.animation.runFrame(this.frameActions)
-    }
-
-    // TODO: This should return true unless state is something like "RUNNING"
-    shouldCancelAnimation() {
-        switch (this.gameState) {
-            case "LEVEL_WON":
-            case "PLAYER_DEAD":
-            case "NEW_GAME":
-                console.log(this.gameState)
-                return true;
-                break;
-            default:
-                return false;
-                break;
-        }
     }
 
     checkGameState() {
@@ -347,18 +338,16 @@ export default class SpaceInvadersGame {
                     if (bullet.owner instanceof BadShip) {
                         // badShip bullet + goodShip colliding
                         this.eventBus.publish(GOOD_SHIP_KILLED_BY_BAD_BULLET)
-                        this.destroyObject(goodShip);
                         this.destroyObject(bullet);
-
-                        goodShip.loseLife();
+                        this.destroyObject(goodShip);
 
                         if (!goodShip.isDead()) {
-                            this.initialiseGoodShip(goodship);
+                            this.initialiseGoodShip(goodShip);
                         } else {
                             this.gameState = "PLAYER_DEAD";
                         }
                     } else if (bullet.owner instanceof GoodShip) {
-                        // do nothing - this shouldnt be possible
+                        // do nothing - this shouldn't be possible
                         this.drawObject(goodShip);
                         continue;
                     }
@@ -427,7 +416,7 @@ export default class SpaceInvadersGame {
     }
 
     initialiseGoodShip(goodShip) {
-        goodShip.addEventListeners();
+        goodShip.init();
         // Draw in centre of canvas
         this.moveObject(
             goodShip,

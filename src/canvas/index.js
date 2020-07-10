@@ -1,21 +1,19 @@
-class Canvas {
-  constructor(id) {
-    // #id of html canvas the game will be drawn onto
-    this.id = id;
+class Canvas2D {
+  constructor(element) {
+    this.element = element;
   }
 
   getWidth() {
-    return this.htmlCanvas.width;
+    return this.element.width;
   }
 
   getHeight() {
-    return this.htmlCanvas.height;
+    return this.element.height;
   }
 
   init() {
-    this.htmlCanvas = document.getElementById(this.id);
     // The context that will be used ot drawn to the canvas
-    this.context = this.htmlCanvas.getContext("2d");
+    this.context = this.element.getContext("2d");
   }
 
   getContext() {
@@ -82,4 +80,4 @@ class Canvas {
   }
 }
 
-export default Canvas;
+export default Canvas2D;

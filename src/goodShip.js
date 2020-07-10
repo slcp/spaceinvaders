@@ -1,11 +1,12 @@
-import GameAnimation from "./game/animation";
+import GameAnimation from "./animation";
 import {ARROW_LEfT, ARROW_RIGHT, SPACE} from "./keyCodes";
 import Ship from "./ship";
 import Shape from "./shape";
+import {GOOD_SHIP_KILLED_BY_BAD_BULLET, GOOD_SHIP_OUT_OF_LIVES} from "./events/events";
 
 class GoodShip extends Ship {
-    constructor(game, settings) {
-        super(game, settings);
+    constructor(game, settings, eventBus) {
+        super(game, settings, eventBus);
         this.keys = [];
         this.shapes = [
             new Shape(20, 40, 60, 20, "#21c521"),
@@ -27,6 +28,11 @@ class GoodShip extends Ship {
         ];
     }
 
+    init() {
+        this.eventBus.subscribe(GOOD_SHIP_KILLED_BY_BAD_BULLET, this.loseLife.bind(this));
+        this.addEventListeners();
+    }
+
     destroy() {
         this.animation.cancel();
         removeEventListener("keydown", this.handleKeyDown);
@@ -38,7 +44,13 @@ class GoodShip extends Ship {
     }
 
     loseLife() {
+        console.log(this.lives)
+        if (!this.lives) {
+            this.eventBus.publish(GOOD_SHIP_OUT_OF_LIVES)
+            console.log("dead")
+        }
         this.lives -= 1;
+        console.log(this.lives)
     }
 
     gainLife() {
@@ -46,7 +58,7 @@ class GoodShip extends Ship {
     }
 
     isDead() {
-        return this.lives > 0;
+        return this.lives < 0;
     }
 
     addEventListeners() {
