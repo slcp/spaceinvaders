@@ -1,9 +1,9 @@
 import SpaceInvadersGame from './game';
 
-let game = new SpaceInvadersGame('game-canvas');
-let newGameButton = document.getElementById('new-game');
-let gameMessage = document.querySelector('.game-message');
-let score = document.querySelector('.score');
+const game = new SpaceInvadersGame('game-canvas');
+const newGameButton = document.getElementById('new-game');
+const gameMessage = document.querySelector('.game-message');
+const score = document.getElementById('score');
 
 newGameButton.addEventListener('click', () => {
     game.newGame();

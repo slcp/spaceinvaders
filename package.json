@@ -6,7 +6,14 @@
   "author": "Stuart Forrest <stuart.forrest@infinityworks.com>",
   "license": "MIT",
   "devDependencies": {
+    "@babel/cli": "^7.10.4",
+    "@babel/core": "^7.10.4",
+    "@babel/plugin-transform-runtime": "^7.10.4",
+    "@babel/preset-env": "^7.10.4",
+    "babel-loader": "^8.1.0",
+    "core-js": "^3.6.5",
     "husky": "^4.2.5",
+    "jest": "^26.1.0",
     "webpack": "^4.43.0",
     "webpack-cli": "^3.3.11"
   },
@@ -18,5 +25,10 @@
     "hooks": {
       "pre-commit": "yarn build"
     }
+  },
+  "dependencies": {
+    "@babel/polyfill": "^7.10.4",
+    "@babel/runtime": "^7.10.4",
+    "sat": "^0.8.0"
   }
 }

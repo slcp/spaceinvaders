@@ -1,35 +1,36 @@
 import Shape from "../shape";
+import SAT from "sat"
+
+const isShape = (x) => x instanceof Shape
+const isArrayOfShapes = (x) => Array.isArray(x) && x.every(y => isShape(y))
+
 
 class CollisionCheck {
+    // Must be initialised with each arg being a Shape or Array(Shape)
     constructor(obj1, obj2) {
-        // TODO: Clean this up - the log is correct
-        if ((!obj1 instanceof Shape && !Array.isArray(obj1)) || (Array.isArray(obj1) && obj1.every(x => x instanceof Shape))) {
+        if (!isShape(obj1) && !isArrayOfShapes(obj1)) {
             throw new Error("collision object must be shapes or array of shapes")
         }
-        this.obj1 = obj1 instanceof Shape ? new Array(obj1) : obj1.shapes
-        if ((!obj2 instanceof Shape && !Array.isArray(obj2)) || (Array.isArray(obj2) && obj2.every(x => x instanceof Shape))) {
+        this.obj1 = obj1 instanceof Shape ? new Array(obj1) : obj1
+        if (!isShape(obj2) && !isArrayOfShapes(obj2)) {
             throw new Error("collision object must be shapes or array of shapes")
         }
-        this.obj2 = obj2 instanceof Shape ? new Array(obj2) : obj2.shapes
+        this.obj2 = obj2 instanceof Shape ? new Array(obj2) : obj2
         this.colliding = false;
     }
 
     isColliding() {
         for (let i = 0; i < this.obj1.length; i++) {
             for (let j = 0; j < this.obj2.length; j++) {
-                if (this.checkForCollision(this.obj1[i], this.obj2[j])) {
-                    this.colliding = true;
-                    break;
+                if (this._checkForCollision(this.obj1[i], this.obj2[j])) {
+                    return true;
                 }
             }
-            if (this.colliding) {
-                break;
-            }
         }
-        return this.colliding;
+        return false;
     }
 
-    checkForCollision(shape1, shape2) {
+    _checkForCollision(shape1, shape2) {
         return !(
             shape1.x >
             shape2.x + shape2.width ||

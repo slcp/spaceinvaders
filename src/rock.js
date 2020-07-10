@@ -26,15 +26,6 @@ class Rock extends Moveable {
         }
     }
 
-    draw(context) {
-        this.getShapes();
-        // Draw in new position
-        for (let shape of this.shapes) {
-            context.fillStyle = "#21c521";
-            context.fillRect(shape.x, shape.y, shape.width, shape.height);
-        }
-    }
-
     move(deltaX, deltaY) {
         this.getShapes();
         super.move(deltaX, deltaY);
@@ -55,7 +46,7 @@ class Rock extends Moveable {
     }
 
     isColliding(shape, object2) {
-        return new CollisionCheck(shape, object2).isColliding()
+        return new CollisionCheck(shape, object2.shapes).isColliding()
     }
 }
 
