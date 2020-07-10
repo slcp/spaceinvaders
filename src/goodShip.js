@@ -6,6 +6,7 @@ import Shape from "./shape";
 class GoodShip extends Ship {
     constructor(game, settings) {
         super(game, settings);
+        this.keys = [];
         this.shapes = [
             new Shape(20, 40, 60, 20, "#21c521"),
             new Shape(40, 20, 20, 20, "#21c521"),
@@ -27,11 +28,9 @@ class GoodShip extends Ship {
     }
 
     destroy() {
-        for (let interval of this.intervals) {
-            clearInterval(interval);
-            removeEventListener("keydown", this.handleKeyDown);
-            removeEventListener("keyup", this.handleKeyUp);
-        }
+        this.animation.cancel();
+        removeEventListener("keydown", this.handleKeyDown);
+        removeEventListener("keyup", this.handleKeyUp);
     }
 
     updateScore(delta) {
@@ -51,7 +50,7 @@ class GoodShip extends Ship {
     }
 
     addEventListeners() {
-        this.intervals = [];
+        this.startAnimation();
         window.addEventListener("keydown", this.handleKeyDown);
         window.addEventListener("keyup", this.handleKeyUp);
     }
@@ -64,52 +63,45 @@ class GoodShip extends Ship {
     }
 
     moveShip() {
-        const deltaX = this.direction === "LEFT" ? -1 : 1;
-        this.game.moveObject(this, deltaX, 0);
-        this.game.drawObject(this);
+        let deltaX = this.direction === "LEFT" ? -1 : 1;
+        if (this.keys["RIGHT"]) {
+            deltaX = 1
+            this.game.moveObject(this, deltaX, 0);
+            this.game.drawObject(this);
+            return;
+        }
+        if (this.keys["LEFT"]) {
+            deltaX = -1
+            this.game.moveObject(this, deltaX, 0);
+            this.game.drawObject(this);
+            return;
+        }
     }
 
     handleKeyDown(event) {
         event.preventDefault();
         if (event.code === this.shootTrigger) {
             this.fireBullet();
-            // TODO: how to throttle fire rate, should be using settings
-            if (!this.intervals[event.keyCode]) {
-                this.intervals[event.keyCode] = setInterval(
-                    () => this.fireBullet(),
-                    100
-                );
-            }
             return;
-            // TODO: Inspect sequencee of keyup/down events
         }
         if (event.code === ARROW_LEfT && !this.direction) {
-            this.direction = "LEFT";
-            this.startAnimation();
+            this.keys["LEFT"] = true;
             return;
         }
         if (event.code === ARROW_RIGHT && !this.direction) {
-            this.direction = "RIGHT";
-            this.startAnimation();
+            this.keys["RIGHT"] = true;
             return;
         }
     }
 
     handleKeyUp(event) {
         event.preventDefault();
-        if (event.code === this.shootTrigger) {
-            clearInterval(this.intervals[event.keyCode]);
-            this.intervals[event.keyCode] = false;
+        if (event.code === ARROW_LEfT) {
+            this.keys["LEFT"] = false;
             return;
         }
-        if (event.code === ARROW_LEfT && this.direction === "LEFT") {
-            this.direction = null;
-            this.animation.cancel();
-            return;
-        }
-        if (event.code === ARROW_RIGHT && this.direction === "RIGHT") {
-            this.direction = null;
-            this.animation.cancel();
+        if (event.code === ARROW_RIGHT) {
+            this.keys["RIGHT"] = false;
             return;
         }
     }
