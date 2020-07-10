@@ -3,7 +3,6 @@ import Shape from "../canvas/shape";
 const isShape = (x) => x instanceof Shape
 const isArrayOfShapes = (x) => Array.isArray(x) && x.every(y => isShape(y))
 
-
 class CollisionCheck {
     // Must be initialised with each arg being a Shape or Array(Shape)
     constructor(obj1, obj2) {
