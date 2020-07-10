@@ -5,20 +5,24 @@
     padding: 0;
     box-sizing: border-box;
     font-family: 'Orbitron', sans-serif;
-    user-select: none; 
+    user-select: none;
 }
 
 body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
+    height: 100vh;
+    display: grid;
+    grid-template-columns: auto;
+    grid-template-rows: 100px auto;
+    grid-column-gap: 20px;
+    grid-row-gap: 20px;
+    justify-items: center;
     background: #1d1c1c;
+
 }
 
 #game-canvas {
-    width: 1300px;
-    height: 600px;
+    width: 100%;
+    height: 100%;
     background: url('bg.jpeg');
     border: solid 3px grey;
 }
@@ -32,7 +36,11 @@ body {
 }
 
 .game {
+    width: 90%;
+    display: flex;
+    justify-content: center;
     position: relative;
+    overflow: hidden;
 }
 
 canvas:focus {
@@ -40,13 +48,14 @@ canvas:focus {
 }
 
 .scoreboard {
+    position: absolute;
+    top: 0;
+    left: 0;
+    margin-left: 25px;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 75px;
-    width: 250px;
-    background: transparent;
-    position: absolute;
 }
 
 .score-label {
@@ -58,14 +67,12 @@ canvas:focus {
 .lives {
     display: flex;
     justify-content: center;
-    padding: 1rem;
     align-items: center;
     height: 75px;
-    width: 350px;
-    background: transparent;
     position: absolute;
     font-size: 2.5rem;
-    left: 75%;
+    right: 0;
+    top: 0;
 }
 
 .score {

@@ -277,13 +277,6 @@ export default class SpaceInvadersGame {
         }
     }
 
-    testCollision() {
-        let testShip = new GoodShip(this, this.getSettingsFor("goodShip"));
-        this.moveObject(testShip, 0, 125);
-        this.drawObject(testShip);
-        this.isColliding(testShip, this.players[0]);
-    }
-
     isColliding(object1, object2) {
         return new CollisionCheck(object1.shapes, object2.shapes).isColliding()
     }
@@ -497,11 +490,10 @@ export default class SpaceInvadersGame {
     }
 
     destroyRocks() {
-        for (let rock of this.rocks) {
+        this.rocks = this.rocks.reduce(function (empty, rock) {
             this.destroyObject(rock);
-        }
-
-        this.rocks = [];
+            return empty;
+        }.bind(this), [])
     }
 
     createBullet(ship) {
@@ -513,11 +505,10 @@ export default class SpaceInvadersGame {
     }
 
     destroyBullets() {
-        for (let bullet of this.bullets) {
+        this.rocks = this.bullets.reduce(function (empty, bullet) {
             this.destroyObject(bullet);
-        }
-
-        this.bullets = [];
+            return empty;
+        }.bind(this), [])
     }
 
     moveBadShips() {
