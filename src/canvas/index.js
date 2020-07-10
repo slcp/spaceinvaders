@@ -4,14 +4,8 @@ class Canvas2D {
   constructor(eventBus, element) {
     this.element = element;
     this.eventBus = eventBus;
-  }
-
-  getWidth() {
-    return this.element.width;
-  }
-
-  getHeight() {
-    return this.element.height;
+    this.width = element.width;
+    this.height = element.height;
   }
 
   init() {
@@ -54,7 +48,7 @@ class Canvas2D {
     }
   }
 
-  isAtExtremity(direction, shapes) {
+  static isAtExtremity({height, width}, direction, shapes) {
     switch (direction) {
       case "left":
         const leftMostXValue = Math.floor(...shapes.map((shape) => shape.x));
@@ -64,7 +58,7 @@ class Canvas2D {
         const rightMostXValue = Math.max(
           ...shapes.map((shape) => shape.x + shape.width)
         );
-        return rightMostXValue >= this.getWidth();
+        return rightMostXValue >= width;
 
       case "top":
         const topMostYValue = Math.max(...shapes.map((shape) => shape.y));
@@ -74,7 +68,7 @@ class Canvas2D {
         const bottomMostYValue = Math.max(
           ...shapes.map((shape) => shape.y + shape.height)
         );
-        return bottomMostYValue >= this.getHeight();
+        return bottomMostYValue >= height;
 
       default:
         break;

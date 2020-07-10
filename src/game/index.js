@@ -8,9 +8,12 @@ import GameAnimation from "../animation";
 import AnimationFrame from "../animation/animationFrame";
 import getSetting, {getSettingFor} from "./getSetting";
 import {isBadShipBullet, isGoodShipBullet} from "./helpers";
-import EventBus, {
-    BAD_SHIP_KILLED_BY_GOOD_BULLET, CANVAS_DRAW, CANVAS_REMOVE,
-    GOOD_SHIP_KILLED_BY_BAD_BULLET, NEW_GAME_BUTTON_PRESSED,
+import {
+    BAD_SHIP_KILLED_BY_GOOD_BULLET,
+    CANVAS_DRAW,
+    CANVAS_REMOVE,
+    GOOD_SHIP_KILLED_BY_BAD_BULLET,
+    NEW_GAME_BUTTON_PRESSED,
     ROCK_SLICE_KILLED_BY_BAD_BULLET,
     ROCK_SLICE_KILLED_BY_GOOD_BULLET
 } from "../events/events";
@@ -20,10 +23,7 @@ import Score from "./score";
 // TOOD: Build canvas operations that in an animation frame into the frame queue - killing objects
 
 export default class SpaceInvadersGame {
-    constructor({canvas, ...context}) {
-        const eventBus = new EventBus();
-        // The canvas take is responsible for drawing the game
-        this.canvas = new Canvas2D(eventBus, canvas);
+    constructor({eventBus, ...context}) {
         this.context = context;
         // The event bus for the game
         this.eventBus = eventBus;
@@ -77,9 +77,8 @@ export default class SpaceInvadersGame {
     }
 
     init() {
-        const { newGameButton } = this.context;
-        this.canvas.init();
-        newGameButton.addEventListener('click', function() {
+        const {newGameButton} = this.context;
+        newGameButton.addEventListener('click', function () {
             this.eventBus.publish(NEW_GAME_BUTTON_PRESSED)
         }.bind(this))
         this.eventBus.subscribe(NEW_GAME_BUTTON_PRESSED, this.newGame.bind(this))
@@ -361,9 +360,10 @@ export default class SpaceInvadersGame {
                 continue;
             }
 
+            const {height, width} = this.context;
             if (
-                this.canvas.isAtExtremity("top", bullet.shapes) ||
-                this.canvas.isAtExtremity("bottom", bullet.shapes)
+                Canvas2D.isAtExtremity({height, width}, "top", bullet.shapes) ||
+                Canvas2D.isAtExtremity({height, width}, "bottom", bullet.shapes)
             ) {
                 this.destroyObject(bullet);
             }
@@ -417,10 +417,11 @@ export default class SpaceInvadersGame {
     initialiseGoodShip(goodShip) {
         goodShip.init();
         // Draw in centre of canvas
+        const {width, height} = this.context;
         this.moveObject(
             goodShip,
-            this.canvas.getWidth() / 2 - goodShip.width / 2,
-            this.canvas.getHeight() - (goodShip.height + 10)
+            width / 2 - goodShip.width / 2,
+            height - (goodShip.height + 10)
         );
         this.drawObject(goodShip);
     }
@@ -442,7 +443,8 @@ export default class SpaceInvadersGame {
     // 5. Draw rock to right offset -n+1
     // Repeat 2-5
     initialiseRocks() {
-        const canvasCentre = this.canvas.getWidth() / 2;
+        const { width } = this.context;
+        const canvasCentre = width / 2;
         const xValueOfMiddleRock = canvasCentre - this.getSetting("rockWidth") / 2;
         let rockPair = 1;
 
@@ -502,18 +504,19 @@ export default class SpaceInvadersGame {
         for (let row of this.badShips) {
             // As badShips are destroyed rows become empty.
             if (row.length > 0) {
-                let firstShip = row[0];
-                let lastShip = row[row.length - 1];
-                let maxShipHeight = 40; //Math.max(row.map(ship => ship.height));
+                const {height, width} = this.context
+                const firstShip = row[0];
+                const lastShip = row[row.length - 1];
+                const maxShipHeight = 40; //Math.max(row.map(ship => ship.height));
                 let deltaX = 0;
                 let deltaY = 0;
 
                 // Ships have hit left edge of canvas, deltaX needs to be +1
-                if (this.canvas.isAtExtremity("left", firstShip.shapes)) {
+                if (Canvas2D.isAtExtremity({height, width}, "left", firstShip.shapes)) {
                     this.badShipDirection = "right";
                     deltaY = 10;
                     // Ships have hit right side of canvas, deltaX needs to be -1
-                } else if (this.canvas.isAtExtremity("right", lastShip.shapes)) {
+                } else if (Canvas2D.isAtExtremity({height, width}, "right", lastShip.shapes)) {
                     this.badShipDirection = "left";
                     deltaY = 10;
                 }
