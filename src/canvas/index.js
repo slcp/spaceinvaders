@@ -1,6 +1,9 @@
+import {CANVAS_DRAW, CANVAS_REMOVE} from "../events/events";
+
 class Canvas2D {
-  constructor(element) {
+  constructor(eventBus, element) {
     this.element = element;
+    this.eventBus = eventBus;
   }
 
   getWidth() {
@@ -14,12 +17,11 @@ class Canvas2D {
   init() {
     // The context that will be used ot drawn to the canvas
     this.context = this.element.getContext("2d");
+    this.eventBus.subscribe(CANVAS_DRAW, this.draw.bind(this))
+    this.eventBus.subscribe(CANVAS_REMOVE, this.remove.bind(this))
   }
 
   getContext() {
-    if (!this.context) {
-      this.init();
-    }
     return this.context;
   }
 

@@ -9,7 +9,7 @@ import AnimationFrame from "../animation/animationFrame";
 import getSetting, {getSettingFor} from "./getSetting";
 import {isBadShipBullet, isGoodShipBullet} from "./helpers";
 import EventBus, {
-    BAD_SHIP_KILLED_BY_GOOD_BULLET,
+    BAD_SHIP_KILLED_BY_GOOD_BULLET, CANVAS_DRAW, CANVAS_REMOVE,
     GOOD_SHIP_KILLED_BY_BAD_BULLET, NEW_GAME_BUTTON_PRESSED,
     ROCK_SLICE_KILLED_BY_BAD_BULLET,
     ROCK_SLICE_KILLED_BY_GOOD_BULLET
@@ -23,7 +23,7 @@ export default class SpaceInvadersGame {
     constructor({canvas, ...context}) {
         const eventBus = new EventBus();
         // The canvas take is responsible for drawing the game
-        this.canvas = new Canvas2D(canvas);
+        this.canvas = new Canvas2D(eventBus, canvas);
         this.context = context;
         // The event bus for the game
         this.eventBus = eventBus;
@@ -78,6 +78,7 @@ export default class SpaceInvadersGame {
 
     init() {
         const { newGameButton } = this.context;
+        this.canvas.init();
         newGameButton.addEventListener('click', function() {
             this.eventBus.publish(NEW_GAME_BUTTON_PRESSED)
         }.bind(this))
@@ -206,15 +207,17 @@ export default class SpaceInvadersGame {
         let shapes = object.shapes;
         if (object instanceof Rock) {
             object.getShapes();
+            console.log("is roock");
         }
-        this.canvas.draw(shapes);
+        this.eventBus.publish(CANVAS_DRAW, shapes)
+        // this.canvas.draw(shapes);
     }
 
     destroyObject(object) {
         switch (true) {
             // Rocks damage themselves - this will remove an entire rock from the game
             case object instanceof Rock:
-                this.canvas.remove(object.shapes);
+                this.eventBus.publish(CANVAS_REMOVE, object.shapes)
 
                 if (this.gameState == "GAME_RUNNING") {
                     let rockIndex = this.rocks.indexOf(object);
@@ -223,7 +226,7 @@ export default class SpaceInvadersGame {
                 break;
 
             case object instanceof Bullet:
-                this.canvas.remove(object.shapes);
+                this.eventBus.publish(CANVAS_REMOVE, object.shapes)
                 object.owner.bulletInPlay = false;
                 object.owner.bullet = "";
 
@@ -234,7 +237,7 @@ export default class SpaceInvadersGame {
                 break;
 
             case object instanceof BadShip:
-                this.canvas.remove(object.shapes);
+                this.eventBus.publish(CANVAS_REMOVE, object.shapes)
                 // Find badShip in this.badShips and remove
                 for (let i = 0; i < this.badShips.length; i++) {
                     if (this.badShips[i].indexOf(object) >= 0) {
@@ -256,7 +259,7 @@ export default class SpaceInvadersGame {
                         break;
 
                     case "GAME_RUNNING":
-                        this.canvas.remove(object.shapes);
+                        this.eventBus.publish(CANVAS_REMOVE, object.shapes)
                         object.destroy();
                         let goodShipIndex = this.players.indexOf(object);
                         this.players.splice(goodShipIndex, 1);
@@ -288,7 +291,7 @@ export default class SpaceInvadersGame {
                 }
                 this.eventBus.publish(bullet instanceof GoodShip ? ROCK_SLICE_KILLED_BY_GOOD_BULLET : ROCK_SLICE_KILLED_BY_BAD_BULLET)
                 this.destroyObject(bullet);
-                this.canvas.remove([shape]);
+                this.eventBus.publish(CANVAS_REMOVE, [shape])
                 collision = true;
                 break;
             }
@@ -309,11 +312,7 @@ export default class SpaceInvadersGame {
                             this.destroyObject(bullet);
                             this.updateScore(bullet.owner, 100);
 
-                            let badShipCount = 0;
-                            // TODO: Use reduce here
-                            for (row of this.badShips) {
-                                badShipCount += row.length;
-                            }
+                            let badShipCount = this.badShips.reduce((count, row) => count + row.length, 0);
 
                             this.gameState =
                                 badShipCount === 0 ? "LEVEL_WON" : this.gameState;
@@ -469,7 +468,6 @@ export default class SpaceInvadersGame {
                         this.getSetting("rockWidth") *
                         this.getSetting("rockWhiteSpace"));
                 rock.move(deltaX, 0);
-                console.log("drawing non middle rock", offSet, rock);
                 rockPair = i % 2 === 0 ? rockPair + 1 : rockPair;
             }
 
