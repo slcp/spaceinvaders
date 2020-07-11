@@ -24,6 +24,7 @@ class Rock extends Moveable {
                 this.shapes.push(shape);
             }
         }
+        return this.shapes;
     }
 
     move(deltaX, deltaY) {

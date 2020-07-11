@@ -478,10 +478,15 @@ export default class SpaceInvadersGame {
     }
 
     destroyRocks() {
-        this.rocks = this.rocks.reduce(function (empty, rock) {
-            this.destroyObject(rock);
-            return empty;
-        }.bind(this), [])
+        /*
+         * destroyObject will modify this.rocks so that cannot be forEach-ed directly as it will be changing under us.
+         * Creating a flat map of this.rocks allows us to iterate over the rocks in the game and call destroyObject
+         * on them
+         */
+        this.rocks.flat(Infinity).forEach(rock => {
+            this.destroyObject(rock)
+        })
+        this.rocks = [];
     }
 
     createBullet(ship) {
