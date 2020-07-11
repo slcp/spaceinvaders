@@ -25,12 +25,6 @@ import levelsGenerator from "../levels";
 export default class SpaceInvadersGame {
     constructor({eventBus, ...context}) {
         const levelGen = levelsGenerator();
-        console.log("levelGen: ", typeof levelGen);
-        // try {
-        //     levelGen.next()
-        // } catch (e) {
-        //     console.log("failed calling level gen", e)
-        // }
         this.context = context;
         // The event bus for the game
         this.eventBus = eventBus;

@@ -8,7 +8,6 @@ import gameSettingsGenerator from "./generators";
 
 const levelsGenerator = function*() {
     const gameSettings = gameSettingsGenerator();
-    console.log("gameSettings: ", typeof gameSettings);
     while (true) {
         yield {
             standard: {
