@@ -14,7 +14,7 @@ const gameContext = {
 }
 
 new SpaceInvadersGame(gameContext).init();
-// The canvas take is responsible for drawing the game
+// The canvas that is responsible for drawing the game
 new Canvas2D(eventBus, document.getElementById("game-canvas")).init();
 new Score(eventBus, document.getElementById('score')).init()
 gameContext.newGameButton.addEventListener('click', function () {
