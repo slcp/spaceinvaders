@@ -25,6 +25,11 @@ class GoodShip extends Ship {
                 ms: 0,
                 action: () => this.moveShip(),
             },
+            {
+                id: Symbol("fireGoodShipBullet"),
+                ms: 800,
+                action: () => this.fireBullet(),
+            },
         ];
     }
 
@@ -87,7 +92,11 @@ class GoodShip extends Ship {
     handleKeyDown(event) {
         event.preventDefault();
         if (event.code === this.shootTrigger) {
-            this.fireBullet();
+            const immediateFire = !this.keys["SPACEBAR"];
+            this.keys["SPACEBAR"] = true;
+            if (immediateFire) {
+                this.fireBullet();
+            }
             return;
         }
         if (event.code === ARROW_LEfT && !this.direction) {
@@ -100,8 +109,17 @@ class GoodShip extends Ship {
         }
     }
 
+    fireBullet() {
+        if (!this.keys["SPACEBAR"]) return;
+        super.fireBullet();
+    }
+
     handleKeyUp(event) {
         event.preventDefault();
+        if (event.code === this.shootTrigger) {
+            this.keys["SPACEBAR"] = false;
+            return;
+        }
         if (event.code === ARROW_LEfT) {
             this.keys["LEFT"] = false;
             return;
