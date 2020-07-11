@@ -22,7 +22,7 @@ class GoodShip extends Ship {
         this.frameActions = [
             {
                 id: Symbol("moveGoodShip"),
-                ms: 4,
+                ms: 0,
                 action: () => this.moveShip(),
             },
         ];
@@ -44,13 +44,10 @@ class GoodShip extends Ship {
     }
 
     loseLife() {
-        console.log(this.lives)
         if (!this.lives) {
             this.eventBus.publish(GOOD_SHIP_OUT_OF_LIVES)
-            console.log("dead")
         }
         this.lives -= 1;
-        console.log(this.lives)
     }
 
     gainLife() {
@@ -68,22 +65,19 @@ class GoodShip extends Ship {
     }
 
     startAnimation() {
-        // Pass in a callback to the game to check the frame
-        // can you use to know when to stop animating
         this.animation = new GameAnimation();
         this.animation.runFrame(this.frameActions)
     }
 
     moveShip() {
-        let deltaX = this.direction === "LEFT" ? -1 : 1;
         if (this.keys["RIGHT"]) {
-            deltaX = 1
+            const deltaX = 2
             this.game.moveObject(this, deltaX, 0);
             this.game.drawObject(this);
             return;
         }
         if (this.keys["LEFT"]) {
-            deltaX = -1
+            const deltaX = -2
             this.game.moveObject(this, deltaX, 0);
             this.game.drawObject(this);
             return;
