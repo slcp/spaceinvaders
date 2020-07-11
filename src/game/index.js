@@ -18,11 +18,19 @@ import {
     ROCK_SLICE_KILLED_BY_GOOD_BULLET
 } from "../events/events";
 import CollisionCheck from "./collision";
+import levelsGenerator from "../levels";
 
 // TOOD: Build canvas operations that in an animation frame into the frame queue - killing objects
 
 export default class SpaceInvadersGame {
     constructor({eventBus, ...context}) {
+        const levelGen = levelsGenerator();
+        console.log("levelGen: ", typeof levelGen);
+        // try {
+        //     levelGen.next()
+        // } catch (e) {
+        //     console.log("failed calling level gen", e)
+        // }
         this.context = context;
         // The event bus for the game
         this.eventBus = eventBus;
@@ -35,11 +43,11 @@ export default class SpaceInvadersGame {
         // The rocks that are in play
         this.rocks = [];
         // The game level being played
-        this.currentLevel = 0;
+        this.level = levelGen.next().value;
         // The current game mode - what is game mode?
         this.currentLevelMode = "standard";
-        // Configuration for game levels
-        this.levelData = [...levels];
+        // Game levels generator*
+        this.levelData = levelGen;
 
         this.frameActions = [
             new AnimationFrame(
@@ -78,20 +86,21 @@ export default class SpaceInvadersGame {
     getSetting(setting) {
         return getSetting(
             setting,
-            this.levelData[this.currentLevel][this.currentLevelMode]
+            this.level[this.currentLevelMode]
         );
     }
 
     getSettingsFor(objectType) {
         return getSettingFor(
             objectType,
-            this.levelData[this.currentLevel][this.currentLevelMode]
+            this.level[this.currentLevelMode]
         );
     }
 
     newGame() {
         this.endGame();
         this.gameState = "NEW_GAME";
+        this.level = this.levelData.next().value;
         this.players.push(new GoodShip(this, this.getSettingsFor("goodShip"), this.eventBus));
         this.startGame();
     }
@@ -159,7 +168,7 @@ export default class SpaceInvadersGame {
 
     nextLevel() {
         this.gameState = "NEXT_LEVEL";
-        this.currentLevel++;
+        this.level = this.levelData.next().value;
         this.setGameMessage();
         this.endGame();
         setTimeout(() => {
