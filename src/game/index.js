@@ -18,7 +18,6 @@ import {
     ROCK_SLICE_KILLED_BY_GOOD_BULLET
 } from "../events/events";
 import CollisionCheck from "./collision";
-import Score from "./score";
 
 // TOOD: Build canvas operations that in an animation frame into the frame queue - killing objects
 
@@ -73,10 +72,6 @@ export default class SpaceInvadersGame {
     }
 
     init() {
-        const {newGameButton} = this.context;
-        newGameButton.addEventListener('click', function () {
-            this.eventBus.publish(NEW_GAME_BUTTON_PRESSED)
-        }.bind(this))
         this.eventBus.subscribe(NEW_GAME_BUTTON_PRESSED, this.newGame.bind(this))
     }
 
@@ -202,10 +197,8 @@ export default class SpaceInvadersGame {
         let shapes = object.shapes;
         if (object instanceof Rock) {
             object.getShapes();
-            console.log("is roock");
         }
         this.eventBus.publish(CANVAS_DRAW, shapes)
-        // this.canvas.draw(shapes);
     }
 
     destroyObject(object) {
@@ -400,12 +393,14 @@ export default class SpaceInvadersGame {
     }
 
     destroyBadShips() {
-        for (let row of this.badShips) {
-            for (let ship of row) {
-                this.destroyObject(ship);
-            }
-        }
-
+        /*
+         * destroyObject will modify this.badShips so that cannot be forEach-ed directly as it will be changing under us.
+         * Creating a flat map of this.badShips allows us to iterate over the ships in the game and call destroyObject
+         * on them
+         */
+        this.badShips.flat(Infinity).forEach(ship => {
+            this.destroyObject(ship)
+        })
         this.badShips = [];
     }
 
@@ -438,7 +433,7 @@ export default class SpaceInvadersGame {
     // 5. Draw rock to right offset -n+1
     // Repeat 2-5
     initialiseRocks() {
-        const { width } = this.context;
+        const {width} = this.context;
         const canvasCentre = width / 2;
         const xValueOfMiddleRock = canvasCentre - this.getSetting("rockWidth") / 2;
         let rockPair = 1;

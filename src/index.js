@@ -1,6 +1,6 @@
 import SpaceInvadersGame from './game';
 import Canvas2D from "./canvas";
-import EventBus from "./events/events";
+import EventBus, {NEW_GAME_BUTTON_PRESSED} from "./events/events";
 import Score from "./game/score";
 
 const eventBus = new EventBus();
@@ -17,3 +17,6 @@ new SpaceInvadersGame(gameContext).init();
 // The canvas take is responsible for drawing the game
 new Canvas2D(eventBus, document.getElementById("game-canvas")).init();
 new Score(eventBus, document.getElementById('score')).init()
+gameContext.newGameButton.addEventListener('click', function () {
+    eventBus.publish(NEW_GAME_BUTTON_PRESSED)
+}.bind(this))
