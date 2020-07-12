@@ -2,7 +2,7 @@ import BadShip from "../entitiies/badShip";
 import Bullet from "../entitiies/bullet";
 import Canvas2D from "../canvas";
 import GoodShip from "../entitiies/goodShip";
-import levels from "../levels";
+import levelsGenerator from "../levels";
 import Rock from "../entitiies/rock";
 import GameAnimation from "../animation";
 import AnimationFrame from "../animation/animationFrame";
@@ -10,7 +10,6 @@ import getSetting, {getSettingFor} from "./getSetting";
 import {isBadShipBullet, isGoodShipBullet} from "./helpers";
 import {
     BAD_SHIP_KILLED_BY_GOOD_BULLET,
-    CANVAS_DRAW,
     CANVAS_REMOVE,
     GOOD_SHIP_KILLED_BY_BAD_BULLET,
     NEW_GAME_BUTTON_PRESSED,
@@ -18,7 +17,9 @@ import {
     ROCK_SLICE_KILLED_BY_GOOD_BULLET
 } from "../events/events";
 import CollisionCheck from "./collision";
-import levelsGenerator from "../levels";
+import {getRandomInt} from "../levels/generators";
+import drawObject from "../functional/drawObject";
+import moveObject from "../functional/moveObject";
 
 // TOOD: Build canvas operations that in an animation frame into the frame queue - killing objects
 
@@ -31,7 +32,7 @@ export default class SpaceInvadersGame {
         // The bad ships that are in play
         this.badShips = [];
         // The good ships (or players) that in play
-        this.players = [];
+        this.goodShips = [];
         // The bullets that in play
         this.bullets = [];
         // The rocks that are in play
@@ -92,10 +93,16 @@ export default class SpaceInvadersGame {
     }
 
     newGame() {
+        const {players} = this.context
         this.endGame();
         this.gameState = "NEW_GAME";
         this.level = this.levelData.next().value;
-        this.players.push(new GoodShip(this, this.getSettingsFor("goodShip"), this.eventBus));
+        this.goodShips = players.map(id => new GoodShip({
+            game: this,
+            settings: this.getSettingsFor("goodShip"),
+            eventBus: this.eventBus,
+            id
+        }));
         this.startGame();
     }
 
@@ -112,7 +119,7 @@ export default class SpaceInvadersGame {
     startGame() {
         this.gameState = "START_GAME";
         this.initialiseBadShips();
-        for (let goodShip of this.players) {
+        for (let goodShip of this.goodShips) {
             this.initialiseGoodShip(goodShip);
         }
         this.initialiseRocks();
@@ -171,37 +178,13 @@ export default class SpaceInvadersGame {
         }, 5000);
     }
 
-    setGameMessage() {
-        switch (this.gameState) {
-            case "GAME_WON":
-                gameMessage.textContent = "Well done, you have won!";
-                break;
-
-            case "NEXT_LEVEL":
-                gameMessage.textContent = `Level ${this.currentLevel + 1}`;
-                break;
-        }
-    }
-
-    clearGameMessage() {
-        gameMessage.textContent = "";
-    }
-
-    updateScore(player, delta) {
-        player.updateScore(delta);
-        score.textContent = player.score;
-    }
-
-    moveObject(object, deltaX, deltaY) {
-        object.move(deltaX, deltaY);
-    }
-
     drawObject(object) {
-        let shapes = object.shapes;
-        if (object instanceof Rock) {
-            object.getShapes();
-        }
-        this.eventBus.publish(CANVAS_DRAW, shapes)
+        drawObject({eventBus: this.eventBus, object})
+    }
+
+    moveAndDrawObject(object, deltaX, deltaY) {
+        moveObject({object, deltaX, deltaY})
+        this.drawObject(object)
     }
 
     destroyObject(object) {
@@ -252,8 +235,8 @@ export default class SpaceInvadersGame {
                     case "GAME_RUNNING":
                         this.eventBus.publish(CANVAS_REMOVE, object.shapes)
                         object.destroy();
-                        let goodShipIndex = this.players.indexOf(object);
-                        this.players.splice(goodShipIndex, 1);
+                        let goodShipIndex = this.goodShips.indexOf(object);
+                        this.goodShips.splice(goodShipIndex, 1);
                         break;
 
                     default:
@@ -279,7 +262,9 @@ export default class SpaceInvadersGame {
                 if (!shape) {
                     throw new Error("something has gone wrong, check the logging");
                 }
-                this.eventBus.publish(bullet instanceof GoodShip ? ROCK_SLICE_KILLED_BY_GOOD_BULLET : ROCK_SLICE_KILLED_BY_BAD_BULLET)
+                this.eventBus.publish(
+                    bullet.owner instanceof GoodShip ? ROCK_SLICE_KILLED_BY_GOOD_BULLET : ROCK_SLICE_KILLED_BY_BAD_BULLET,
+                    bullet.owner instanceof GoodShip && {id: bullet.owner.id})
                 this.destroyObject(bullet);
                 this.eventBus.publish(CANVAS_REMOVE, [shape])
                 collision = true;
@@ -297,10 +282,9 @@ export default class SpaceInvadersGame {
                             continue;
                         } else if (bullet.owner instanceof GoodShip) {
                             // goodShip bullet + badShip colliding
-                            this.eventBus.publish(BAD_SHIP_KILLED_BY_GOOD_BULLET)
+                            this.eventBus.publish(BAD_SHIP_KILLED_BY_GOOD_BULLET, {id: bullet.owner.id})
                             this.destroyObject(badShip);
                             this.destroyObject(bullet);
-                            this.updateScore(bullet.owner, 100);
 
                             let badShipCount = this.badShips.reduce((count, row) => count + row.length, 0);
 
@@ -322,11 +306,11 @@ export default class SpaceInvadersGame {
                 continue;
             }
 
-            for (let goodShip of this.players) {
+            for (let goodShip of this.goodShips) {
                 if (this.isColliding(bullet, goodShip)) {
                     if (bullet.owner instanceof BadShip) {
                         // badShip bullet + goodShip colliding
-                        this.eventBus.publish(GOOD_SHIP_KILLED_BY_BAD_BULLET)
+                        this.eventBus.publish(GOOD_SHIP_KILLED_BY_BAD_BULLET, {id: goodShip.id})
                         this.destroyObject(bullet);
                         this.destroyObject(goodShip);
 
@@ -384,12 +368,11 @@ export default class SpaceInvadersGame {
             for (let j = 0; j < shipsPerRow; j++) {
                 // Loop for ships required on each row
                 let newShip = new BadShip(this, settings);
-                this.moveObject(
+                this.moveAndDrawObject(
                     newShip,
                     newShip.width * j + 5,
                     newShip.height * i + 150
                 ); // For initialise delta is set relative to 0, 0. newShip.width/height*j/i should offset from the previous ship and produce a gutter
-                this.drawObject(newShip);
                 this.badShips[i].push(newShip);
             }
         }
@@ -411,20 +394,18 @@ export default class SpaceInvadersGame {
         goodShip.init();
         // Draw in centre of canvas
         const {width, height} = this.context;
-        this.moveObject(
+        this.moveAndDrawObject(
             goodShip,
             width / 2 - goodShip.width / 2,
             height - (goodShip.height + 10)
         );
-        this.drawObject(goodShip);
     }
 
     destroyGoodShips() {
-        for (let ship of this.players) {
+        for (let ship of this.goodShips) {
             this.destroyObject(ship);
         }
-
-        this.players = [];
+        this.goodShips = [];
     }
 
     // Lower levels will have a central rock protecting goodPlayer spawn point
@@ -501,13 +482,11 @@ export default class SpaceInvadersGame {
     moveBadShips() {
         for (let row of this.badShips) {
             // As badShips are destroyed rows become empty.
-            if (row.length > 0) {
+            if (row.length) {
                 const {height, width} = this.context
                 const firstShip = row[0];
                 const lastShip = row[row.length - 1];
-                const maxShipHeight = 40; //Math.max(row.map(ship => ship.height));
-                let deltaX = 0;
-                let deltaY = 0;
+                let deltaX, deltaY = 0;
 
                 // Ships have hit left edge of canvas, deltaX needs to be +1
                 if (Canvas2D.isAtExtremity({height, width}, "left", firstShip.shapes)) {
@@ -521,10 +500,9 @@ export default class SpaceInvadersGame {
 
                 deltaX = this.badShipDirection === "right" ? 1 : -1;
 
-                for (let ship of row) {
-                    this.moveObject(ship, deltaX, deltaY);
-                    this.drawObject(ship);
-                }
+                row.forEach(ship => {
+                    this.moveAndDrawObject(ship, deltaX, deltaY);
+                });
             }
         }
     }
@@ -533,24 +511,16 @@ export default class SpaceInvadersGame {
         switch (ownerType) {
             case "badShip":
                 this.bullets
-                    .filter((x) => isBadShipBullet(x))
-                    .forEach((y) => {
-                        // Move the bullet down the screen
-                        this.moveObject(y, 0, 5);
-                        this.drawObject(y);
-                    });
+                    .filter((bullet) => isBadShipBullet(bullet))
+                    // Move the bullet down the screen
+                    .forEach((bullet) => this.moveAndDrawObject(bullet, 0, 5));
                 break;
-
             case "goodShip":
                 this.bullets
-                    .filter((x) => isGoodShipBullet(x))
-                    .forEach((y) => {
-                        // Move the bullet up the screen
-                        this.moveObject(y, 0, -5);
-                        this.drawObject(y);
-                    });
+                    .filter((bullet) => isGoodShipBullet(bullet))
+                    // Move the bullet up the screen
+                    .forEach((bullet) => this.moveAndDrawObject(bullet, 0, -5));
                 break;
-
             default:
                 break;
         }
@@ -559,15 +529,11 @@ export default class SpaceInvadersGame {
     // shoot bullets from X random bad ships
     shootBadBullets() {
         for (let i = 1; i <= this.getSetting("badShipsBulletsPerSecond"); i++) {
-            let rowIndex = Math.floor(Math.random() * this.badShips.length);
-            let shipIndex = Math.floor(
-                Math.random() * this.badShips[rowIndex].length
-            );
+            let rowIndex = getRandomInt({max: this.badShips.length - 1});
+            let shipIndex = getRandomInt({max: this.badShips[rowIndex].length - 1});
             let ship = this.badShips[rowIndex][shipIndex];
             // badShip may have already been destroyed
-            if (ship) {
-                ship.fireBullet();
-            }
+            if (ship) ship.fireBullet();
         }
     }
 }

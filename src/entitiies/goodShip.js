@@ -3,10 +3,14 @@ import {ARROW_LEfT, ARROW_RIGHT, SPACE} from "../keyCodes";
 import Ship from "./ship";
 import Shape from "../canvas/shape";
 import {GOOD_SHIP_KILLED_BY_BAD_BULLET, GOOD_SHIP_OUT_OF_LIVES} from "../events/events";
+import AnimationFrame from "../animation/animationFrame";
+import moveObject from "../functional/moveObject";
+import drawObject from "../functional/drawObject";
 
 class GoodShip extends Ship {
-    constructor(game, settings, eventBus) {
+    constructor({game, settings, eventBus, id}) {
         super(game, settings, eventBus);
+        this.id = id;
         this.keys = [];
         this.shapes = [
             new Shape(20, 40, 60, 20, "#21c521"),
@@ -14,22 +18,13 @@ class GoodShip extends Ship {
             new Shape(20, 55, 20, 20, "#21c521"),
             new Shape(60, 55, 20, 20, "#21c521"),
         ];
-        this.score = 0;
         this.lives = 3;
         this.shootTrigger = SPACE;
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.handleKeyUp = this.handleKeyUp.bind(this);
         this.frameActions = [
-            {
-                id: Symbol("moveGoodShip"),
-                ms: 0,
-                action: () => this.moveShip(),
-            },
-            {
-                id: Symbol("fireGoodShipBullet"),
-                ms: 800,
-                action: () => this.fireBullet(),
-            },
+            new AnimationFrame(Symbol("moveGoodShip"), 0, () => this.moveShip()),
+            new AnimationFrame(Symbol("fireGoodShipBullet"), 800, () => this.fireBullet()),
         ];
     }
 
@@ -44,19 +39,11 @@ class GoodShip extends Ship {
         removeEventListener("keyup", this.handleKeyUp);
     }
 
-    updateScore(delta) {
-        this.score += delta;
-    }
-
     loseLife() {
         if (!this.lives) {
-            this.eventBus.publish(GOOD_SHIP_OUT_OF_LIVES)
+            this.eventBus.publish(GOOD_SHIP_OUT_OF_LIVES, {id: this.id})
         }
         this.lives -= 1;
-    }
-
-    gainLife() {
-        this.lives += 1;
     }
 
     isDead() {
@@ -76,15 +63,13 @@ class GoodShip extends Ship {
 
     moveShip() {
         if (this.keys["RIGHT"]) {
-            const deltaX = 2
-            this.game.moveObject(this, deltaX, 0);
-            this.game.drawObject(this);
+            moveObject({object: this, deltaX: 2, deltaY: 0});
+            drawObject({eventBus: this.eventBus, object: this});
             return;
         }
         if (this.keys["LEFT"]) {
-            const deltaX = -2
-            this.game.moveObject(this, deltaX, 0);
-            this.game.drawObject(this);
+            moveObject({object: this, deltaX: -2, deltaY: 0});
+            drawObject({eventBus: this.eventBus, object: this});
             return;
         }
     }
