@@ -15,12 +15,17 @@ class Ship extends Moveable {
     fireBullet() {
         if (!this.bulletInPlay || this.settings.continuousFire) {
             let bullet = this.game.createBullet(this);
-            // This does not exactly identify bullet exit point
+            const xValues = this.shapes.map((shape) => shape.x)
+            const minX = Math.min(...xValues);
+            const maxX = Math.max(...xValues);
+            const deltaX = Math.max(...xValues) + this.shapes.find(s => s.x === maxX).width;
+            const diff = deltaX - minX;
             moveObject(
                 {
                     object: bullet,
-                    deltaX: Math.floor(...this.shapes.map((shape) => shape.x)),
-                    deltaY: Math.floor(...this.shapes.map((shape) => shape.y))
+                    // TODO: This assumes the bullet has one shape, will need a way to get bullets width
+                    deltaX: (minX + diff / 2) - bullet.shapes[0].width / 2,
+                    deltaY: Math.min(...this.shapes.map((shape) => shape.y))
                 }
             );
             this.game.drawObject(bullet);
