@@ -35,7 +35,7 @@ body {
     text-transform: uppercase;
 }
 
-.game {
+#game {
     width: 90%;
     display: flex;
     justify-content: center;
