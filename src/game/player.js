@@ -5,7 +5,9 @@ class Player {
         this.id = Symbol();
         this.context = context
         this.score = 0;
+        this.lives = 3;
     }
+
     init() {
         const {eventBus} = this.context;
         eventBus.subscribe(BAD_SHIP_KILLED_BY_GOOD_BULLET, function({id}) {
@@ -13,6 +15,8 @@ class Player {
             console.log("player recognised event")
         }.bind(this))
     };
+
+
 }
 
 /*

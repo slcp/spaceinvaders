@@ -1,9 +1,10 @@
 import SpaceInvadersGame from './game';
 import Canvas2D from "./canvas";
-import EventBus, {NEW_GAME_BUTTON_PRESSED} from "./events/events";
+import EventBus, {NEW_GAME} from "./events/events";
 import Score from "./game/score";
 import Player from "./game/player";
 import {makeUI} from "./ui";
+import GameState from "./game/gameState";
 
 const eventBus = new EventBus();
 const numPlayers = 1;
@@ -25,8 +26,9 @@ players.map((p, i) => {
     return [new Score({eventBus, element: scoreContainers[i], id: p.id}).init()]
 });
 new SpaceInvadersGame(gameContext).init();
+new GameState({eventBus}).init();
 // The canvas that is responsible for drawing the game
 new Canvas2D(eventBus, document.getElementById("game-canvas")).init();
 gameContext.newGameButton.addEventListener('click', function () {
-    eventBus.publish(NEW_GAME_BUTTON_PRESSED)
+    eventBus.publish(NEW_GAME)
 }.bind(this))

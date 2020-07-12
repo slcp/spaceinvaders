@@ -11,10 +11,12 @@ import {isBadShipBullet, isGoodShipBullet} from "./helpers";
 import {
     BAD_SHIP_KILLED_BY_GOOD_BULLET,
     CANVAS_REMOVE,
+    END_GAME,
     GOOD_SHIP_KILLED_BY_BAD_BULLET,
-    NEW_GAME_BUTTON_PRESSED,
+    NEW_GAME,
     ROCK_SLICE_KILLED_BY_BAD_BULLET,
-    ROCK_SLICE_KILLED_BY_GOOD_BULLET
+    ROCK_SLICE_KILLED_BY_GOOD_BULLET,
+    START_NEXT_LEVEL
 } from "../events/events";
 import CollisionCheck from "./collision";
 import {getRandomInt} from "../levels/generators";
@@ -75,7 +77,9 @@ export default class SpaceInvadersGame {
     }
 
     init() {
-        this.eventBus.subscribe(NEW_GAME_BUTTON_PRESSED, this.newGame.bind(this))
+        this.eventBus.subscribe(NEW_GAME, this.newGame.bind(this))
+        this.eventBus.subscribe(START_NEXT_LEVEL, this.nextLevel.bind(this))
+        this.eventBus.subscribe(END_GAME, this.endGame.bind(this))
     }
 
     getSetting(setting) {
@@ -95,7 +99,6 @@ export default class SpaceInvadersGame {
     newGame() {
         const {players} = this.context
         this.endGame();
-        this.gameState = "NEW_GAME";
         this.level = this.levelData.next().value;
         this.goodShips = players.map(id => new GoodShip({
             game: this,
@@ -117,18 +120,10 @@ export default class SpaceInvadersGame {
     }
 
     startGame() {
-        this.gameState = "START_GAME";
         this.initialiseBadShips();
-        for (let goodShip of this.goodShips) {
-            this.initialiseGoodShip(goodShip);
-        }
+        this.goodShips.forEach(ship => this.initialiseGoodShip(ship));
         this.initialiseRocks();
-        this.runGame();
-    }
-
-    gameWon() {
-        this.destroyBullets();
-        this.setGameMessage();
+        this.startAnimation();
     }
 
     // TODO: How to handle the movement of the good ship.
@@ -139,43 +134,11 @@ export default class SpaceInvadersGame {
         this.animation.runFrame(this.frameActions)
     }
 
-    checkGameState() {
-        switch (this.gameState) {
-            case "LEVEL_WON":
-                if (this.currentLevel === this.levelData.length - 1) {
-                    this.gameState = "GAME_WON";
-                    this.gameWon();
-                    // Should cancel animation
-                    return true;
-                    // Check highscore status
-                } else {
-                    this.nextLevel();
-                    // Should cancel animation
-                    return true;
-                }
-
-            case "PLAYER_DEAD":
-                break;
-
-            default:
-                break;
-        }
-    }
-
-    runGame() {
-        this.gameState = "GAME_RUNNING";
-        this.startAnimation();
-    }
-
+    // Keep for now - we will need to change levels
     nextLevel() {
-        this.gameState = "NEXT_LEVEL";
-        this.level = this.levelData.next().value;
-        this.setGameMessage();
         this.endGame();
-        setTimeout(() => {
-            this.clearGameMessage();
-            this.startGame();
-        }, 5000);
+        this.level = this.levelData.next().value;
+        this.startGame();
     }
 
     drawObject(object) {
@@ -188,60 +151,39 @@ export default class SpaceInvadersGame {
     }
 
     destroyObject(object) {
+        this.eventBus.publish(CANVAS_REMOVE, object.shapes)
         switch (true) {
             // Rocks damage themselves - this will remove an entire rock from the game
             case object instanceof Rock:
-                this.eventBus.publish(CANVAS_REMOVE, object.shapes)
-
-                if (this.gameState == "GAME_RUNNING") {
-                    let rockIndex = this.rocks.indexOf(object);
-                    this.rocks.splice(rockIndex, 1);
-                }
+                let rockIndex = this.rocks.indexOf(object);
+                this.rocks.splice(rockIndex, 1);
                 break;
 
             case object instanceof Bullet:
-                this.eventBus.publish(CANVAS_REMOVE, object.shapes)
                 object.owner.bulletInPlay = false;
                 object.owner.bullet = "";
 
-                if (this.gameState === "GAME_RUNNING") {
-                    let bulletIndex = this.bullets.indexOf(object);
-                    this.bullets.splice(bulletIndex, 1);
-                }
+                let bulletIndex = this.bullets.indexOf(object);
+                this.bullets.splice(bulletIndex, 1);
                 break;
 
             case object instanceof BadShip:
-                this.eventBus.publish(CANVAS_REMOVE, object.shapes)
                 // Find badShip in this.badShips and remove
                 for (let i = 0; i < this.badShips.length; i++) {
                     if (this.badShips[i].indexOf(object) >= 0) {
-                        if (this.gameState === "GAME_RUNNING") {
-                            let badShipIndex = this.badShips[i].indexOf(object);
-                            this.badShips[i].splice(badShipIndex, 1);
-                        }
+                        let badShipIndex = this.badShips[i].indexOf(object);
+                        this.badShips[i].splice(badShipIndex, 1);
                         break;
                     }
                 }
                 break;
 
             case object instanceof GoodShip:
-                switch (this.gameState) {
-                    case "GAME_WON":
-                        break;
+                object.destroy();
+                let goodShipIndex = this.goodShips.indexOf(object);
+                this.goodShips.splice(goodShipIndex, 1);
+                break;
 
-                    case "LEVEL_WON":
-                        break;
-
-                    case "GAME_RUNNING":
-                        this.eventBus.publish(CANVAS_REMOVE, object.shapes)
-                        object.destroy();
-                        let goodShipIndex = this.goodShips.indexOf(object);
-                        this.goodShips.splice(goodShipIndex, 1);
-                        break;
-
-                    default:
-                        break;
-                }
         }
     }
 
@@ -282,7 +224,10 @@ export default class SpaceInvadersGame {
                             continue;
                         } else if (bullet.owner instanceof GoodShip) {
                             // goodShip bullet + badShip colliding
-                            this.eventBus.publish(BAD_SHIP_KILLED_BY_GOOD_BULLET, {id: bullet.owner.id})
+                            this.eventBus.publish(BAD_SHIP_KILLED_BY_GOOD_BULLET, {
+                                id: bullet.owner.id,
+                                remainingShipCount: this.badShips.flat(Infinity).length
+                            })
                             this.destroyObject(badShip);
                             this.destroyObject(bullet);
 
@@ -310,7 +255,9 @@ export default class SpaceInvadersGame {
                 if (this.isColliding(bullet, goodShip)) {
                     if (bullet.owner instanceof BadShip) {
                         // badShip bullet + goodShip colliding
-                        this.eventBus.publish(GOOD_SHIP_KILLED_BY_BAD_BULLET, {id: goodShip.id})
+                        this.eventBus.publish(GOOD_SHIP_KILLED_BY_BAD_BULLET, {
+                            id: goodShip.id,
+                        })
                         this.destroyObject(bullet);
                         this.destroyObject(goodShip);
 
