@@ -162,7 +162,7 @@ export default class SpaceInvadersGame {
 
             case object instanceof Bullet:
                 object.owner.bulletInPlay = false;
-                object.owner.bullet = "";
+                object.owner.bullet = null;
 
                 let bulletIndex = this.bullets.indexOf(object);
                 this.bullets.splice(bulletIndex, 1);
@@ -426,10 +426,15 @@ export default class SpaceInvadersGame {
     }
 
     destroyBullets() {
-        this.rocks = this.bullets.reduce(function (empty, bullet) {
-            this.destroyObject(bullet);
-            return empty;
-        }.bind(this), [])
+        /*
+        * destroyObject will modify this.bullets so that cannot be forEach-ed directly as it will be changing under us.
+        * Creating a map of this.bullets allows us to iterate over the rocks in the game and call destroyObject
+        * on them
+        */
+        this.bullets.map(b => b).forEach(rock => {
+            this.destroyObject(rock)
+        });
+        this.bullets = [];
     }
 
     moveBadShips() {
