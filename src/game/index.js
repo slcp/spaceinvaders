@@ -13,7 +13,7 @@ import {
     CANVAS_REMOVE,
     END_GAME,
     GOOD_SHIP_KILLED_BY_BAD_BULLET,
-    NEW_GAME,
+    NEW_GAME, RESPAWN_GOOD_SHIP,
     ROCK_SLICE_KILLED_BY_BAD_BULLET,
     ROCK_SLICE_KILLED_BY_GOOD_BULLET,
     START_NEXT_LEVEL
@@ -80,6 +80,7 @@ export default class SpaceInvadersGame {
         this.eventBus.subscribe(NEW_GAME, this.newGame.bind(this))
         this.eventBus.subscribe(START_NEXT_LEVEL, this.nextLevel.bind(this))
         this.eventBus.subscribe(END_GAME, this.endGame.bind(this))
+        this.eventBus.subscribe(RESPAWN_GOOD_SHIP, this.respawnGoodShip.bind(this))
     }
 
     getSetting(setting) {
@@ -329,6 +330,17 @@ export default class SpaceInvadersGame {
             this.destroyObject(ship)
         })
         this.badShips = [];
+    }
+
+    respawnGoodShip({id}) {
+        const ship = new GoodShip({
+            game: this,
+            settings: this.getSettingsFor("goodShip"),
+            eventBus: this.eventBus,
+            id
+        })
+        this.goodShips.push(ship)
+        this.initialiseGoodShip(ship)
     }
 
     initialiseGoodShip(goodShip) {

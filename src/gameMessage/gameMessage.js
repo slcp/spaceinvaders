@@ -12,9 +12,10 @@ class GameMessage {
         return this;
     }
 
-    setMessage({message}) {
+    setMessage({message, persist}) {
         this.element.innerText = message;
-        setTimeout(function() {
+        if (persist) return;
+        setTimeout(function () {
             this.eventBus.publish(CLEAR_MESSAGE)
         }.bind(this), 2000)
     }
