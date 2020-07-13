@@ -1,4 +1,4 @@
-import {BAD_SHIP_KILLED_BY_GOOD_BULLET} from "../events/events";
+import {GOOD_SHIP_KILLED_BY_BAD_BULLET, PLAYER_LOST_LIFE} from "../events/events";
 
 class Player {
     constructor(context) {
@@ -10,11 +10,15 @@ class Player {
 
     init() {
         const {eventBus} = this.context;
-        eventBus.subscribe(BAD_SHIP_KILLED_BY_GOOD_BULLET, function({id}) {
-            if (id !== this.id) return;
-            console.log("player recognised event")
-        }.bind(this))
+        eventBus.subscribe(GOOD_SHIP_KILLED_BY_BAD_BULLET, this.playerKilled.bind(this))
     };
+
+    playerKilled() {
+        const {eventBus} = this.context;
+        if ({id} !== this.id) return;
+        this.lives = this.lives - 1;
+        eventBus.publish(PLAYER_LOST_LIFE, {id: this.id, remainingLives: this.lives})
+    }
 
 
 }
