@@ -14,13 +14,12 @@ class CollisionCheck {
             throw new Error("collision object must be shapes or array of shapes")
         }
         this.obj2 = obj2 instanceof Shape ? new Array(obj2) : obj2
-        this.colliding = false;
     }
 
     isColliding() {
-        for (let i = 0; i < this.obj1.length; i++) {
-            for (let j = 0; j < this.obj2.length; j++) {
-                if (this._checkForCollision(this.obj1[i], this.obj2[j])) {
+        for (let shape1 of this.obj1) {
+            for (let shape2 of this.obj2) {
+                if (this._checkForCollision(shape1, shape2)) {
                     return true;
                 }
             }
