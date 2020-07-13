@@ -18,7 +18,7 @@ export const makeLifeUI = (suffix, numLives) => {
     return el;
 }
 
-const makeLifeRepresentation = suffix => {
+export const makeLifeRepresentation = suffix => {
     const el = makeElement({type: 'img', classes: ['life'], id: `life-${suffix}`})
     el.src = 'alien.svg';
     return el;

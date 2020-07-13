@@ -1,11 +1,13 @@
 import SpaceInvadersGame from './game';
 import Canvas2D from "./canvas";
-import EventBus, {NEW_GAME} from "./events/events";
-import Score from "./score/score";
+import {NEW_GAME} from "./events/events";
+import Score from "./ui/score";
 import Player from "./player/player";
-import {makeUI} from "./ui";
+import {makeUI} from "./ui/ui";
 import GameState from "./gameState/gameState";
 import GameMessage from "./gameMessage/gameMessage";
+import EventBus from "./events";
+import Lives from "./ui/lives";
 
 const eventBus = new EventBus();
 const numPlayers = 1;
@@ -23,7 +25,10 @@ const gameContext = {
 const [scoreContainers, livesContainers] = makeUI(players)
 players.map((p, i) => {
     p.init()
-    return [new Score({eventBus, element: scoreContainers[i], id: p.id}).init()]
+    return [
+        new Score({eventBus, element: scoreContainers[i], id: p.id}).init(),
+        new Lives({eventBus, element: livesContainers[i], id: p.id}).init()
+    ]
 });
 new GameMessage({eventBus, element: document.getElementById('game-message')}).init();
 new SpaceInvadersGame(gameContext).init();
