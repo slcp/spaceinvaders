@@ -97,15 +97,8 @@ export default class SpaceInvadersGame {
     }
 
     newGame() {
-        const {players} = this.context
         this.endGame();
         this.level = this.levelData.next().value;
-        this.goodShips = players.map(id => new GoodShip({
-            game: this,
-            settings: this.getSettingsFor("goodShip"),
-            eventBus: this.eventBus,
-            id
-        }));
         this.startGame();
     }
 
@@ -120,7 +113,14 @@ export default class SpaceInvadersGame {
     }
 
     startGame() {
+        const {players} = this.context;
         this.initialiseBadShips();
+        this.goodShips = players.map(id => new GoodShip({
+            game: this,
+            settings: this.getSettingsFor("goodShip"),
+            eventBus: this.eventBus,
+            id
+        }));
         this.goodShips.forEach(ship => this.initialiseGoodShip(ship));
         this.initialiseRocks();
         this.startAnimation();
@@ -224,17 +224,12 @@ export default class SpaceInvadersGame {
                             continue;
                         } else if (bullet.owner instanceof GoodShip) {
                             // goodShip bullet + badShip colliding
+                            this.destroyObject(badShip);
+                            this.destroyObject(bullet);
                             this.eventBus.publish(BAD_SHIP_KILLED_BY_GOOD_BULLET, {
                                 id: bullet.owner.id,
                                 remainingShipCount: this.badShips.flat(Infinity).length
                             })
-                            this.destroyObject(badShip);
-                            this.destroyObject(bullet);
-
-                            let badShipCount = this.badShips.reduce((count, row) => count + row.length, 0);
-
-                            this.gameState =
-                                badShipCount === 0 ? "LEVEL_WON" : this.gameState;
                         }
                         collision = true;
                         break;
@@ -256,7 +251,7 @@ export default class SpaceInvadersGame {
                     if (bullet.owner instanceof BadShip) {
                         // badShip bullet + goodShip colliding
                         this.eventBus.publish(GOOD_SHIP_KILLED_BY_BAD_BULLET, {
-                            id: goodShip.id,
+                            id: goodShip.id
                         })
                         this.destroyObject(bullet);
                         this.destroyObject(goodShip);
@@ -264,7 +259,6 @@ export default class SpaceInvadersGame {
                         if (!goodShip.isDead()) {
                             this.initialiseGoodShip(goodShip);
                         } else {
-                            this.gameState = "PLAYER_DEAD";
                         }
                     } else if (bullet.owner instanceof GoodShip) {
                         // do nothing - this shouldn't be possible
