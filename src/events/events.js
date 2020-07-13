@@ -35,5 +35,8 @@ export const ROCK_KILLED_BY_BAD_BULLET = "ROCK_KILLED_BY_BAD_BULLET";
 export const LEVEL_OVER = "LEVEL_OVER";
 export const GAME_LOST = "GAME_LOST";
 export const START_NEXT_LEVEL = "START_NEXT_LEVEL";
+export const PLAYER_LOST_LIFE = 'PLAYER_LOST_LIFE';
+export const SET_MESSAGE = 'SET_MESSAGE';
+export const CLEAR_MESSAGE = 'CLEAR_MESSAGE';
 
 export default EventBus;
