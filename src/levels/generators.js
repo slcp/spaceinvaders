@@ -1,6 +1,7 @@
 const gameSettingsGenerator = function* () {
     while (true) {
         yield {
+            // TODO: rock number/width/spacing need to relate to each other
             numRocks: getRandomInt({max: 5}),
             rockWidth: getRandomInt({min: 10, max: 150}),
             rockHeight: 1,
@@ -16,7 +17,7 @@ const gameSettingsGenerator = function* () {
     }
 }
 
-const getRandomInt = ({min, max}) => {
+export const getRandomInt = ({min, max}) => {
     min = Math.ceil(min) || 0;
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min + 1)) + min;

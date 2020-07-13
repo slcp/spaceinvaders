@@ -1,7 +1,7 @@
 import Bullet from "./bullet";
 import Moveable from "./moveable";
 import Shape from "../canvas/shape";
-import CollisionCheck from "../game/collision";
+import CollisionCheck from "../collisionCheck/collision";
 
 class Rock extends Moveable {
     constructor(width, settings) {

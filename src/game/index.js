@@ -18,7 +18,7 @@ import {
     ROCK_SLICE_KILLED_BY_GOOD_BULLET,
     START_NEXT_LEVEL
 } from "../events/events";
-import CollisionCheck from "./collision";
+import CollisionCheck from "../collisionCheck/collision";
 import {getRandomInt} from "../levels/generators";
 import drawObject from "../functional/drawObject";
 import moveObject from "../functional/moveObject";

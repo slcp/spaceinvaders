@@ -1,11 +1,11 @@
 import SpaceInvadersGame from './game';
 import Canvas2D from "./canvas";
 import EventBus, {NEW_GAME} from "./events/events";
-import Score from "./game/score";
-import Player from "./game/player";
+import Score from "./score/score";
+import Player from "./player/player";
 import {makeUI} from "./ui";
-import GameState from "./game/gameState";
-import GameMessage from "./game/gameMessage";
+import GameState from "./gameState/gameState";
+import GameMessage from "./gameMessage/gameMessage";
 
 const eventBus = new EventBus();
 const numPlayers = 1;
