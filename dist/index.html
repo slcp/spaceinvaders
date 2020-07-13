@@ -8,20 +8,21 @@
     <link rel="stylesheet" type="text/css" media="screen" href="main.css">
 </head>
 <body>
-    <h1 class='game-title'>Space Invaders</h1>
+<h1 class='game-title'>Space Invaders</h1>
 
-    <button id="new-game">New Game</button>
+<button id="new-game">New Game</button>
 
-    <div id='game'>
+<div id='game'>
+    <div id="game-message-container">
         <div id="game-message"></div>
-
-        <canvas id="game-canvas" width='1000px' height='1000px'>
-        Your browser does not support the HTML5 canvas tag.
-        </canvas>
-
     </div>
+    <canvas id="game-canvas" width='1000px' height='1000px'>
+        Your browser does not support the HTML5 canvas tag.
+    </canvas>
 
-    <script type="text/javascript" src="./main.js"></script>
+</div>
+
+<script type="text/javascript" src="./main.js"></script>
 
 
 </body>
