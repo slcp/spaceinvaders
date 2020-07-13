@@ -1,4 +1,10 @@
-import {BAD_SHIP_KILLED_BY_GOOD_BULLET, GAME_LOST, GOOD_SHIP_KILLED_BY_BAD_BULLET, LEVEL_OVER} from "../events/events";
+import {
+    BAD_SHIP_KILLED_BY_GOOD_BULLET,
+    END_GAME,
+    GAME_LOST,
+    GOOD_SHIP_KILLED_BY_BAD_BULLET,
+    LEVEL_OVER, NEW_GAME, PLAYER_LOST_LIFE, SET_MESSAGE, START_NEXT_LEVEL
+} from "../events/events";
 
 class GameState {
     constructor({eventBus}) {
@@ -8,14 +14,17 @@ class GameState {
     }
 
     init() {
-        this.eventBus.subscribe(GOOD_SHIP_KILLED_BY_BAD_BULLET, this.playerKilled.bind(this))
+        console.log('initialised')
+        this.eventBus.subscribe(PLAYER_LOST_LIFE, this.playerKilled.bind(this))
         this.eventBus.subscribe(BAD_SHIP_KILLED_BY_GOOD_BULLET, this.badShipKilled.bind(this))
+        this.eventBus.subscribe(NEW_GAME, this.newGame.bind(this))
     }
 
     badShipKilled({remainingShipCount}) {
         if (remainingShipCount === undefined) {
             throw("need some data with this event!")
         }
+        console.log("Ship count: ", remainingShipCount);
         this.badShips = remainingShipCount;
         this.checkGameState();
     }
@@ -30,11 +39,15 @@ class GameState {
 
     checkGameState() {
         if (this.badShips === 0) {
-            this.eventBus.publish(LEVEL_OVER)
+            this.eventBus.publish(START_NEXT_LEVEL)
         }
         if (this.playerLives === 0) {
-            this.eventBus.publish(GAME_LOST)
+            this.eventBus.publish(END_GAME)
         }
+    }
+
+    newGame() {
+        this.eventBus.publish(SET_MESSAGE, {message: "New game -  enjoy!!"})
     }
 }
 
