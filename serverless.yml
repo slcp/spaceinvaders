@@ -1,0 +1,129 @@
+service: spaceinvaders
+
+plugins:
+  # - serverless-s3-sync
+
+custom:
+  dev:
+    cloud-front-aliases:
+      - space-invaders.dev.uglydirtylittlestrawberry.co.uk
+    domain-cert-arn: arn:aws:acm:us-east-1:559019574302:certificate/86d83a50-7b97-4a99-9301-0b547d824208
+  prod:
+    cloud-front-aliases:
+      - space-invaders.uglydirtylittlestrawberry.co.uk
+    domain-cert-arn: arn:aws:acm:us-east-1:559019574302:certificate/34771573-00f2-428d-8f2c-e1a0d728e056
+  s3Sync:
+    - bucketName: ${self:service}-${opt:stage, self:provider.stage}
+      localDir: dist
+
+provider:
+  name: aws
+  region: eu-west-2
+  stage: dev
+
+package:
+  individually: true
+
+resources:
+  Conditions:
+    Prod: !Equals ["${opt:stage, self:provider.stage}" , prod ]
+  Resources:
+    SpaceInvadersSiteBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        AccessControl: PublicRead
+        BucketName: ${self:service}-${opt:stage, self:provider.stage}
+        WebsiteConfiguration:
+          IndexDocument: index.html
+
+    SpaceInvadersSiteS3BucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        Bucket:
+          Ref: SpaceInvadersSiteBucket
+        PolicyDocument:
+          Statement:
+            - Sid: PublicReadGetObject
+              Effect: Allow
+              Principal: "*"
+              Action:
+                - s3:GetObject
+              Resource:
+                Fn::Join: [
+                  "", [
+                  "arn:aws:s3:::",
+                  {
+                    "Ref": "SpaceInvadersSiteBucket"
+                  },
+                  "/*"
+                ]
+                ]
+    # https://www.serverlessops.io/blog/static-websites-on-aws-s3-with-serverless-framework
+    # DnsRecord:
+    #   Type: "AWS::Route53::RecordSet"
+    #   Properties:
+    #     AliasTarget:
+    #       # Z2FDTNDATAQYW2 is always used for a CloudFront alias 
+    #       DNSName: 
+    #         Fn::GetAtt: [ HugoPersonalSiteCloudFrontDistribution, DomainName ]
+    #       HostedZoneId: Z2FDTNDATAQYW2
+    #     HostedZoneId: Z3UYGW5LOTVGPD
+    #     Name: ${self:custom.${opt:stage, self:provider.stage}.dns-cname-value}
+    #     Type: 'A'
+
+    # TODO: Add an origin to ths CF in hugo site stack and behaviour for a url to pull space invaders
+    # Should the CF and domain name related resources be in their own stack?
+    SpaceInvadersCloudFrontDistribution:
+      Type: AWS::CloudFront::Distribution
+      Properties:
+        DistributionConfig:
+          Origins:
+            - DomainName: ${self:service}-${opt:stage, self:provider.stage}.s3.amazonaws.com
+              ## An identifier for the origin which must be unique within the distribution
+              Id: SpaceInvaders
+              CustomOriginConfig:
+                HTTPPort: 80
+                HTTPSPort: 443
+                OriginProtocolPolicy: https-only
+              ## In case you want to restrict the bucket access use S3OriginConfig and remove CustomOriginConfig
+              # S3OriginConfig:
+              #   OriginAccessIdentity: origin-access-identity/cloudfront/E127EXAMPLE51Z
+          Enabled: true
+          ## Uncomment the following section in case you are using a custom domain
+          Aliases: ${self:custom.${opt:stage, self:provider.stage}.cloud-front-aliases}
+          DefaultRootObject: index.html
+          DefaultCacheBehavior:
+            AllowedMethods:
+              - DELETE
+              - GET
+              - HEAD
+              - OPTIONS
+              - PATCH
+              - POST
+              - PUT
+            ## The origin id defined above
+            TargetOriginId: SpaceInvaders
+            ## Defining if and how the QueryString and Cookies are forwarded to the origin which in this case is S3
+            ForwardedValues:
+              QueryString: false
+              Cookies:
+                Forward: none
+            ## The protocol that users can use to access the files in the origin. To allow HTTP use `allow-all`
+            ViewerProtocolPolicy: redirect-to-https
+          ## The certificate to use when viewers use HTTPS to request objects.
+          ViewerCertificate:
+            AcmCertificateArn: ${self:custom.${opt:stage, self:provider.stage}.domain-cert-arn}
+            SslSupportMethod: sni-only
+            MinimumProtocolVersion: TLSv1.2_2018
+            # Use this when when no aliases are set
+            # CloudFrontDefaultCertificate: true
+          ## Uncomment the following section in case you want to enable logging for CloudFront requests
+          # Logging:
+          #   IncludeCookies: 'false'
+          #   Bucket: mylogs.s3.amazonaws.com
+          #   Prefix: myprefix
+
+  Outputs:
+    SWPortfolioCloudFrontDistributionOutput:
+      Value:
+        'Fn::GetAtt': [ SpaceInvadersCloudFrontDistribution, DomainName ]
