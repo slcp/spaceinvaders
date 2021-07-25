@@ -1,14 +1,16 @@
 service: spaceinvaders
 
 plugins:
-  # - serverless-s3-sync
+  - serverless-s3-sync
 
 custom:
   dev:
+    dns-cname-value: space-invaders.dev.uglydirtylittlestrawberry.co.uk
     cloud-front-aliases:
       - space-invaders.dev.uglydirtylittlestrawberry.co.uk
     domain-cert-arn: arn:aws:acm:us-east-1:559019574302:certificate/86d83a50-7b97-4a99-9301-0b547d824208
   prod:
+    dns-cname-value: space-invaders.uglydirtylittlestrawberry.co.uk
     cloud-front-aliases:
       - space-invaders.uglydirtylittlestrawberry.co.uk
     domain-cert-arn: arn:aws:acm:us-east-1:559019574302:certificate/34771573-00f2-428d-8f2c-e1a0d728e056
@@ -59,20 +61,18 @@ resources:
                 ]
                 ]
     # https://www.serverlessops.io/blog/static-websites-on-aws-s3-with-serverless-framework
-    # DnsRecord:
-    #   Type: "AWS::Route53::RecordSet"
-    #   Properties:
-    #     AliasTarget:
-    #       # Z2FDTNDATAQYW2 is always used for a CloudFront alias 
-    #       DNSName: 
-    #         Fn::GetAtt: [ HugoPersonalSiteCloudFrontDistribution, DomainName ]
-    #       HostedZoneId: Z2FDTNDATAQYW2
-    #     HostedZoneId: Z3UYGW5LOTVGPD
-    #     Name: ${self:custom.${opt:stage, self:provider.stage}.dns-cname-value}
-    #     Type: 'A'
+    DnsRecord:
+      Type: "AWS::Route53::RecordSet"
+      Properties:
+        AliasTarget:
+          # Z2FDTNDATAQYW2 is always used for a CloudFront alias 
+          DNSName: 
+            Fn::GetAtt: [ SpaceInvadersCloudFrontDistribution, DomainName ]
+          HostedZoneId: Z2FDTNDATAQYW2
+        HostedZoneId: Z3UYGW5LOTVGPD
+        Name: ${self:custom.${opt:stage, self:provider.stage}.dns-cname-value}
+        Type: 'A'
 
-    # TODO: Add an origin to ths CF in hugo site stack and behaviour for a url to pull space invaders
-    # Should the CF and domain name related resources be in their own stack?
     SpaceInvadersCloudFrontDistribution:
       Type: AWS::CloudFront::Distribution
       Properties:

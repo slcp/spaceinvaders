@@ -22,6 +22,7 @@
   },
   "scripts": {
     "build": "npx webpack",
+    "deploy:local:dev": "yarn build && sls deploy",
     "start": "yarn build && serve ./dist"
   },
   "husky": {
