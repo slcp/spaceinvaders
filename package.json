@@ -23,11 +23,12 @@
   "scripts": {
     "build": "npx webpack",
     "deploy:local:dev": "yarn build && sls deploy",
-    "start": "yarn build && serve ./dist"
+    "start": "yarn build && serve ./dist",
+    "test": "yarn jest"
   },
   "husky": {
     "hooks": {
-      "pre-commit": "yarn build"
+      "pre-commit": "yarn test && yarn build"
     }
   },
   "dependencies": {
