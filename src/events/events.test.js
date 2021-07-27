@@ -1,4 +1,4 @@
-import EventBus from "./events";
+import EventBus from "./";
 
 describe('Event Bus', ({callbacksCount = 1, eventsCount = 1} = {}) => {
     const makeContext = () => ({
