@@ -43,5 +43,6 @@ export const publishToEventBus = async (bus, event, ...args) => {
 };
 
 export const newEventBus = () => ({
+  _type: EVENT_BUS_TYPE,
   events: {},
 });
