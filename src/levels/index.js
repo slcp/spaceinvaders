@@ -1,10 +1,4 @@
-import levelOne from './levelOne'
-import levelTwo from './levelTwo'
 import gameSettingsGenerator from "./generators";
-
-// const levels = [levelOne,  levelTwo];
-//
-// export default levels;
 
 const levelsGenerator = function*() {
     const gameSettings = gameSettingsGenerator();
