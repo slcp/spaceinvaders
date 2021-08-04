@@ -1,28 +1,4 @@
-
-// class Rock extends Moveable {
-//   constructor(width, settings) {
-//     super(settings);
-//     this.shapes = false;
-//     this.width = width;
-//     //this.height = ;
-//   }
-
-//   getShapes() {
-//     if (!this.shapes) {
-//       this.shapes = [];
-//       const { rockParticleWidth: particleWidth, rockParticleHeight: height } =
-//         this.settings;
-//       for (
-//         let i = 0;
-//         i < this.width / ((particleWidth / 100) * this.width);
-//         i++
-//       ) {
-//         const shape = new Shape(i * particleWidth, 800, particleWidth, height);
-//         this.shapes.push(shape);
-//       }
-//     }
-//     return this.shapes;
-//   }
+import { newShape } from "../canvas/shape";
 
 //   move(deltaX, deltaY) {
 //     this.getShapes();
@@ -52,10 +28,32 @@
 
 export const ROCK_TYPE = "_rock";
 
+export const initialiseRock = (rock, settings) => {
+  if (!rock.width) {
+    throw new Error("rock width must be set");
+  }
+
+  const shapes = [];
+  const { rockParticleWidth, rockParticleHeight } = settings;
+  for (
+    let i = 0;
+    i < rock.width / ((rockParticleWidth / 100) * rock.width);
+    i++
+  ) {
+    const shape = newShape(
+      i * rockParticleWidth, // inset from left edge
+      800, // inset from top
+      rockParticleWidth,
+      rockParticleHeight
+    );
+    shapes.push(shape);
+    rock.shapes = shapes;
+  }
+};
+
 export const newRock = (width) => ({
+  _type: ROCK_TYPE,
   shapes: false,
   width,
   // height,
 });
-
-export default Rock;

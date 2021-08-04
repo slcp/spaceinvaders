@@ -1,7 +1,7 @@
 import CollisionCheck from "./collision";
-import Shape from "../canvas/shape";
+import Shape, { newShape } from "../canvas/shape";
 
-const makeShape = ({x = 0, y = 0, width = 100, height = 100} = {}) => new Shape(x, y, width, height, undefined);
+const makeShape = ({x = 0, y = 0, width = 100, height = 100} = {}) => newShape(x, y, width, height, undefined);
 const makeNotAShape = () => "string";
 
 describe('Collision check', () => {

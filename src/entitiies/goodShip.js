@@ -132,7 +132,6 @@ export const newGoodShip = () => ({
   ],
   lives: 3,
   shootTrigger: SPACE,
-  shootTrigger: SPACE,
   handleKeyDown: this.handleKeyDown.bind(this),
   handleKeyUp: this.handleKeyUp.bind(this),
   frameActions: [
