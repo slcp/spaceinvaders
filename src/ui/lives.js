@@ -1,31 +1,43 @@
-import {ADD_LIFE, LOSE_LIFE} from "../events/events";
-import {makeLifeRepresentation} from "./ui";
+import { subscribeToEventBus } from "../events";
+import { ADD_LIFE, LOSE_LIFE } from "../events/events";
+import { makeLifeRepresentation } from "./ui";
 
-class Lives {
-    constructor({eventBus, element, id}) {
-        this.eventBus = eventBus;
-        this.element = element;
-        this.id = id;
-    }
+let lives = [];
 
-    init() {
-        this.eventBus.subscribe(ADD_LIFE, this.addLife.bind(this))
-        this.eventBus.subscribe(LOSE_LIFE, this.loseLife.bind(this))
-        return this;
-    }
+export const LIFE_TYPE = "_life";
 
-    addLife({id}) {
-        if (this.id !== id) return;
-        const index = parseInt(this.element.lastChild.id.split('-')[1], 10) + 1;
-        console.log(index);
-        this.element.appendChild(makeLifeRepresentation(index))
+export const addLife = ({ id }) => {
+  const { element } = lives.find((l) => l.id === id);
+  const index = parseInt(element.lastChild.id.split("-")[1], 10) + 1;
+  element.appendChild(makeLifeRepresentation(index));
+};
 
-    }
+export const loseLife = ({ id }) => {
+  const { element } = lives.find((l) => l.id === id);
+  element.removeChild(element.lastChild);
+};
 
-    loseLife({id}) {
-        if (this.id !== id) return;
-        this.element.removeChild(this.element.lastChild)
-    }
-}
+export const initialiseLife = (life, bus) => {
+  if (!!lives.find((l) => l.id === life.id)) {
+    throw new Error(`life with id ${life.id} already initialised`);
+  }
 
-export default Lives;
+  lives = [...lives, life];
+  subscribeToEventBus(bus, ADD_LIFE, addLife);
+  subscribeToEventBus(bus, LOSE_LIFE, loseLife);
+};
+
+export const newLife = ({ element, id }) => {
+  if (
+    typeof element.removeChild !== "function" &&
+    typeof element.appendChild !== "function"
+  ) {
+    throw new Error("element must represent a DOM element");
+  }
+
+  return {
+    _type: LIFE_TYPE,
+    element,
+    id,
+  };
+};
