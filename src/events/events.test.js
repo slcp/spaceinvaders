@@ -1,8 +1,8 @@
-import { newEventBus } from "./";
+import { newEventBus, publishToEventBus, subscribeToEventBus } from "./";
 
-describe("Event Bus", ({ callbacksCount = 1, eventsCount = 1 } = {}) => {
-  const makeContext = () => ({
-    eventBus: newEventBus(),
+describe("Event Bus", () => {
+  const makeContext = ({ callbacksCount, eventsCount }) => ({
+    bus: newEventBus(),
     callbacks: Array.from(new Array(callbacksCount), () => jest.fn()),
     events: Array.from(new Array(eventsCount), (_, i) => `event${i}`),
   });
@@ -17,46 +17,69 @@ describe("Event Bus", ({ callbacksCount = 1, eventsCount = 1 } = {}) => {
       // Assert
       expect(actual).toEqual(expected);
     });
-    //   it("should call subscribed callback when an event is published", () => {
-    //     // Arrange
-    //     const { eventBus, callbacks, events } = makeContext();
-    //     const [callback1] = callbacks;
-    //     const [event1] = events;
+  });
+  describe("subscribeToEventBus", () => {
+    it("should register callback with an event when there is a single callback", async () => {
+      // Arrange
+      const { bus, callbacks } = makeContext({ callbacksCount: 1 });
+      const [callback] = callbacks;
+      // Act
+      await subscribeToEventBus(bus, "TEST_EVENT", callback);
 
-    //     // Act
-    //     eventBus.subscribe(event1, callback1);
-    //     eventBus.publish(event1);
+      // Assert
+      expect(bus.events.TEST_EVENT).toHaveLength(1);
+      expect(bus.events.TEST_EVENT[0]).toEqual(expect.any(Function));
+      bus.events.TEST_EVENT[0]();
+      expect(callback).toHaveBeenCalled();
+    });
+    it("should register callback with an event when there is a more than one callback", async () => {
+      // Arrange
+      const { bus, callbacks } = makeContext({ callbacksCount: 2 });
+      const [callback, callback2] = callbacks;
 
-    //     // Assert
-    //     expect(callback1).toHaveBeenCalledTimes(1);
-    //   });
-    //   it("should call subscribed callback with args when an event is published with args", () => {
-    //     // Arrange
-    //     const { eventBus, callbacks, events } = makeContext();
-    //     const [callback1] = callbacks;
-    //     const [event1] = events;
+      // Act
+      await subscribeToEventBus(bus, "TEST_EVENT", callback);
+      await subscribeToEventBus(bus, "TEST_EVENT", callback2);
 
-    //     // Act
-    //     eventBus.subscribe(event1, callback1);
-    //     eventBus.publish(event1, "arg1", "arg2");
+      // Assert
+      expect(bus.events.TEST_EVENT).toHaveLength(2);
+      expect(bus.events.TEST_EVENT[0]).toEqual(expect.any(Function));
+      bus.events.TEST_EVENT.map((fn) => fn());
+      expect(callback).toHaveBeenCalled();
+      expect(callback2).toHaveBeenCalled();
+    });
+  });
+  describe("publishToEventBus", () => {
+    it("should call all callbacks registered against an event", async () => {
+      // Arrange
+      const { bus, callbacks } = makeContext({ callbacksCount: 2 });
+      const [callback, callback2] = callbacks;
+      bus.events.TEST_EVENT = [callback, callback2];
 
-    //     // Assert
+      // Act
+      await publishToEventBus(bus, "TEST_EVENT");
 
-    //     expect(callback1).toHaveBeenCalledWith("arg1", "arg2");
-    //   });
-    //   it("should not call subscribed callback when another event is published", () => {
-    //     // Arrange
-    //     const { eventBus, callbacks, events } = makeContext({ eventsCount: 2 });
-    //     const [callback1] = callbacks;
-    //     const [event1, event2] = events;
+      // Assert
+      expect(callback).toHaveBeenCalled();
+      expect(callback2).toHaveBeenCalled();
+    });
+    [1, 5].forEach((eventsCount) => {
+      it(`should call all callbacks registered against an event with ${eventsCount} args`, async () => {
+        // Arrange
+        const { bus, callbacks, events } = makeContext({
+          callbacksCount: 2,
+          eventsCount,
+        });
+        const [callback, callback2] = callbacks;
+        bus.events.TEST_EVENT = [callback, callback2];
 
-    //     // Act
-    //     eventBus.subscribe(event1, callback1);
-    //     eventBus.publish(event2);
+        // Act
+        await publishToEventBus(bus, "TEST_EVENT", ...events);
 
-    //     // Assert
-
-    //     expect(callback1).not.toHaveBeenCalled();
-    //   });
+        // Assert
+        expect(callback).toHaveBeenCalledWith(...events);
+        expect(callback2).toHaveBeenCalledWith(...events);
+      });
+    });
   });
 });
