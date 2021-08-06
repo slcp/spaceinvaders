@@ -17,14 +17,14 @@ export const loseLife = ({ id }) => {
   element.removeChild(element.lastChild);
 };
 
-export const initialiseLife = (life, bus) => {
+export const initialiseLife = async (life, bus) => {
   if (!!lives.find((l) => l.id === life.id)) {
     throw new Error(`life with id ${life.id} already initialised`);
   }
 
   lives = [...lives, life];
-  subscribeToEventBus(bus, ADD_LIFE, addLife);
-  subscribeToEventBus(bus, PLAYER_LOST_LIFE, loseLife);
+  await subscribeToEventBus(bus, ADD_LIFE, addLife);
+  await subscribeToEventBus(bus, PLAYER_LOST_LIFE, loseLife);
 };
 
 export const newLife = ({ element, id }) => {

@@ -1,11 +1,11 @@
-import { new2DCanvas } from "./canvas";
+import { intialiseCanvas, new2DCanvas } from "./canvas";
 import { newEventBus, publishToEventBus } from "./events";
 import { NEW_GAME } from "./events/events";
 import SpaceInvadersGame from "./game";
 import GameMessage from "./gameMessage/gameMessage";
 import GameState from "./gameState/gameState";
 import { initialisePlayer, newPlayer } from "./player/player";
-import Lives, { initialiseLife, newLife } from "./ui/lives";
+import { initialiseLife, newLife } from "./ui/lives";
 import { initialiseScore, newScore } from "./ui/score";
 import { makeUI } from "./ui/ui";
 
@@ -24,26 +24,32 @@ const gameContext = {
 
 // These can safely be mapped in order to players
 const [scoreContainers, livesContainers] = makeUI(players);
-players.map((p, i) => {
-  initialisePlayer(p, evenBus);
-  return [
-    initialiseScore(
-      newScore({ element: scoreContainers[i], id: p.id }, eventBus)
-    ),
-    initialiseLife(
-      newLife({ element: livesContainers[i], id: p.id }),
-      eventBus
-    ),
-  ];
-});
-new GameMessage({
-  eventBus,
-  element: document.getElementById("game-message"),
-}).init();
-new SpaceInvadersGame(gameContext).init();
-new GameState({ eventBus }).init();
-// The canvas that is responsible for drawing the game
-new2DCanvas(document.getElementById("game-canvas"));
-gameContext.newGameButton.addEventListener("click", function () {
-  publishToEventBus(evenBus, NEW_GAME);
+Promise.all(
+  players.map(async (p, i) => {
+    await initialisePlayer(p, evenBus);
+    return [
+      await initialiseScore(
+        newScore({ element: scoreContainers[i], id: p.id }, eventBus)
+      ),
+      await initialiseLife(
+        newLife({ element: livesContainers[i], id: p.id }),
+        eventBus
+      ),
+    ];
+  })
+).then(async () => {
+  new GameMessage({
+    eventBus,
+    element: document.getElementById("game-message"),
+  }).init();
+  new SpaceInvadersGame(gameContext).init();
+  new GameState({ eventBus }).init();
+  // The canvas that is responsible for drawing the game
+  await intialiseCanvas(
+    new2DCanvas(document.getElementById("game-canvas")),
+    eventBus
+  );
+  gameContext.newGameButton.addEventListener("click", function () {
+    publishToEventBus(evenBus, NEW_GAME);
+  });
 });

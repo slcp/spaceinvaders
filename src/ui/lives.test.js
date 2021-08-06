@@ -38,7 +38,7 @@ describe("lives", () => {
     });
   });
   describe("initialiseLife", () => {
-    it("should call subscribeToEventBus", () => {
+    it("should call subscribeToEventBus", async () => {
       // Arrange
       const life = newLife({
         element: {
@@ -51,7 +51,7 @@ describe("lives", () => {
       const bus = eventBus.newEventBus();
 
       // Act
-      initialiseLife(life, bus);
+      await initialiseLife(life, bus);
 
       // Assert
       expect(subscribeSpy).toHaveBeenCalledWith(
@@ -75,7 +75,7 @@ describe("lives", () => {
         expect.any(Function)
       );
     });
-    it("should throw when a life with the same id has already been initialised", () => {
+    it("should throw when a life with the same id has already been initialised", async () => {
       // Arrange
       const life = newLife({
         element: {
@@ -84,13 +84,12 @@ describe("lives", () => {
         },
         id: "idx",
       });
-      const subscribeSpy = jest.spyOn(eventBus, "subscribeToEventBus");
       const bus = eventBus.newEventBus();
 
       // Act
       // Assert
-      initialiseLife(life, bus);
-      expect(() => initialiseLife(life, bus)).toThrow(
+      await initialiseLife(life, bus);
+      await expect(initialiseLife(life, bus)).rejects.toThrow(
         "life with id idx already initialised"
       );
     });
@@ -108,7 +107,7 @@ describe("lives", () => {
       const bus = eventBus.newEventBus();
 
       // Act
-      initialiseLife(life, bus);
+      await initialiseLife(life, bus);
       await eventBus.publishToEventBus(bus, "PLAYER_LOST_LIFE", {
         id: "an id2",
       });
@@ -131,7 +130,7 @@ describe("lives", () => {
       const bus = eventBus.newEventBus();
 
       // Act
-      initialiseLife(life, bus);
+      await initialiseLife(life, bus);
       await eventBus.publishToEventBus(bus, "ADD_LIFE", {
         id: "an id3",
       });
