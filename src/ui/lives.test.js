@@ -58,7 +58,7 @@ describe("lives", () => {
         expect.objectContaining({
           events: {
             ADD_LIFE: [expect.any(Function)],
-            LOSE_LIFE: [expect.any(Function)],
+            PLAYER_LOST_LIFE: [expect.any(Function)],
           },
         }),
         "ADD_LIFE",
@@ -68,10 +68,10 @@ describe("lives", () => {
         expect.objectContaining({
           events: {
             ADD_LIFE: [expect.any(Function)],
-            LOSE_LIFE: [expect.any(Function)],
+            PLAYER_LOST_LIFE: [expect.any(Function)],
           },
         }),
-        "LOSE_LIFE",
+        "PLAYER_LOST_LIFE",
         expect.any(Function)
       );
     });
@@ -109,7 +109,7 @@ describe("lives", () => {
 
       // Act
       initialiseLife(life, bus);
-      await eventBus.publishToEventBus(bus, "LOSE_LIFE", {
+      await eventBus.publishToEventBus(bus, "PLAYER_LOST_LIFE", {
         id: "an id2",
       });
 

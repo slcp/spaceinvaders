@@ -31,7 +31,6 @@ const makeElement = ({type, classes, id}) => {
     return el;
 }
 
-
 export const makeUI = (p) => {
     const gameContainer = document.getElementById('game');
     const scoreContainers = p.map((_, i) => {

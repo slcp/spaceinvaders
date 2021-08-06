@@ -1,5 +1,5 @@
 import { subscribeToEventBus } from "../events";
-import { ADD_LIFE, LOSE_LIFE } from "../events/events";
+import { ADD_LIFE, PLAYER_LOST_LIFE } from "../events/events";
 import { makeLifeRepresentation } from "./ui";
 
 let lives = [];
@@ -24,7 +24,7 @@ export const initialiseLife = (life, bus) => {
 
   lives = [...lives, life];
   subscribeToEventBus(bus, ADD_LIFE, addLife);
-  subscribeToEventBus(bus, LOSE_LIFE, loseLife);
+  subscribeToEventBus(bus, PLAYER_LOST_LIFE, loseLife);
 };
 
 export const newLife = ({ element, id }) => {
