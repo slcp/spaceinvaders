@@ -1,7 +1,6 @@
-import { initialisePlayer, newPlayer } from "./player";
 import { v4 } from "uuid";
 import * as eventBus from "../events";
-import { RESPAWN_GOOD_SHIP } from "../events/events";
+import { initialisePlayer, newPlayer } from "./player";
 
 jest.mock("uuid", () => {
   let callCount = 1;

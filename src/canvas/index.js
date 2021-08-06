@@ -1,4 +1,3 @@
-
 // class Canvas2D {
 //   constructor(eventBus, element) {
 //     this.element = element;
@@ -6,6 +5,9 @@
 //     this.width = element.width;
 //     this.height = element.height;
 //   }
+
+import { subscribeToEventBus } from "../events";
+import { CANVAS_DRAW, CANVAS_REMOVE } from "../events/events";
 
 //   init() {
 //     // The context that will be used ot drawn to the canvas
@@ -77,10 +79,41 @@
 
 export const CANVAS_TYPE = "_canvas2D";
 
-export const new2DCanvas = (element) => ({
-  element: element,
-  width: element.width,
-  height: element.height,
-});
+const clearShape = ({ element }, { width, height, oldX = 0, oldY = 0, x, y }) => {
+  const context = element.getContext("2d");
+  context.clearRect(oldX, oldY, width, height);
+  context.clearRect(x, y, width, height);
+};
 
-export default Canvas2D;
+const fillShape = ({ element }, { width, height, color, x, y }) => {
+  const context = element.getContext("2d");
+  context.fillStyle = color ? color : "green";
+  context.fillRect(x, y, width, height);
+};
+
+const drawOnCanvas = (canvas) => (shapes) => {
+  // Remove from canvas
+  for (let shape of shapes) {
+    clearShape(canvas, shape);
+  }
+  // Draw in new position
+  for (let shape of shapes) {
+    fillShape(canvas, shape);
+  }
+};
+
+const removeFromCanvas = (canvas) => (shapes) => {
+  for (let shape of shapes) {
+    clearShape(canvas, shape);
+  }
+};
+
+export const intialiseCanvas = async (canvas, bus) => {
+  subscribeToEventBus(bus, CANVAS_DRAW, drawOnCanvas(canvas));
+  subscribeToEventBus(bus, CANVAS_REMOVE, removeFromCanvas(canvas));
+};
+
+export const new2DCanvas = (element) => ({
+  _type: CANVAS_TYPE,
+  element,
+});
