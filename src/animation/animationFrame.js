@@ -8,11 +8,20 @@
 
 export const ANIMATION_FRAME_TYPE = "_animationFrame";
 
-export const newAnimationFrame = (id, ms, action) => ({
-  type: ANIMATION_FRAME_TYPE,
-  id,
-  ms,
-  action,
-});
+let animationFrames = [];
 
-export default AnimationFrame;
+export const initialiseAnimationFrame = (frame) => {
+  animationFrames = [...animationFrames, frame];
+}
+
+export const newAnimationFrame = (id, ms, action) => {
+  if (typeof action !== "function") {
+    throw new Error("frame action must be callable")
+  }
+  return {
+    _type: ANIMATION_FRAME_TYPE,
+    id,
+    ms,
+    action,
+  }
+}

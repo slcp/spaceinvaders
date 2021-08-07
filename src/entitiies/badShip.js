@@ -1,8 +1,10 @@
 import { newShape } from "../canvas/shape";
+import { newShip } from "./ship";
 
 export const BAD_SHIP_TYPE = "_badShip";
 
 export const newBadShip = () => ({
+  ...newShip(),
   _type: BAD_SHIP_TYPE,
   shapes: [
     newShape(20, 32, 60, 9, "white"),

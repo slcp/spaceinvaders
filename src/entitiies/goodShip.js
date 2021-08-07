@@ -1,8 +1,7 @@
-import { newAnimationFrame } from "../animation/animationFrame";
+import { newAnimationFrame, initialiseAnimationFrame } from "../animation/animationFrame";
 import { newShape } from "../canvas/shape";
-import { SPACE } from "../keyCodes";
+import { ARROW_LEfT, SPACE, ARROW_RIGHT } from "../keyCodes";
 import { newShip } from "./ship";
-import { v4 as uuid } from "uuid";
 
 // class GoodShip extends Ship {
 //   constructor({ game, settings, eventBus, id }) {
@@ -120,6 +119,56 @@ import { v4 as uuid } from "uuid";
 
 export const SHIP_TYPE = "_goodShip";
 
+const handleShoot = (goodShip) => {
+  const immediateFire = !goodShip.keys["SPACEBAR"];
+  if (immediateFire) {
+    this.fireBullet();
+  }
+  goodShip.keys["SPACEBAR"] = true;
+}
+
+const handleMoveLeft = (goodShip) => {
+  if (!goodShip.direction) goodShip.keys["LEFT"] = true;
+}
+
+const handleMoveRight = (goodShip) => {
+  if (!goodShip.direction) goodShip.keys["RIGHT"] = true;
+}
+
+const keyHandlers = {
+  [SPACE]: {
+    keyUp: (goodShip) => goodShip.keys["SPACEBAR"] = false,
+    keyDown: handleShoot,
+  },
+  [ARROW_LEfT]: {
+    keyUp: (goodShip) => goodShip.keys["LEFT"] = false,
+    keyDown: handleMoveLeft,
+  },
+  [ARROW_RIGHT]: {
+    keyUp: (goodShip) => goodShip.keys["RIGHT"] = false,
+    keyDown: handleMoveRight,
+  }
+}
+
+const handleKeyEvent = ({ type, code, preventDefault }, goodShip) => {
+  preventDefault();
+  if (!keyHandlers[type][code]) {
+    throw new Error(`No handler know for key code: ${code}`);
+  }
+  const handler = keyHandlers[type][code]
+  handler(goodShip);
+}
+
+export const initialiseGoodShip = (goodShip) => {
+  // this.startAnimation();
+  // addEventListeners
+  window.addEventListener("keydown", (event) => handleKeyEvent(event, goodShip));
+  window.addEventListener("keydown", (event) => handleKeyEvent(event, goodShip));
+  // createAnimationFrames
+  initialiseAnimationFrame(newAnimationFrame(uuid(), 0, () => this.moveShip()));
+  initialiseAnimationFrame(newAnimationFrame(uuid(), 800, () => this.fireBullet()));
+}
+
 export const newGoodShip = (id) => ({
   ...newShip(),
   _type: SHIP_TYPE,
@@ -133,12 +182,4 @@ export const newGoodShip = (id) => ({
   ],
   lives: 3,
   shootTrigger: SPACE,
-  handleKeyDown: this.handleKeyDown.bind(this),
-  handleKeyUp: this.handleKeyUp.bind(this),
-  frameActions: [
-    newAnimationFrame(uuid(), 0, () => this.moveShip()),
-    newAnimationFrame(uuid(), 800, () => this.fireBullet()),
-  ],
 });
-
-export default GoodShip;

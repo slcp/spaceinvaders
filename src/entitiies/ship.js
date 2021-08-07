@@ -36,5 +36,3 @@ export const newShip = () => ({
   width: 80,
   height: 80,
 });
-
-export default Ship;

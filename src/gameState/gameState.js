@@ -1,14 +1,11 @@
 import {
-    ADD_LIFE,
     BAD_SHIP_KILLED_BY_GOOD_BULLET,
     END_GAME,
-    GAME_LOST,
-    GOOD_SHIP_KILLED_BY_BAD_BULLET,
-    LEVEL_OVER, NEW_GAME, PLAYER_LOST_LIFE, SET_MESSAGE, START_NEXT_LEVEL
+    NEW_GAME, PLAYER_LOST_LIFE, SET_MESSAGE, START_NEXT_LEVEL
 } from "../events/events";
 
 class GameState {
-    constructor({eventBus}) {
+    constructor({ eventBus }) {
         this.eventBus = eventBus;
         this.badShips = null;
         this.playerLives = null;
@@ -20,17 +17,17 @@ class GameState {
         this.eventBus.subscribe(NEW_GAME, this.newGame.bind(this))
     }
 
-    badShipKilled({remainingShipCount, id}) {
+    badShipKilled({ remainingShipCount, id }) {
         if (remainingShipCount === undefined) {
-            throw("need some data with this event!")
+            throw ("need some data with this event!")
         }
         this.badShips = remainingShipCount;
         this.checkGameState();
     }
 
-    playerKilled({remainingLives}) {
+    playerKilled({ remainingLives }) {
         if (remainingLives === undefined) {
-            throw("need some data with this event!")
+            throw ("need some data with this event!")
         }
         this.playerLives = remainingLives;
         this.checkGameState();
@@ -39,16 +36,16 @@ class GameState {
     checkGameState() {
         if (this.badShips === 0) {
             this.eventBus.publish(START_NEXT_LEVEL)
-            this.eventBus.publish(SET_MESSAGE, {message: "Next level"})
+            this.eventBus.publish(SET_MESSAGE, { message: "Next level" })
         }
         if (this.playerLives === 0) {
             this.eventBus.publish(END_GAME)
-            this.eventBus.publish(SET_MESSAGE, {message: "Game over", persist: true})
+            this.eventBus.publish(SET_MESSAGE, { message: "Game over", persist: true })
         }
     }
 
     newGame() {
-        this.eventBus.publish(SET_MESSAGE, {message: "New game -  enjoy!!"})
+        this.eventBus.publish(SET_MESSAGE, { message: "New game -  enjoy!!" })
     }
 }
 
