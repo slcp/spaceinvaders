@@ -1,5 +1,3 @@
-export const GAME_ANIMATION_TYPE = "_gameAnimation";
-
 let frameId = null;
 let lastActionFrame = {};
 
@@ -23,5 +21,3 @@ export const runFrame = (frames, frameStartTime = 0) => {
     }
   });
 }
-
-export default GameAnimation;
