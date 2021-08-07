@@ -12,7 +12,6 @@ import { makeUI } from "./ui/ui";
 const eventBus = newEventBus();
 const numPlayers = 1;
 const players = Array.from(new Array(numPlayers)).map(() => newPlayer());
-// const players = Array.from(new Array(numPlayers)).map(() => new Player({eventBus}))
 const gameContext = {
   canvas: document.getElementById("game-canvas"),
   newGameButton: document.getElementById("new-game"),

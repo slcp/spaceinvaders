@@ -2,6 +2,7 @@ import { newAnimationFrame } from "../animation/animationFrame";
 import { newShape } from "../canvas/shape";
 import { SPACE } from "../keyCodes";
 import { newShip } from "./ship";
+import { v4 as uuid } from "uuid";
 
 // class GoodShip extends Ship {
 //   constructor({ game, settings, eventBus, id }) {
@@ -119,10 +120,10 @@ import { newShip } from "./ship";
 
 export const SHIP_TYPE = "_goodShip";
 
-export const newGoodShip = () => ({
+export const newGoodShip = (id) => ({
   ...newShip(),
   _type: SHIP_TYPE,
-  id: id,
+  id,
   keys: [],
   shapes: [
     newShape(20, 40, 60, 20, "#21c521"),
@@ -135,10 +136,8 @@ export const newGoodShip = () => ({
   handleKeyDown: this.handleKeyDown.bind(this),
   handleKeyUp: this.handleKeyUp.bind(this),
   frameActions: [
-    newAnimationFrame(Symbol("moveGoodShip"), 0, () => this.moveShip()),
-    newAnimationFrame(Symbol("fireGoodShipBullet"), 800, () =>
-      this.fireBullet()
-    ),
+    newAnimationFrame(uuid(), 0, () => this.moveShip()),
+    newAnimationFrame(uuid(), 800, () => this.fireBullet()),
   ],
 });
 

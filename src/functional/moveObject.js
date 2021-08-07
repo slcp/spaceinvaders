@@ -1,10 +1,17 @@
-import Shape from "../canvas/shape";
+import { newShape } from "../canvas/shape";
 
-const moveObject = ({object, deltaX, deltaY}) => object.shapes = object.shapes.map(shape => {
-    const newShape = new Shape(shape.x + deltaX, shape.y + deltaY, shape.width, shape.height, shape.color);
-    newShape.oldX = shape.x;
-    newShape.oldY = shape.y;
-    return newShape;
-});
+const moveObject = ({ object, deltaX, deltaY }) =>
+  (object.shapes = object.shapes.map((s) => {
+    const shape = newShape(
+      s.x + deltaX,
+      s.y + deltaY,
+      s.width,
+      s.height,
+      s.color
+    );
+    shape.oldX = s.x;
+    shape.oldY = s.y;
+    return shape;
+  }));
 
 export default moveObject;

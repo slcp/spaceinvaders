@@ -1,13 +1,11 @@
+import GameAnimation from "../animation";
+import { newAnimationFrame } from "../animation/animationFrame";
+import Canvas2D from "../canvas";
+import CollisionCheck from "../collisionCheck/collision";
 import BadShip from "../entitiies/badShip";
 import Bullet from "../entitiies/bullet";
-import Canvas2D from "../canvas";
-import GoodShip from "../entitiies/goodShip";
-import levelsGenerator from "../levels";
+import GoodShip, { newGoodShip } from "../entitiies/goodShip";
 import Rock from "../entitiies/rock";
-import GameAnimation from "../animation";
-import AnimationFrame, { newAnimationFrame } from "../animation/animationFrame";
-import getSetting, { getSettingFor } from "./getSetting";
-import { isBadShipBullet, isGoodShipBullet } from "./helpers";
 import {
   BAD_SHIP_KILLED_BY_GOOD_BULLET,
   CANVAS_REMOVE,
@@ -19,10 +17,12 @@ import {
   ROCK_SLICE_KILLED_BY_GOOD_BULLET,
   START_NEXT_LEVEL,
 } from "../events/events";
-import CollisionCheck from "../collisionCheck/collision";
-import { getRandomInt } from "../levels/generators";
 import drawObject from "../functional/drawObject";
 import moveObject from "../functional/moveObject";
+import levelsGenerator from "../levels";
+import { getRandomInt } from "../levels/generators";
+import getSetting, { getSettingFor } from "./getSetting";
+import { isBadShipBullet, isGoodShipBullet } from "./helpers";
 
 // TOOD: Build canvas operations that in an animation frame into the frame queue - killing objects
 
@@ -111,14 +111,10 @@ export default class SpaceInvadersGame {
   startGame() {
     const { players } = this.context;
     this.initialiseBadShips();
-    this.goodShips = players.map(
-      (id) =>
-        new GoodShip({
-          game: this,
-          settings: this.getSettingsFor("goodShip"),
-          eventBus: this.eventBus,
-          id,
-        })
+    this.goodShips = players.map((id) =>
+      newGoodShip({
+        id,
+      })
     );
     this.goodShips.forEach((ship) => this.initialiseGoodShip(ship));
     this.initialiseRocks();
@@ -333,12 +329,7 @@ export default class SpaceInvadersGame {
   }
 
   respawnGoodShip({ id }) {
-    const ship = new GoodShip({
-      game: this,
-      settings: this.getSettingsFor("goodShip"),
-      eventBus: this.eventBus,
-      id,
-    });
+    const ship = newGoodShip({ id });
     this.goodShips.push(ship);
     this.initialiseGoodShip(ship);
   }
