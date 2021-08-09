@@ -1,4 +1,5 @@
 import { newShape } from "../canvas/shape";
+import { v4 as uuid } from 'uuid'
 
 //   move(deltaX, deltaY) {
 //     this.getShapes();
@@ -53,6 +54,7 @@ export const initialiseRock = (rock, settings) => {
 
 export const newRock = (width) => ({
   _type: ROCK_TYPE,
+  id: uuid(),
   shapes: false,
   width,
   // height,

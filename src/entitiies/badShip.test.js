@@ -1,6 +1,14 @@
 import { newShape } from "../canvas/shape";
 import { newBadShip } from "./badShip";
 import { newShip } from "./ship";
+import { v4 } from "uuid";
+
+jest.mock("uuid", () => ({
+  v4: jest.fn(() => {
+    const value = `uuid`;
+    return value;
+  }),
+}))
 
 describe("Bad ship", () => {
   describe("newBadShip", () => {

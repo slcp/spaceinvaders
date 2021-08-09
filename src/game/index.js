@@ -3,9 +3,9 @@ import { newAnimationFrame } from "../animation/animationFrame";
 import Canvas2D from "../canvas";
 import CollisionCheck from "../collisionCheck/collision";
 import BadShip from "../entitiies/badShip";
-import Bullet from "../entitiies/bullet";
+import Bullet, { BULLET_TYPE } from "../entitiies/bullet";
 import GoodShip, { newGoodShip } from "../entitiies/goodShip";
-import Rock from "../entitiies/rock";
+import Rock, { ROCK_TYPE } from "../entitiies/rock";
 import {
   BAD_SHIP_KILLED_BY_GOOD_BULLET,
   CANVAS_REMOVE,
@@ -26,72 +26,78 @@ import { isBadShipBullet, isGoodShipBullet } from "./helpers";
 
 // TOOD: Build canvas operations that in an animation frame into the frame queue - killing objects
 
+const levelGen = levelsGenerator();
+
+export const initialiseGame = (bus, { level }) => {
+  subscribeToEventBus(bus, NEW_GAME, this.newGame.bind(this));
+  subscribeToEventBus(bus, START_NEXT_LEVEL, this.nextLevel.bind(this));
+  subscribeToEventBus(bus, END_GAME, this.endGame.bind(this));
+  subscribeToEventBus(bus, RESPAWN_GOOD_SHIP, this.respawnGoodShip.bind(this));
+
+  newAnimationFrame(
+    "moveGoodBullets",
+    1000 / getSetting("goodBulletFramerate", level[currentLevelMode]),
+    () => this.moveBullets("goodShip")
+  );
+  newAnimationFrame(
+    "shootBadBullets",
+    1000 / getSetting("badShipsBulletsPerSecond", level[currentLevelMode]),
+    () => this.shootBadBullets()
+  );
+  newAnimationFrame(
+    "moveBadBullets",
+    1000 / getSetting("badBulletFramerate", level[currentLevelMode]),
+    () => this.moveBullets("badShip")
+  );
+  newAnimationFrame(
+    "moveBadShips",
+    1000 / getSetting("badShipFramerate", level[currentLevelMode]),
+    () => this.moveBadShips()
+  );
+  newAnimationFrame(
+    "checkForCollisions",
+    // Run on every frame
+    0,
+    () => this.checkForCollisions()
+  );
+}
+
+export const newGame = () => ({
+  // The bad ships that are in play
+  badShips: [],
+  // The good ships (or players) that in play
+  goodShips: [],
+  // The bullets that in play
+  bullets: [],
+  // The rocks that are in play
+  rocks: [],
+  // The current game mode - what is game mode?
+  currentLevelMode: "standard",
+  level: {},
+})
+
+const objectDestroyHandlers = {
+  [SHIP_TYPE]: (bus, ship, game) => {
+    // TODO: Publish event for killed ship, good ship should subscribe and destroy itself
+    game.goodShips.filter(s => s.id !== ship.id);
+  },
+  [BAD_SHIP_TYPE]: (bus, ship, game) => game.badShips.map(r => r.filter(s => s.id !== ship.id)),
+  [ROCK_TYPE]: (bus, rock, game) => game.rocks.filter(r => r.id !== rock.id),
+  [BULLET_TYPE]: (bus, bullet, game) => {
+    // TODO: Replace with event and subscriptions for owners
+    // object.owner.bulletInPlay = false;
+    // object.owner.bullet = null;
+    game.bullets.filter(b => b.id !== bullet.id);
+  }
+}
+
+export const destroyObject = (bus, game, object) => {
+  const { _type, shapes } = object
+  publishToEventBus(bus, CANVAS_REMOVE, object.shapes);
+  objectDestroyHandlers[_type](bus, object, game)
+}
+
 export default class SpaceInvadersGame {
-  constructor({ eventBus, ...context }) {
-    const levelGen = levelsGenerator();
-    this.context = context;
-    // The event bus for the game
-    this.eventBus = eventBus;
-    // The bad ships that are in play
-    this.badShips = [];
-    // The good ships (or players) that in play
-    this.goodShips = [];
-    // The bullets that in play
-    this.bullets = [];
-    // The rocks that are in play
-    this.rocks = [];
-    // The game level being played
-    this.level = levelGen.next().value;
-    // The current game mode - what is game mode?
-    this.currentLevelMode = "standard";
-    // Game levels generator*
-    this.levelData = levelGen;
-
-    this.frameActions = [
-      newAnimationFrame(
-        "moveGoodBullets",
-        1000 / this.getSetting("goodBulletFramerate"),
-        () => this.moveBullets("goodShip")
-      ),
-      newAnimationFrame(
-        "shootBadBullets",
-        1000 / this.getSetting("badShipsBulletsPerSecond"),
-        () => this.shootBadBullets()
-      ),
-      newAnimationFrame(
-        "moveBadBullets",
-        1000 / this.getSetting("badBulletFramerate"),
-        () => this.moveBullets("badShip")
-      ),
-      newAnimationFrame(
-        "moveBadShips",
-        1000 / this.getSetting("badShipFramerate"),
-        () => this.moveBadShips()
-      ),
-      newAnimationFrame(
-        "checkForCollisions",
-        // Run on every frame
-        0,
-        () => this.checkForCollisions()
-      ),
-    ];
-  }
-
-  init() {
-    this.eventBus.subscribe(NEW_GAME, this.newGame.bind(this));
-    this.eventBus.subscribe(START_NEXT_LEVEL, this.nextLevel.bind(this));
-    this.eventBus.subscribe(END_GAME, this.endGame.bind(this));
-    this.eventBus.subscribe(RESPAWN_GOOD_SHIP, this.respawnGoodShip.bind(this));
-  }
-
-  getSetting(setting) {
-    return getSetting(setting, this.level[this.currentLevelMode]);
-  }
-
-  getSettingsFor(objectType) {
-    return getSettingFor(objectType, this.level[this.currentLevelMode]);
-  }
-
   newGame() {
     this.endGame();
     this.level = this.levelData.next().value;
@@ -143,42 +149,6 @@ export default class SpaceInvadersGame {
   moveAndDrawObject(object, deltaX, deltaY) {
     moveObject({ object, deltaX, deltaY });
     this.drawObject(object);
-  }
-
-  destroyObject(object) {
-    this.eventBus.publish(CANVAS_REMOVE, object.shapes);
-    switch (true) {
-      // Rocks damage themselves - this will remove an entire rock from the game
-      case object instanceof Rock:
-        let rockIndex = this.rocks.indexOf(object);
-        this.rocks.splice(rockIndex, 1);
-        break;
-
-      case object instanceof Bullet:
-        object.owner.bulletInPlay = false;
-        object.owner.bullet = null;
-
-        let bulletIndex = this.bullets.indexOf(object);
-        this.bullets.splice(bulletIndex, 1);
-        break;
-
-      case object instanceof BadShip:
-        // Find badShip in this.badShips and remove
-        for (let i = 0; i < this.badShips.length; i++) {
-          if (this.badShips[i].indexOf(object) >= 0) {
-            let badShipIndex = this.badShips[i].indexOf(object);
-            this.badShips[i].splice(badShipIndex, 1);
-            break;
-          }
-        }
-        break;
-
-      case object instanceof GoodShip:
-        object.destroy();
-        let goodShipIndex = this.goodShips.indexOf(object);
-        this.goodShips.splice(goodShipIndex, 1);
-        break;
-    }
   }
 
   isColliding(object1, object2) {
@@ -298,7 +268,7 @@ export default class SpaceInvadersGame {
 
   // Draw a grid of badShips
   initialiseBadShips() {
-    const settings = this.getSettingsFor("badShip");
+    const settings = getSettingFor("badShip", level[this.currentLevelMode]);
     const shipsPerRow = this.getSetting("badShipsPerRow");
     for (let i = 0; i < this.getSetting("badShipRows"); i++) {
       // Loop for number of rows required
@@ -385,8 +355,8 @@ export default class SpaceInvadersGame {
           xValueOfMiddleRock +
           (offSet * this.getSetting("rockWidth") +
             offSet *
-              this.getSetting("rockWidth") *
-              this.getSetting("rockWhiteSpace"));
+            this.getSetting("rockWidth") *
+            this.getSetting("rockWhiteSpace"));
         rock.move(deltaX, 0);
         rockPair = i % 2 === 0 ? rockPair + 1 : rockPair;
       }

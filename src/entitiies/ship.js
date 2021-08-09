@@ -1,4 +1,6 @@
 
+import { v4 as uuid } from 'uuid'
+
 // class Ship extends Moveable {
 //   constructor(game, settings, eventBus) {
 //     super(settings);
@@ -31,6 +33,7 @@
 // }
 
 export const newShip = () => ({
+  id: uuid(),
   bullet: "",
   bulletInPlay: false,
   width: 80,
