@@ -128,11 +128,16 @@ import { fireBullet } from "./bullet";
 export const SHIP_TYPE = "_goodShip";
 
 const handleShoot = (goodShip) => {
-  const immediateFire = !goodShip.keys["SPACEBAR"];
+  const immediateFire = !goodShip.keys[SPACE];
   if (immediateFire) {
-    this.fireBullet();
+    fireIfPossible(bus, goodShip);
   }
-  goodShip.keys["SPACEBAR"] = true;
+  goodShip.keys[SPACE] = true;
+};
+
+const fireIfPossible = (bus, goodShip) => {
+  if (goodShip.keys[SPACE]) return;
+  fireBullet(bus, goodShip);
 };
 
 const handleMoveLeft = (goodShip) => {
@@ -164,7 +169,7 @@ const handleKeyEvent = (
   handlers = keyHandlers
 ) => {
   preventDefault();
-  if (!handlers[code][type]) {
+  if (!handlers[code] || !handlers[code][type]) {
     throw new Error(`No handler know for key code: ${code}`);
   }
   const handler = handlers[code][type];
@@ -196,7 +201,7 @@ export const initialiseGoodShip = async (bus, goodShip) => {
     newAnimationFrame(uuid(), 0, () => moveShip(bus, goodShip))
   );
   initialiseAnimationFrame(
-    newAnimationFrame(uuid(), 800, () => fireBullet(bus, goodShip))
+    newAnimationFrame(uuid(), 800, () => fireIfPossible(bus, goodShip))
   );
 };
 

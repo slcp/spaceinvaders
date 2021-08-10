@@ -158,6 +158,32 @@ describe("Good ship", () => {
         expect(event.preventDefault).toHaveBeenCalledTimes(2);
         expect(ship.keys[code]).toEqual("static");
       });
+      [
+        {
+          type: "unknownevent",
+          code: "Space",
+          error: "No handler know for key code: Space",
+        },
+        {
+          type: "keydown",
+          code: "unknowncode",
+          error: "No handler know for key code: unknowncode",
+        },
+      ].forEach(({ type, code, error }) => {
+        it(`should when with code: ${code} and type: ${type} as one is not known`, () => {
+          // Arrange
+          ship.direction = false;
+          const event = {
+            type,
+            code,
+            preventDefault: jest.fn(),
+          };
+
+          // Act
+          // Assert
+          expect(() => handlers.forEach((h) => h(event, ship))).toThrow(error);
+        });
+      });
     });
   });
   describe("moveShip", () => {
