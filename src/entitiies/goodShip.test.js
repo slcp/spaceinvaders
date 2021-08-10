@@ -5,6 +5,7 @@ import { newEventBus } from "../events";
 import { CANVAS_DRAW } from "../events/events";
 import { initialiseGoodShip, moveShip, newGoodShip } from "./goodShip";
 import { newShip } from "./ship";
+import * as bullet from "./bullet";
 
 jest.mock("uuid", () => ({
   v4: jest.fn(() => {
@@ -158,31 +159,70 @@ describe("Good ship", () => {
         expect(event.preventDefault).toHaveBeenCalledTimes(2);
         expect(ship.keys[code]).toEqual("static");
       });
-      [
-        {
-          type: "unknownevent",
-          code: "Space",
-          error: "No handler know for key code: Space",
-        },
-        {
-          type: "keydown",
-          code: "unknowncode",
-          error: "No handler know for key code: unknowncode",
-        },
-      ].forEach(({ type, code, error }) => {
-        it(`should when with code: ${code} and type: ${type} as one is not known`, () => {
-          // Arrange
-          ship.direction = false;
-          const event = {
-            type,
-            code,
-            preventDefault: jest.fn(),
-          };
+    });
+    [{ type: "keydown", code: "Space" }].forEach(({ type, code }) => {
+      it(`should set keys['Space'] to true`, () => {
+        // Arrange
+        ship.keys["Space"] = true;
+        const event = {
+          type,
+          code,
+          preventDefault: jest.fn(),
+        };
 
-          // Act
-          // Assert
-          expect(() => handlers.forEach((h) => h(event, ship))).toThrow(error);
-        });
+        // Act
+        handlers.forEach((h) => h(event, ship));
+
+        // Assert
+        expect(event.preventDefault).toHaveBeenCalledTimes(2);
+        expect(ship.keys["Space"]).toEqual(true);
+      });
+      it("should fire bullet if possible if keys['Space'] is set to false", () => {
+        // Arrange
+        ship.keys["Space"] = false;
+        jest.spyOn(bullet, "fireBullet").mockReturnValue(null);
+        const event = {
+          type,
+          code,
+          preventDefault: jest.fn(),
+        };
+
+        // Act
+        handlers.forEach((h) => h(event, ship));
+
+        // Assert
+        expect(event.preventDefault).toHaveBeenCalledTimes(2);
+        expect(ship.keys["Space"]).toEqual(true);
+        expect(bullet.fireBullet).toHaveBeenCalledWith(
+          expect.objectContaining({ _type: "_eventBus" }),
+          ship
+        );
+      });
+    });
+    [
+      {
+        type: "unknownevent",
+        code: "Space",
+        error: "No handler know for key code: Space",
+      },
+      {
+        type: "keydown",
+        code: "unknowncode",
+        error: "No handler know for key code: unknowncode",
+      },
+    ].forEach(({ type, code, error }) => {
+      it(`should throw when with code: ${code} and type: ${type} as one is not known`, () => {
+        // Arrange
+        ship.direction = false;
+        const event = {
+          type,
+          code,
+          preventDefault: jest.fn(),
+        };
+
+        // Act
+        // Assert
+        expect(() => handlers.forEach((h) => h(event, ship))).toThrow(error);
       });
     });
   });
