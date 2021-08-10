@@ -1,7 +1,13 @@
-import { newAnimationFrame, initialiseAnimationFrame } from "../animation/animationFrame";
+import {
+  newAnimationFrame,
+  initialiseAnimationFrame,
+} from "../animation/animationFrame";
 import { newShape } from "../canvas/shape";
-import { ARROW_LEfT, SPACE, ARROW_RIGHT } from "../keyCodes";
+import { ARROW_LEFT, SPACE, ARROW_RIGHT } from "../keyCodes";
 import { newShip } from "./ship";
+import { publishToEventBus, subscribeToEventBus } from "../events";
+import { CANVAS_DRAW } from "../events/events";
+import moveObject from "../functional/moveObject";
 
 // class GoodShip extends Ship {
 //   constructor({ game, settings, eventBus, id }) {
@@ -95,10 +101,10 @@ import { newShip } from "./ship";
 //     }
 //   }
 
-//   fireBullet() {
+//   () {
 //     if (!this.keys["SPACEBAR"]) return;
 //     super.fireBullet();
-//   }
+//   }fireBullet
 
 //   handleKeyUp(event) {
 //     event.preventDefault();
@@ -125,49 +131,71 @@ const handleShoot = (goodShip) => {
     this.fireBullet();
   }
   goodShip.keys["SPACEBAR"] = true;
-}
+};
 
 const handleMoveLeft = (goodShip) => {
   if (!goodShip.direction) goodShip.keys["LEFT"] = true;
-}
+};
 
 const handleMoveRight = (goodShip) => {
   if (!goodShip.direction) goodShip.keys["RIGHT"] = true;
-}
+};
 
 const keyHandlers = {
   [SPACE]: {
-    keyUp: (goodShip) => goodShip.keys["SPACEBAR"] = false,
+    keyUp: (goodShip) => (goodShip.keys["SPACEBAR"] = false),
     keyDown: handleShoot,
   },
-  [ARROW_LEfT]: {
-    keyUp: (goodShip) => goodShip.keys["LEFT"] = false,
+  [ARROW_LEFT]: {
+    keyUp: (goodShip) => (goodShip.keys["LEFT"] = false),
     keyDown: handleMoveLeft,
   },
   [ARROW_RIGHT]: {
-    keyUp: (goodShip) => goodShip.keys["RIGHT"] = false,
+    keyUp: (goodShip) => (goodShip.keys["RIGHT"] = false),
     keyDown: handleMoveRight,
-  }
-}
+  },
+};
 
 const handleKeyEvent = ({ type, code, preventDefault }, goodShip) => {
   preventDefault();
   if (!keyHandlers[type][code]) {
     throw new Error(`No handler know for key code: ${code}`);
   }
-  const handler = keyHandlers[type][code]
+  const handler = keyHandlers[type][code];
   handler(goodShip);
-}
+};
 
-export const initialiseGoodShip = (goodShip) => {
+const moveShip = (bus, goodShip) => {
+  const { keys, shapes } = goodShip;
+  if (keys["RIGHT"]) {
+    moveObject({ object: goodShip, deltaX: 2, deltaY: 0 });
+    publishToEventBus(bus, CANVAS_DRAW, shapes);
+    return;
+  }
+  if (keys["LEFT"]) {
+    moveObject({ object: goodShip, deltaX: -2, deltaY: 0 });
+    publishToEventBus(bus, CANVAS_DRAW, shapes);
+    return;
+  }
+};
+
+export const initialiseGoodShip = (bus, goodShip) => {
   // this.startAnimation();
   // addEventListeners
-  window.addEventListener("keydown", (event) => handleKeyEvent(event, goodShip));
-  window.addEventListener("keydown", (event) => handleKeyEvent(event, goodShip));
+  window.addEventListener("keydown", (event) =>
+    handleKeyEvent(event, goodShip)
+  );
+  window.addEventListener("keydown", (event) =>
+    handleKeyEvent(event, goodShip)
+  );
   // createAnimationFrames
-  initialiseAnimationFrame(newAnimationFrame(uuid(), 0, () => this.moveShip()));
-  initialiseAnimationFrame(newAnimationFrame(uuid(), 800, () => this.fireBullet()));
-}
+  initialiseAnimationFrame(
+    newAnimationFrame(uuid(), 0, () => moveShip(bus, goodShip))
+  );
+  initialiseAnimationFrame(
+    newAnimationFrame(uuid(), 800, () => this.fireBullet())
+  );
+};
 
 export const newGoodShip = (id) => ({
   ...newShip(),
