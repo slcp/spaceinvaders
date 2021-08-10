@@ -127,43 +127,44 @@ import { fireBullet } from "./bullet";
 
 export const SHIP_TYPE = "_goodShip";
 
-const handleShoot = (goodShip) => {
+const handleShoot = (bus, goodShip) => {
   const immediateFire = !goodShip.keys[SPACE];
   if (immediateFire) {
-    fireIfPossible(bus, goodShip);
+    fireBullet(bus, goodShip);
   }
   goodShip.keys[SPACE] = true;
 };
 
 const fireIfPossible = (bus, goodShip) => {
-  if (goodShip.keys[SPACE]) return;
+  if (!goodShip.keys[SPACE]) return;
   fireBullet(bus, goodShip);
 };
 
-const handleMoveLeft = (goodShip) => {
+const handleMoveLeft = (_, goodShip) => {
   if (!goodShip.direction) goodShip.keys[ARROW_LEFT] = true;
 };
 
-const handleMoveRight = (goodShip) => {
+const handleMoveRight = (_, goodShip) => {
   if (!goodShip.direction) goodShip.keys[ARROW_RIGHT] = true;
 };
 
 const keyHandlers = {
   [SPACE]: {
-    keyup: (goodShip) => (goodShip.keys[SPACE] = false),
+    keyup: (_, goodShip) => (goodShip.keys[SPACE] = false),
     keydown: handleShoot,
   },
   [ARROW_LEFT]: {
-    keyup: (goodShip) => (goodShip.keys[ARROW_LEFT] = false),
+    keyup: (_, goodShip) => (goodShip.keys[ARROW_LEFT] = false),
     keydown: handleMoveLeft,
   },
   [ARROW_RIGHT]: {
-    keyup: (goodShip) => (goodShip.keys[ARROW_RIGHT] = false),
+    keyup: (_, goodShip) => (goodShip.keys[ARROW_RIGHT] = false),
     keydown: handleMoveRight,
   },
 };
 
 const handleKeyEvent = (
+  bus,
   { type, code, preventDefault },
   goodShip,
   handlers = keyHandlers
@@ -173,7 +174,7 @@ const handleKeyEvent = (
     throw new Error(`No handler know for key code: ${code}`);
   }
   const handler = handlers[code][type];
-  handler(goodShip);
+  handler(bus, goodShip);
 };
 
 export const moveShip = async (bus, goodShip) => {
@@ -193,9 +194,11 @@ export const initialiseGoodShip = async (bus, goodShip) => {
   // this.startAnimation();
   // addEventListeners
   window.addEventListener("keydown", (event) =>
-    handleKeyEvent(event, goodShip)
+    handleKeyEvent(bus, event, goodShip)
   );
-  window.addEventListener("keyup", (event) => handleKeyEvent(event, goodShip));
+  window.addEventListener("keyup", (event) =>
+    handleKeyEvent(bus, event, goodShip)
+  );
   // createAnimationFrames
   initialiseAnimationFrame(
     newAnimationFrame(uuid(), 0, () => moveShip(bus, goodShip))
