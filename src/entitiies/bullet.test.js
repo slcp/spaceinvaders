@@ -16,12 +16,17 @@ describe("Bullet", () => {
     it("should create a new bullet object", () => {
       // Arrange
       // Act
-      const actual = newBullet(BAD_SHIP_TYPE);
+      const actual = newBullet(BAD_SHIP_TYPE, "an id");
 
       // Assert
-      expect(actual._type).toEqual("_bullet");
-      expect(actual.ownerType).toEqual("_badShip");
-      expect(actual.shapes).toEqual([newShape(0, 10, 4, 20)]);
+      expect(actual).toEqual(
+        expect.objectContaining({
+          _type: "_bullet",
+          ownerType: "_badShip",
+          ownerId: "an id",
+          shapes: [newShape(0, 10, 4, 20)],
+        })
+      );
     });
   });
   describe("fireBullet", () => {
