@@ -18,3 +18,4 @@ export const SET_SCORE = 'SET_SCORE';
 export const ADD_LIFE = 'ADD_LIFE';
 export const LOSE_LIFE = 'LOSE_LIFE';
 export const RESPAWN_GOOD_SHIP = 'RESPAWN_GOOD_SHIP';
+export const BULLET_CREATED = "BULLET_CREATED";

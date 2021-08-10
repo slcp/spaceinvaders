@@ -8,6 +8,8 @@ import { newShip } from "./ship";
 import { publishToEventBus, subscribeToEventBus } from "../events";
 import { CANVAS_DRAW } from "../events/events";
 import moveObject from "../functional/moveObject";
+import { v4 as uuid } from "uuid";
+import { fireBullet } from "./bullet";
 
 // class GoodShip extends Ship {
 //   constructor({ game, settings, eventBus, id }) {
@@ -104,7 +106,7 @@ import moveObject from "../functional/moveObject";
 //   () {
 //     if (!this.keys["SPACEBAR"]) return;
 //     super.fireBullet();
-//   }fireBullet
+//   }
 
 //   handleKeyUp(event) {
 //     event.preventDefault();
@@ -134,66 +136,67 @@ const handleShoot = (goodShip) => {
 };
 
 const handleMoveLeft = (goodShip) => {
-  if (!goodShip.direction) goodShip.keys["LEFT"] = true;
+  if (!goodShip.direction) goodShip.keys[ARROW_LEFT] = true;
 };
 
 const handleMoveRight = (goodShip) => {
-  if (!goodShip.direction) goodShip.keys["RIGHT"] = true;
+  if (!goodShip.direction) goodShip.keys[ARROW_RIGHT] = true;
 };
 
 const keyHandlers = {
   [SPACE]: {
-    keyUp: (goodShip) => (goodShip.keys["SPACEBAR"] = false),
-    keyDown: handleShoot,
+    keyup: (goodShip) => (goodShip.keys[SPACE] = false),
+    keydown: handleShoot,
   },
   [ARROW_LEFT]: {
-    keyUp: (goodShip) => (goodShip.keys["LEFT"] = false),
-    keyDown: handleMoveLeft,
+    keyup: (goodShip) => (goodShip.keys[ARROW_LEFT] = false),
+    keydown: handleMoveLeft,
   },
   [ARROW_RIGHT]: {
-    keyUp: (goodShip) => (goodShip.keys["RIGHT"] = false),
-    keyDown: handleMoveRight,
+    keyup: (goodShip) => (goodShip.keys[ARROW_RIGHT] = false),
+    keydown: handleMoveRight,
   },
 };
 
-const handleKeyEvent = ({ type, code, preventDefault }, goodShip) => {
+const handleKeyEvent = (
+  { type, code, preventDefault },
+  goodShip,
+  handlers = keyHandlers
+) => {
   preventDefault();
-  if (!keyHandlers[type][code]) {
+  if (!handlers[code][type]) {
     throw new Error(`No handler know for key code: ${code}`);
   }
-  const handler = keyHandlers[type][code];
+  const handler = handlers[code][type];
   handler(goodShip);
 };
 
-const moveShip = (bus, goodShip) => {
-  const { keys, shapes } = goodShip;
-  if (keys["RIGHT"]) {
+export const moveShip = async (bus, goodShip) => {
+  if (goodShip.keys["RIGHT"]) {
     moveObject({ object: goodShip, deltaX: 2, deltaY: 0 });
-    publishToEventBus(bus, CANVAS_DRAW, shapes);
+    publishToEventBus(bus, CANVAS_DRAW, goodShip.shapes);
     return;
   }
-  if (keys["LEFT"]) {
+  if (goodShip.keys["LEFT"]) {
     moveObject({ object: goodShip, deltaX: -2, deltaY: 0 });
-    publishToEventBus(bus, CANVAS_DRAW, shapes);
+    publishToEventBus(bus, CANVAS_DRAW, goodShip.shapes);
     return;
   }
 };
 
-export const initialiseGoodShip = (bus, goodShip) => {
+export const initialiseGoodShip = async (bus, goodShip) => {
   // this.startAnimation();
   // addEventListeners
   window.addEventListener("keydown", (event) =>
     handleKeyEvent(event, goodShip)
   );
-  window.addEventListener("keydown", (event) =>
-    handleKeyEvent(event, goodShip)
-  );
+  window.addEventListener("keyup", (event) => handleKeyEvent(event, goodShip));
   // createAnimationFrames
   initialiseAnimationFrame(
     newAnimationFrame(uuid(), 0, () => moveShip(bus, goodShip))
   );
   initialiseAnimationFrame(
-    newAnimationFrame(uuid(), 800, () => this.fireBullet())
+    newAnimationFrame(uuid(), 800, () => fireBullet(bus, goodShip))
   );
 };
 

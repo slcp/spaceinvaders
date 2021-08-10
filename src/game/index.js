@@ -68,7 +68,7 @@ export const newGame = () => ({
   // The good ships (or players) that in play
   goodShips: [],
   // The bullets that in play
-  bullets: [],
+  bullets: [], // TODO: Subscribe to BULLET_CREATED event
   // The rocks that are in play
   rocks: [],
   // The current game mode - what is game mode?
