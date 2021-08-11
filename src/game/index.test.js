@@ -1,6 +1,7 @@
 import { initialiseGame, newGame } from ".";
 import * as eventBus from "../events";
 import { newEventBus } from "../events";
+import * as animation from "../animation";
 import {
   BULLET_CREATED,
   END_GAME,
@@ -32,27 +33,38 @@ describe("Game", () => {
     });
   });
   describe("initaliseGame", () => {
-    it("should do X", async () => {
+    it("should do subscribe to the correct events and set up animation frames", async () => {
       // Arrange
       const bus = newEventBus();
       const game = newGame();
+      game.level = {
+        standard: {
+          game: {
+            goodBulletFramerate: 1,
+            badShipsBulletsPerSecond: 2,
+            badBulletFramerate: 3,
+            badShipFramerate: 4,
+          },
+        },
+      };
       window.addEventListener = jest.fn((option, handler) => {
         handlers = [...handlers, handler];
       });
       const subscribeSpy = jest.spyOn(eventBus, "subscribeToEventBus");
-      const expectedFireBulletAnimationFrame = {
+      const initialiseAnimationSpy = jest.spyOn(animation, "runFrame");
+      const expectedMoveGoodBulletsAnimationFrame = {
         _type: "_animationFrame",
-        id: "uuid",
-        ms: 800,
+        id: "moveGoodBullets",
+        ms: 1000 / game.level.standard.game.goodBulletFramerate,
         action: expect.any(Function),
       };
       // Act
       await initialiseGame(bus, game);
 
       // Assert
-      //   expect(initialiseAnimationSpy).toHaveBeenCalledWith(
-      //     expectedMoveShipAnimationFrame
-      //   );
+      expect(initialiseAnimationSpy).toHaveBeenCalledWith(expect.arrayContaining([
+        expectedMoveGoodBulletsAnimationFrame,
+      ]));
       expect(subscribeSpy).toHaveBeenCalledWith(
         expect.objectContaining({
           events: expect.objectContaining({

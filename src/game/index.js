@@ -1,4 +1,4 @@
-import GameAnimation from "../animation";
+import GameAnimation, { runFrame } from "../animation";
 import { newAnimationFrame } from "../animation/animationFrame";
 import Canvas2D from "../canvas";
 import CollisionCheck from "../collisionCheck/collision";
@@ -46,32 +46,40 @@ export const initialiseGame = async (bus, game) => {
     game.bullets = [...game.bullets, bullet];
   });
 
-  // newAnimationFrame(
-  //   "moveGoodBullets",
-  //   1000 / getSetting("goodBulletFramerate", game.level[game.currentLevelMode]),
-  //   () => this.moveBullets("goodShip")
-  // );
-  // newAnimationFrame(
-  //   "shootBadBullets",
-  //   1000 / getSetting("badShipsBulletsPerSecond", game.level[game.currentLevelMode]),
-  //   () => this.shootBadBullets()
-  // );
-  // newAnimationFrame(
-  //   "moveBadBullets",
-  //   1000 / getSetting("badBulletFramerate", game.level[game.currentLevelMode]),
-  //   () => this.moveBullets("badShip")
-  // );
-  // newAnimationFrame(
-  //   "moveBadShips",
-  //   1000 / getSetting("badShipFramerate", game.level[game.currentLevelMode]),
-  //   () => this.moveBadShips()
-  // );
-  // newAnimationFrame(
-  //   "checkForCollisions",
-  //   // Run on every frame
-  //   0,
-  //   () => this.checkForCollisions()
-  // );
+  runFrame([
+    newAnimationFrame(
+      "moveGoodBullets",
+      1000 /
+        getSetting("goodBulletFramerate", game.level[game.currentLevelMode]),
+      () => {} //() => this.moveBullets("goodShip")
+    ),
+    newAnimationFrame(
+      "shootBadBullets",
+      1000 /
+        getSetting(
+          "badShipsBulletsPerSecond",
+          game.level[game.currentLevelMode]
+        ),
+      () => {} //() => this.shootBadBullets()
+    ),
+    newAnimationFrame(
+      "moveBadBullets",
+      1000 /
+        getSetting("badBulletFramerate", game.level[game.currentLevelMode]),
+      () => {} //() => this.moveBullets("badShip")
+    ),
+    newAnimationFrame(
+      "moveBadShips",
+      1000 / getSetting("badShipFramerate", game.level[game.currentLevelMode]),
+      () => {} //() => this.moveBadShips()
+    ),
+    newAnimationFrame(
+      "checkForCollisions",
+      // Run on every frame
+      0,
+      () => {} //() => this.checkForCollisions()
+    ),
+  ]);
 };
 
 export const newGame = () => ({
