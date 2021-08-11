@@ -1,11 +1,16 @@
 import { v4 as uuid } from "uuid";
+import { runFrame } from "../animation";
 import {
   initialiseAnimationFrame,
   newAnimationFrame,
 } from "../animation/animationFrame";
 import { newShape } from "../canvas/shape";
 import { publishToEventBus, subscribeToEventBus } from "../events";
-import { BULLET_CREATED, CANVAS_DRAW } from "../events/events";
+import {
+  BULLET_CREATED,
+  BULLET_DESTROYED,
+  CANVAS_DRAW,
+} from "../events/events";
 import moveObject from "../functional/moveObject";
 import { ARROW_LEFT, ARROW_RIGHT, SPACE } from "../keyCodes";
 import { fireBullet } from "./bullet";
@@ -206,13 +211,18 @@ export const initialiseGoodShip = async (bus, goodShip) => {
     goodShip.bulletInPlay = true;
     goodShip.bullet = bullet;
   });
+  await subscribeToEventBus(bus, BULLET_DESTROYED, (bullet) => {
+    if (bullet.ownerId != goodShip.id || bullet.ownerType != goodShip._type) {
+      return;
+    }
+    goodShip.bulletInPlay = false;
+    goodShip.bullet = null;
+  });
   // createAnimationFrames
-  initialiseAnimationFrame(
-    newAnimationFrame(uuid(), 0, () => moveShip(bus, goodShip))
-  );
-  initialiseAnimationFrame(
-    newAnimationFrame(uuid(), 800, () => fireIfPossible(bus, goodShip))
-  );
+  runFrame([
+    newAnimationFrame(uuid(), 0, () => moveShip(bus, goodShip)),
+    newAnimationFrame(uuid(), 800, () => fireIfPossible(bus, goodShip)),
+  ]);
 };
 
 export const newGoodShip = (id) => ({

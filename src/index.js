@@ -1,7 +1,7 @@
 import { intialiseCanvas, new2DCanvas } from "./canvas";
 import { newEventBus, publishToEventBus } from "./events";
 import { NEW_GAME } from "./events/events";
-import SpaceInvadersGame from "./game";
+import SpaceInvadersGame, { initialiseGame, newGame } from "./game";
 import GameMessage from "./gameMessage/gameMessage";
 import GameState from "./gameState/gameState";
 import { initialisePlayer, newPlayer } from "./player/player";
@@ -41,7 +41,7 @@ Promise.all(
     eventBus,
     element: document.getElementById("game-message"),
   }).init();
-  new SpaceInvadersGame(gameContext).init();
+  initialiseGame(eventBus, newGame());
   new GameState({ eventBus }).init();
   // The canvas that is responsible for drawing the game
   await intialiseCanvas(

@@ -2,15 +2,19 @@ import GameAnimation from "../animation";
 import { newAnimationFrame } from "../animation/animationFrame";
 import Canvas2D from "../canvas";
 import CollisionCheck from "../collisionCheck/collision";
-import BadShip from "../entitiies/badShip";
+import BadShip, { BAD_SHIP_TYPE } from "../entitiies/badShip";
 import Bullet, { BULLET_TYPE } from "../entitiies/bullet";
-import GoodShip, { newGoodShip } from "../entitiies/goodShip";
+import GoodShip, { newGoodShip, SHIP_TYPE } from "../entitiies/goodShip";
 import Rock, { ROCK_TYPE } from "../entitiies/rock";
+import { publishToEventBus, subscribeToEventBus } from "../events";
 import {
+  BAD_SHIP_DESTROYED,
   BAD_SHIP_KILLED_BY_GOOD_BULLET,
   BULLET_CREATED,
+  BULLET_DESTROYED,
   CANVAS_REMOVE,
   END_GAME,
+  GOOD_SHIP_DESTROYED,
   GOOD_SHIP_KILLED_BY_BAD_BULLET,
   NEW_GAME,
   RESPAWN_GOOD_SHIP,
@@ -29,41 +33,45 @@ import { isBadShipBullet, isGoodShipBullet } from "./helpers";
 
 const levelGen = levelsGenerator();
 
-export const initialiseGame = (bus, game) => {
-  subscribeToEventBus(bus, NEW_GAME, this.newGame.bind(this));
-  subscribeToEventBus(bus, START_NEXT_LEVEL, this.nextLevel.bind(this));
-  subscribeToEventBus(bus, END_GAME, this.endGame.bind(this));
-  subscribeToEventBus(bus, RESPAWN_GOOD_SHIP, this.respawnGoodShip.bind(this));
-  subscribeToEventBus(bus, BULLET_CREATED, (bullet) => {
+export const initialiseGame = async (bus, game) => {
+  await subscribeToEventBus(bus, NEW_GAME, () => {}); //this.newGame.bind(this));
+  await subscribeToEventBus(bus, START_NEXT_LEVEL, () => {}); //this.nextLevel.bind(this));
+  await subscribeToEventBus(bus, END_GAME, () => {}); //this.endGame.bind(this));
+  await subscribeToEventBus(
+    bus,
+    RESPAWN_GOOD_SHIP,
+    () => {} //this.respawnGoodShip.bind(this)
+  );
+  await subscribeToEventBus(bus, BULLET_CREATED, (bullet) => {
     game.bullets = [...game.bullets, bullet];
   });
 
-  newAnimationFrame(
-    "moveGoodBullets",
-    1000 / getSetting("goodBulletFramerate", game.level[currentLevelMode]),
-    () => this.moveBullets("goodShip")
-  );
-  newAnimationFrame(
-    "shootBadBullets",
-    1000 / getSetting("badShipsBulletsPerSecond", game.level[currentLevelMode]),
-    () => this.shootBadBullets()
-  );
-  newAnimationFrame(
-    "moveBadBullets",
-    1000 / getSetting("badBulletFramerate", game.level[currentLevelMode]),
-    () => this.moveBullets("badShip")
-  );
-  newAnimationFrame(
-    "moveBadShips",
-    1000 / getSetting("badShipFramerate", game.level[currentLevelMode]),
-    () => this.moveBadShips()
-  );
-  newAnimationFrame(
-    "checkForCollisions",
-    // Run on every frame
-    0,
-    () => this.checkForCollisions()
-  );
+  // newAnimationFrame(
+  //   "moveGoodBullets",
+  //   1000 / getSetting("goodBulletFramerate", game.level[game.currentLevelMode]),
+  //   () => this.moveBullets("goodShip")
+  // );
+  // newAnimationFrame(
+  //   "shootBadBullets",
+  //   1000 / getSetting("badShipsBulletsPerSecond", game.level[game.currentLevelMode]),
+  //   () => this.shootBadBullets()
+  // );
+  // newAnimationFrame(
+  //   "moveBadBullets",
+  //   1000 / getSetting("badBulletFramerate", game.level[game.currentLevelMode]),
+  //   () => this.moveBullets("badShip")
+  // );
+  // newAnimationFrame(
+  //   "moveBadShips",
+  //   1000 / getSetting("badShipFramerate", game.level[game.currentLevelMode]),
+  //   () => this.moveBadShips()
+  // );
+  // newAnimationFrame(
+  //   "checkForCollisions",
+  //   // Run on every frame
+  //   0,
+  //   () => this.checkForCollisions()
+  // );
 };
 
 export const newGame = () => ({
@@ -82,22 +90,28 @@ export const newGame = () => ({
 
 const objectDestroyHandlers = {
   [SHIP_TYPE]: (bus, ship, game) => {
-    // TODO: Publish event for killed ship, good ship should subscribe and destroy itself
     game.goodShips.filter((s) => s.id !== ship.id);
+    publishToEventBus(bus, GOOD_SHIP_DESTROYED, { id: ship.id });
   },
-  [BAD_SHIP_TYPE]: (bus, ship, game) =>
+  [BAD_SHIP_TYPE]: (bus, ship, game) => {
     game.badShips.map((r) => r.filter((s) => s.id !== ship.id)),
-  [ROCK_TYPE]: (bus, rock, game) => game.rocks.filter((r) => r.id !== rock.id),
+      publishToEventBus(bus, BAD_SHIP_DESTROYED, { id: ship.id });
+  },
+  [ROCK_TYPE]: (_, rock, game) => game.rocks.filter((r) => r.id !== rock.id),
   [BULLET_TYPE]: (bus, bullet, game) => {
-    // TODO: Replace with event and subscriptions for owners
-    // object.owner.bulletInPlay = false;
-    // object.owner.bullet = null;
     game.bullets.filter((b) => b.id !== bullet.id);
+    game.bullets.filter((b) => b.id !== bullet.id);
+    publishToEventBus(bus, BULLET_DESTROYED, { id: bullet.id });
   },
 };
 
-export const destroyObject = (bus, game, object, handlers = objectDestroyHandlers) => {
-  const { _type, shapes } = object;
+export const destroyObject = (
+  bus,
+  game,
+  object,
+  handlers = objectDestroyHandlers
+) => {
+  const { _type } = object;
   publishToEventBus(bus, CANVAS_REMOVE, object.shapes);
   handlers[_type](bus, object, game);
 };
