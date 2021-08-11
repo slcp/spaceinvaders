@@ -1,7 +1,7 @@
 import { intialiseCanvas, new2DCanvas } from "./canvas";
 import { newEventBus, publishToEventBus } from "./events";
 import { NEW_GAME } from "./events/events";
-import SpaceInvadersGame, { initialiseGame, newGame } from "./game";
+import { initialiseGame, newGame } from "./game";
 import GameMessage from "./gameMessage/gameMessage";
 import GameState from "./gameState/gameState";
 import { initialisePlayer, newPlayer } from "./player/player";
@@ -25,7 +25,7 @@ const gameContext = {
 const [scoreContainers, livesContainers] = makeUI(players);
 Promise.all(
   players.map(async (p, i) => {
-    await initialisePlayer(p, evenBus);
+    await initialisePlayer(p, eventBus);
     return [
       await initialiseScore(
         newScore({ element: scoreContainers[i], id: p.id }, eventBus)
