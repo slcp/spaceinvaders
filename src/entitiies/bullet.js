@@ -1,9 +1,9 @@
-import { newShape } from "../canvas/shape";
 import { v4 as uuid } from "uuid";
+import { newShape } from "../canvas/shape";
+import { publishToEventBus } from "../events";
+import { BULLET_CREATED } from "../events/events";
 import drawObject from "../functional/drawObject";
 import moveObject from "../functional/moveObject";
-import { publishToEventBus } from "../events";
-import { BULLET_CREATED, CANVAS_DRAW } from "../events/events";
 
 export const BULLET_TYPE = "_bullet";
 

@@ -8,6 +8,7 @@ import GoodShip, { newGoodShip } from "../entitiies/goodShip";
 import Rock, { ROCK_TYPE } from "../entitiies/rock";
 import {
   BAD_SHIP_KILLED_BY_GOOD_BULLET,
+  BULLET_CREATED,
   CANVAS_REMOVE,
   END_GAME,
   GOOD_SHIP_KILLED_BY_BAD_BULLET,
@@ -28,30 +29,33 @@ import { isBadShipBullet, isGoodShipBullet } from "./helpers";
 
 const levelGen = levelsGenerator();
 
-export const initialiseGame = (bus, { level }) => {
+export const initialiseGame = (bus, game) => {
   subscribeToEventBus(bus, NEW_GAME, this.newGame.bind(this));
   subscribeToEventBus(bus, START_NEXT_LEVEL, this.nextLevel.bind(this));
   subscribeToEventBus(bus, END_GAME, this.endGame.bind(this));
   subscribeToEventBus(bus, RESPAWN_GOOD_SHIP, this.respawnGoodShip.bind(this));
+  subscribeToEventBus(bus, BULLET_CREATED, (bullet) => {
+    game.bullets = [...game.bullets, bullet];
+  });
 
   newAnimationFrame(
     "moveGoodBullets",
-    1000 / getSetting("goodBulletFramerate", level[currentLevelMode]),
+    1000 / getSetting("goodBulletFramerate", game.level[currentLevelMode]),
     () => this.moveBullets("goodShip")
   );
   newAnimationFrame(
     "shootBadBullets",
-    1000 / getSetting("badShipsBulletsPerSecond", level[currentLevelMode]),
+    1000 / getSetting("badShipsBulletsPerSecond", game.level[currentLevelMode]),
     () => this.shootBadBullets()
   );
   newAnimationFrame(
     "moveBadBullets",
-    1000 / getSetting("badBulletFramerate", level[currentLevelMode]),
+    1000 / getSetting("badBulletFramerate", game.level[currentLevelMode]),
     () => this.moveBullets("badShip")
   );
   newAnimationFrame(
     "moveBadShips",
-    1000 / getSetting("badShipFramerate", level[currentLevelMode]),
+    1000 / getSetting("badShipFramerate", game.level[currentLevelMode]),
     () => this.moveBadShips()
   );
   newAnimationFrame(
@@ -60,7 +64,7 @@ export const initialiseGame = (bus, { level }) => {
     0,
     () => this.checkForCollisions()
   );
-}
+};
 
 export const newGame = () => ({
   // The bad ships that are in play
@@ -74,28 +78,29 @@ export const newGame = () => ({
   // The current game mode - what is game mode?
   currentLevelMode: "standard",
   level: {},
-})
+});
 
 const objectDestroyHandlers = {
   [SHIP_TYPE]: (bus, ship, game) => {
     // TODO: Publish event for killed ship, good ship should subscribe and destroy itself
-    game.goodShips.filter(s => s.id !== ship.id);
+    game.goodShips.filter((s) => s.id !== ship.id);
   },
-  [BAD_SHIP_TYPE]: (bus, ship, game) => game.badShips.map(r => r.filter(s => s.id !== ship.id)),
-  [ROCK_TYPE]: (bus, rock, game) => game.rocks.filter(r => r.id !== rock.id),
+  [BAD_SHIP_TYPE]: (bus, ship, game) =>
+    game.badShips.map((r) => r.filter((s) => s.id !== ship.id)),
+  [ROCK_TYPE]: (bus, rock, game) => game.rocks.filter((r) => r.id !== rock.id),
   [BULLET_TYPE]: (bus, bullet, game) => {
     // TODO: Replace with event and subscriptions for owners
     // object.owner.bulletInPlay = false;
     // object.owner.bullet = null;
-    game.bullets.filter(b => b.id !== bullet.id);
-  }
-}
+    game.bullets.filter((b) => b.id !== bullet.id);
+  },
+};
 
-export const destroyObject = (bus, game, object) => {
-  const { _type, shapes } = object
+export const destroyObject = (bus, game, object, handlers = objectDestroyHandlers) => {
+  const { _type, shapes } = object;
   publishToEventBus(bus, CANVAS_REMOVE, object.shapes);
-  objectDestroyHandlers[_type](bus, object, game)
-}
+  handlers[_type](bus, object, game);
+};
 
 export default class SpaceInvadersGame {
   newGame() {
@@ -355,8 +360,8 @@ export default class SpaceInvadersGame {
           xValueOfMiddleRock +
           (offSet * this.getSetting("rockWidth") +
             offSet *
-            this.getSetting("rockWidth") *
-            this.getSetting("rockWhiteSpace"));
+              this.getSetting("rockWidth") *
+              this.getSetting("rockWhiteSpace"));
         rock.move(deltaX, 0);
         rockPair = i % 2 === 0 ? rockPair + 1 : rockPair;
       }
@@ -376,14 +381,6 @@ export default class SpaceInvadersGame {
       this.destroyObject(rock);
     });
     this.rocks = [];
-  }
-
-  createBullet(ship) {
-    let bullet = new Bullet(this.getSettingsFor("bullet"));
-    bullet.owner = ship;
-    ship.bulletInPlay = true;
-    this.bullets.push(bullet);
-    return bullet;
   }
 
   destroyBullets() {

@@ -1,15 +1,15 @@
+import { v4 as uuid } from "uuid";
 import {
-  newAnimationFrame,
   initialiseAnimationFrame,
+  newAnimationFrame,
 } from "../animation/animationFrame";
 import { newShape } from "../canvas/shape";
-import { ARROW_LEFT, SPACE, ARROW_RIGHT } from "../keyCodes";
-import { newShip } from "./ship";
 import { publishToEventBus, subscribeToEventBus } from "../events";
-import { CANVAS_DRAW } from "../events/events";
+import { BULLET_CREATED, CANVAS_DRAW } from "../events/events";
 import moveObject from "../functional/moveObject";
-import { v4 as uuid } from "uuid";
+import { ARROW_LEFT, ARROW_RIGHT, SPACE } from "../keyCodes";
 import { fireBullet } from "./bullet";
+import { newShip } from "./ship";
 
 // class GoodShip extends Ship {
 //   constructor({ game, settings, eventBus, id }) {
@@ -199,6 +199,13 @@ export const initialiseGoodShip = async (bus, goodShip) => {
   window.addEventListener("keyup", (event) =>
     handleKeyEvent(bus, event, goodShip)
   );
+  await subscribeToEventBus(bus, BULLET_CREATED, (bullet) => {
+    if (bullet.ownerId != goodShip.id || bullet.ownerType != goodShip._type) {
+      return;
+    }
+    goodShip.bulletInPlay = true;
+    goodShip.bullet = bullet;
+  });
   // createAnimationFrames
   initialiseAnimationFrame(
     newAnimationFrame(uuid(), 0, () => moveShip(bus, goodShip))

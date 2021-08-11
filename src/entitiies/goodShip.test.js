@@ -2,10 +2,10 @@ import * as animation from "../animation/animationFrame";
 import { newShape } from "../canvas/shape";
 import * as eventBus from "../events";
 import { newEventBus } from "../events";
-import { CANVAS_DRAW } from "../events/events";
+import { BULLET_CREATED, CANVAS_DRAW } from "../events/events";
+import * as bullet from "./bullet";
 import { initialiseGoodShip, moveShip, newGoodShip } from "./goodShip";
 import { newShip } from "./ship";
-import * as bullet from "./bullet";
 
 jest.mock("uuid", () => ({
   v4: jest.fn(() => {
@@ -67,6 +67,7 @@ describe("Good ship", () => {
         animation,
         "initialiseAnimationFrame"
       );
+      const subscribeSpy = jest.spyOn(eventBus, "subscribeToEventBus");
       const expectedFireBulletAnimationFrame = {
         _type: "_animationFrame",
         id: "uuid",
@@ -98,6 +99,15 @@ describe("Good ship", () => {
       );
       expect(initialiseAnimationSpy).toHaveBeenCalledWith(
         expectedFireBulletAnimationFrame
+      );
+      expect(subscribeSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          events: expect.objectContaining({
+            [BULLET_CREATED]: expect.arrayContaining([expect.any(Function)]),
+          }),
+        }),
+        BULLET_CREATED,
+        expect.any(Function)
       );
     });
     [
@@ -163,7 +173,7 @@ describe("Good ship", () => {
     [{ type: "keydown", code: "Space" }].forEach(({ type, code }) => {
       it(`should set keys['Space'] to true`, () => {
         // Arrange
-        ship.keys["Space"] = true;
+        ship.keys["Space"] = "not a boolean true";
         const event = {
           type,
           code,
@@ -224,6 +234,56 @@ describe("Good ship", () => {
         // Assert
         expect(() => handlers.forEach((h) => h(event, ship))).toThrow(error);
       });
+    });
+  });
+  describe("Subscription to CREATE_BULLET event", () => {
+    it("should do take ownership of bullet in response to CREATE_BULLET event, when ids match", async () => {
+      // Arrange
+      const ship = newGoodShip("an id");
+      ship.bulletInPlay = false;
+      ship.bullet = undefined;
+      const bus = newEventBus();
+      const b = bullet.newBullet(ship._type, ship.id);
+
+      // Act
+      await initialiseGoodShip(bus, ship);
+      await eventBus.publishToEventBus(bus, BULLET_CREATED, b);
+
+      // Assert
+      expect(ship.bulletInPlay).toEqual(true);
+      expect(ship.bullet).toEqual(b);
+    });
+    it("should do nothing in response to CREATE_BULLET event when ids don't match", async () => {
+      // Arrange
+      const ship = newGoodShip("an id");
+      ship.bulletInPlay = false;
+      ship.bullet = undefined;
+      const bus = newEventBus();
+      const b = bullet.newBullet(ship._type, "another id");
+
+      // Act
+      await initialiseGoodShip(bus, ship);
+      await eventBus.publishToEventBus(bus, BULLET_CREATED, b);
+
+      // Assert
+      expect(ship.bulletInPlay).toEqual(false);
+      expect(ship.bullet).toBeUndefined();
+    });
+    it("should do nothing in response to CREATE_BULLET event when types don't match", async () => {
+      // Arrange
+      const ship = newGoodShip("an id");
+      ship.bulletInPlay = false;
+      ship.bullet = undefined;
+      const bus = newEventBus();
+      const b = bullet.newBullet("ANOTHER_TYPE", ship.id);
+
+      // Act
+      await initialiseGoodShip(bus, ship);
+      await eventBus.publishToEventBus(bus, BULLET_CREATED, b);
+
+      // Assert
+      expect(ship.bulletInPlay).toEqual(false);
+      expect(ship.bullet).toBeUndefined();
     });
   });
   describe("moveShip", () => {
