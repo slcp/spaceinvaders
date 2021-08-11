@@ -58,13 +58,36 @@ describe("Game", () => {
         ms: 1000 / game.level.standard.game.goodBulletFramerate,
         action: expect.any(Function),
       };
+      const expectedMoveBadBulletsAnimationFrame = {
+        _type: "_animationFrame",
+        id: "moveBadBullets",
+        ms: 1000 / game.level.standard.game.badBulletFramerate,
+        action: expect.any(Function),
+      };
+      const expectedShootBadBulletsAnimationFrame = {
+        _type: "_animationFrame",
+        id: "shootBadBullets",
+        ms: 1000 / game.level.standard.game.badShipsBulletsPerSecond,
+        action: expect.any(Function),
+      };
+      const expectedCheckForCollisionsAnimationFrame = {
+        _type: "_animationFrame",
+        id: "checkForCollisions",
+        ms: 0,
+        action: expect.any(Function),
+      };
       // Act
       await initialiseGame(bus, game);
 
       // Assert
-      expect(initialiseAnimationSpy).toHaveBeenCalledWith(expect.arrayContaining([
-        expectedMoveGoodBulletsAnimationFrame,
-      ]));
+      expect(initialiseAnimationSpy).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          expectedMoveGoodBulletsAnimationFrame,
+          expectedMoveBadBulletsAnimationFrame,
+          expectedShootBadBulletsAnimationFrame,
+          expectedCheckForCollisionsAnimationFrame,
+        ])
+      );
       expect(subscribeSpy).toHaveBeenCalledWith(
         expect.objectContaining({
           events: expect.objectContaining({
