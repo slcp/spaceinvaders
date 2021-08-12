@@ -1,4 +1,4 @@
-import { initialiseGame, newGame } from ".";
+import { initialiseGame, moveBullets, newGame } from ".";
 import * as eventBus from "../events";
 import { newEventBus } from "../events";
 import * as animation from "../animation";
@@ -8,6 +8,10 @@ import {
   NEW_GAME,
   START_NEXT_LEVEL,
 } from "../events/events";
+import { newBullet } from "../entitiies/bullet";
+import { SHIP_TYPE } from "../entitiies/goodShip";
+import { newShape } from "../canvas/shape";
+import { BAD_SHIP_TYPE } from "../entitiies/badShip";
 
 describe("Game", () => {
   beforeEach(() => {
@@ -124,6 +128,169 @@ describe("Game", () => {
         END_GAME,
         expect.any(Function)
       );
+    });
+  });
+  describe("moveBullets", () => {
+    ["TYPE_ONE", "TYPE_TWO"].forEach((type) => {
+      it(`should call the expected handler with type: ${type}`, () => {
+        // Arrange
+        const bus = newEventBus();
+        const game = newGame();
+        const handlers = {
+          TYPE_ONE: jest.fn(),
+          TYPE_TWO: jest.fn(),
+        };
+
+        // Act
+        moveBullets(bus, game, type, handlers);
+
+        // Assert
+        expect(handlers[type]).toHaveBeenCalledWith(bus, game);
+      });
+    });
+    it("should throw when the handler type is not known", () => {
+      // Arrange
+      const bus = newEventBus();
+      const game = newGame();
+      const handlers = {
+        TYPE_ONE: jest.fn(),
+      };
+
+      // Act
+      // Assert
+      expect(() => moveBullets(bus, game, "UNKOWN_TYPE", handlers)).toThrow(
+        "unknon ship type when trying to move bullets"
+      );
+    });
+    it("should move the expected bullets only when asked to move _goodShip bullets", () => {
+      // Arrange
+      let id = 1;
+      const goodShipBullet = () => {
+        const bullet = newBullet(SHIP_TYPE, id);
+        bullet.shapes = [newShape(5, 10, 10, 10, "blue")];
+        id = id + 1;
+        return bullet;
+      };
+      const badShipBullet = () => {
+        const bullet = newBullet(BAD_SHIP_TYPE, id);
+        bullet.shapes = [newShape(3, 13, 10, 10, "blue")];
+        id = id + 1;
+        return bullet;
+      };
+      const bus = newEventBus();
+      const game = newGame();
+      game.bullets = [
+        goodShipBullet(),
+        badShipBullet(),
+        goodShipBullet(),
+        badShipBullet(),
+      ];
+
+      // Act
+      moveBullets(bus, game, SHIP_TYPE);
+
+      // Assert
+      expect(game.bullets[0].shapes[0]).toEqual({
+        _type: "_shape",
+        color: "blue",
+        height: 10,
+        oldX: 5,
+        oldY: 10,
+        width: 10,
+        x: 5,
+        y: 5,
+      });
+      expect(game.bullets[2].shapes[0]).toEqual({
+        _type: "_shape",
+        color: "blue",
+        height: 10,
+        oldX: 5,
+        oldY: 10,
+        width: 10,
+        x: 5,
+        y: 5,
+      });
+      expect(game.bullets[1].shapes[0]).toEqual({
+        _type: "_shape",
+        color: "blue",
+        height: 10,
+        width: 10,
+        x: 3,
+        y: 13,
+      });
+      expect(game.bullets[3].shapes[0]).toEqual({
+        _type: "_shape",
+        color: "blue",
+        height: 10,
+        width: 10,
+        x: 3,
+        y: 13,
+      });
+    });
+    it("should move the expected bullets only when asked to move _badShip bullets", () => {
+      // Arrange
+      let id = 1;
+      const goodShipBullet = () => {
+        const bullet = newBullet(SHIP_TYPE, id);
+        bullet.shapes = [newShape(5, 10, 10, 10, "blue")];
+        id = id + 1;
+        return bullet;
+      };
+      const badShipBullet = () => {
+        const bullet = newBullet(BAD_SHIP_TYPE, id);
+        bullet.shapes = [newShape(3, 13, 10, 10, "blue")];
+        id = id + 1;
+        return bullet;
+      };
+      const bus = newEventBus();
+      const game = newGame();
+      game.bullets = [
+        goodShipBullet(),
+        badShipBullet(),
+        goodShipBullet(),
+        badShipBullet(),
+      ];
+
+      // Act
+      moveBullets(bus, game, BAD_SHIP_TYPE);
+
+      // Assert
+      expect(game.bullets[0].shapes[0]).toEqual({
+        _type: "_shape",
+        color: "blue",
+        height: 10,
+        width: 10,
+        x: 5,
+        y: 10,
+      });
+      expect(game.bullets[2].shapes[0]).toEqual({
+        _type: "_shape",
+        color: "blue",
+        height: 10,
+        width: 10,
+        x: 5,
+        y: 10,
+      });
+      expect(game.bullets[1].shapes[0]).toEqual({
+        _type: "_shape",
+        color: "blue",
+        oldX: 3,
+        oldY: 13,
+        height: 10,
+        width: 10,
+        x: 3,
+        y: 18,
+      });
+      expect(game.bullets[3].shapes[0]).toEqual({
+        _type: "_shape",
+        color: "blue",
+        oldX: 3,
+        oldY: 13,
+        height: 10,
+        width: 10,
+        x: 3,
+        y: 18,
+      });
     });
   });
 });

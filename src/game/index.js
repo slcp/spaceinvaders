@@ -3,7 +3,7 @@ import { newAnimationFrame } from "../animation/animationFrame";
 import Canvas2D from "../canvas";
 import CollisionCheck from "../collisionCheck/collision";
 import BadShip, { BAD_SHIP_TYPE } from "../entitiies/badShip";
-import Bullet, { BULLET_TYPE } from "../entitiies/bullet";
+import { BULLET_TYPE } from "../entitiies/bullet";
 import GoodShip, { newGoodShip, SHIP_TYPE } from "../entitiies/goodShip";
 import Rock, { ROCK_TYPE } from "../entitiies/rock";
 import { publishToEventBus, subscribeToEventBus } from "../events";
@@ -22,7 +22,7 @@ import {
   ROCK_SLICE_KILLED_BY_GOOD_BULLET,
   START_NEXT_LEVEL,
 } from "../events/events";
-import drawObject from "../functional/drawObject";
+import drawObject, { moveAndDrawObject } from "../functional/drawObject";
 import moveObject from "../functional/moveObject";
 import levelsGenerator from "../levels";
 import { getRandomInt } from "../levels/generators";
@@ -32,6 +32,26 @@ import { isBadShipBullet, isGoodShipBullet } from "./helpers";
 // TOOD: Build canvas operations that in an animation frame into the frame queue - killing objects
 
 const levelGen = levelsGenerator();
+
+const bulletMoveHandlers = {
+  [BAD_SHIP_TYPE]: (bus, game) =>
+    game.bullets
+      .filter((bullet) => isBadShipBullet(bullet))
+      // Move the bullet down the screen
+      .forEach((bullet) => moveAndDrawObject(bus, bullet, 0, 5)),
+  [SHIP_TYPE]: (bus, game) =>
+    game.bullets
+      .filter((bullet) => isGoodShipBullet(bullet))
+      // Move the bullet up the screen
+      .forEach((bullet) => moveAndDrawObject(bus, bullet, 0, -5)),
+};
+
+export const moveBullets = (bus, game, ownerType, handlers = bulletMoveHandlers) => {
+  if (!handlers[ownerType]) {
+    throw new Error("unknon ship type when trying to move bullets");
+  }
+  handlers[ownerType](bus, game);
+};
 
 export const initialiseGame = async (bus, game) => {
   await subscribeToEventBus(bus, NEW_GAME, () => {}); //this.newGame.bind(this));
@@ -51,7 +71,7 @@ export const initialiseGame = async (bus, game) => {
       "moveGoodBullets",
       1000 /
         getSetting("goodBulletFramerate", game.level[game.currentLevelMode]),
-      () => {} //() => this.moveBullets("goodShip")
+      () => moveBullets(bus, game, SHIP_TYPE)
     ),
     newAnimationFrame(
       "shootBadBullets",
@@ -66,7 +86,7 @@ export const initialiseGame = async (bus, game) => {
       "moveBadBullets",
       1000 /
         getSetting("badBulletFramerate", game.level[game.currentLevelMode]),
-      () => {} //() => this.moveBullets("badShip")
+      () => moveBullets(bus, game, BAD_SHIP_TYPE)
     ),
     newAnimationFrame(
       "moveBadShips",
@@ -88,7 +108,7 @@ export const newGame = () => ({
   // The good ships (or players) that in play
   goodShips: [],
   // The bullets that in play
-  bullets: [], // TODO: Subscribe to BULLET_CREATED event
+  bullets: [],
   // The rocks that are in play
   rocks: [],
   // The current game mode - what is game mode?
@@ -173,9 +193,9 @@ export default class SpaceInvadersGame {
     drawObject({ eventBus: this.eventBus, object });
   }
 
-  moveAndDrawObject(object, deltaX, deltaY) {
+  moveAndDrawObject(bus, object, deltaX, deltaY) {
     moveObject({ object, deltaX, deltaY });
-    this.drawObject(object);
+    drawObject({ eventBus: bus, object });
   }
 
   isColliding(object1, object2) {
