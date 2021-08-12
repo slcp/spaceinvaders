@@ -1,6 +1,6 @@
 import GameAnimation, { runFrame } from "../animation";
 import { newAnimationFrame } from "../animation/animationFrame";
-import Canvas2D from "../canvas";
+import Canvas2D, { isAtExtremity } from "../canvas";
 import CollisionCheck from "../collisionCheck/collision";
 import BadShip, { BAD_SHIP_TYPE } from "../entitiies/badShip";
 import { BULLET_TYPE } from "../entitiies/bullet";
@@ -33,6 +33,26 @@ import { isBadShipBullet, isGoodShipBullet } from "./helpers";
 
 const levelGen = levelsGenerator();
 
+export const moveBadShips = (bus, game, { height, width }) => {
+  game.badShips.forEach((row) => {
+    // As badShips are destroyed rows become empty.
+    if (!row.length) return;
+
+    const deltaY = 10;
+
+    const { left } = isAtExtremity({ height, width }, row[0].shapes);
+    const { right } = isAtExtremity(
+      { height, width },
+      row[row.length - 1].shapes
+    );
+    const deltaX = left && !right ? 1 : -1;
+
+    row.forEach((ship) => {
+      moveAndDrawObject(bus, ship, deltaX, deltaY);
+    });
+  });
+};
+
 const bulletMoveHandlers = {
   [BAD_SHIP_TYPE]: (bus, game) =>
     game.bullets
@@ -46,14 +66,19 @@ const bulletMoveHandlers = {
       .forEach((bullet) => moveAndDrawObject(bus, bullet, 0, -5)),
 };
 
-export const moveBullets = (bus, game, ownerType, handlers = bulletMoveHandlers) => {
+export const moveBullets = (
+  bus,
+  game,
+  ownerType,
+  handlers = bulletMoveHandlers
+) => {
   if (!handlers[ownerType]) {
     throw new Error("unknon ship type when trying to move bullets");
   }
   handlers[ownerType](bus, game);
 };
 
-export const initialiseGame = async (bus, game) => {
+export const initialiseGame = async (bus, game, context) => {
   await subscribeToEventBus(bus, NEW_GAME, () => {}); //this.newGame.bind(this));
   await subscribeToEventBus(bus, START_NEXT_LEVEL, () => {}); //this.nextLevel.bind(this));
   await subscribeToEventBus(bus, END_GAME, () => {}); //this.endGame.bind(this));
@@ -91,7 +116,7 @@ export const initialiseGame = async (bus, game) => {
     newAnimationFrame(
       "moveBadShips",
       1000 / getSetting("badShipFramerate", game.level[game.currentLevelMode]),
-      () => {} //() => this.moveBadShips()
+      () => moveBadShips(bus, game, context)
     ),
     newAnimationFrame(
       "checkForCollisions",

@@ -41,7 +41,7 @@ Promise.all(
     eventBus,
     element: document.getElementById("game-message"),
   }).init();
-  initialiseGame(eventBus, newGame());
+  initialiseGame(eventBus, newGame(), gameContext);
   new GameState({ eventBus }).init();
   // The canvas that is responsible for drawing the game
   await intialiseCanvas(
@@ -49,6 +49,6 @@ Promise.all(
     eventBus
   );
   gameContext.newGameButton.addEventListener("click", function () {
-    publishToEventBus(evenBus, NEW_GAME);
+    publishToEventBus(eventBus, NEW_GAME);
   });
 });

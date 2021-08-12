@@ -1,4 +1,4 @@
-import { new2DCanvas, intialiseCanvas } from ".";
+import { new2DCanvas, intialiseCanvas, isAtExtremity } from ".";
 import * as eventBus from "../events";
 import { CANVAS_DRAW, CANVAS_REMOVE } from "../events/events";
 import { newShape } from "./shape";
@@ -107,6 +107,84 @@ describe("canvas", () => {
       expect(element.getContext).toHaveBeenCalledTimes(1);
       expect(context.clearRect).toHaveBeenCalledWith(0, 0, 10, 20);
       expect(context.clearRect).toHaveBeenCalledWith(1, 2, 10, 20);
+    });
+  });
+  describe("isAtExtremity", () => {
+    it("should identify that one shape is at the left extremity", () => {
+      // Arrange
+      const context = { height: 100, width: 100 };
+      const shapes = [
+        newShape(0, 89, 10, 10, "blue"),
+        newShape(5, 89, 10, 10, "blue"),
+      ];
+
+      // Act
+      const extremities = isAtExtremity(context, shapes);
+
+      // Assert
+      expect(extremities).toEqual({
+        left: true,
+        right: false,
+        top: false,
+        bottom: false,
+      });
+    });
+    it("should identify that one shape is at the right extremity", () => {
+      // Arrange
+      const context = { height: 100, width: 100 };
+      const shapes = [
+        newShape(1, 89, 10, 10, "blue"),
+        newShape(90, 89, 10, 10, "blue"),
+      ];
+
+      // Act
+      const extremities = isAtExtremity(context, shapes);
+
+      // Assert
+      expect(extremities).toEqual({
+        left: false,
+        right: true,
+        top: false,
+        bottom: false,
+      });
+    });
+    it("should identify that one shape is at the top extremity", () => {
+      // Arrange
+      const context = { height: 100, width: 100 };
+      const shapes = [
+        newShape(1, 0, 10, 10, "blue"),
+        newShape(89, 89, 10, 10, "blue"),
+      ];
+
+      // Act
+      const extremities = isAtExtremity(context, shapes);
+
+      // Assert
+      expect(extremities).toEqual({
+        left: false,
+        right: false,
+        top: true,
+        bottom: false,
+      });
+    });
+    it("should identify that one shape is at the bottom extremity", () => {
+      // Arrange
+      const context = { height: 100, width: 100 };
+      const shapes = [
+        newShape(1, 1, 10, 10, "blue"),
+        newShape(89, 90, 10, 10, "blue"),
+      ];
+
+      // Act
+      const extremities = isAtExtremity(context, shapes);
+
+      // Assert
+      expect(extremities).toEqual({
+        left: false,
+        right: false,
+        top: false,
+        bottom: true,
+      });
     });
   });
 });

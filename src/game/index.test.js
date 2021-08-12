@@ -1,4 +1,4 @@
-import { initialiseGame, moveBullets, newGame } from ".";
+import { initialiseGame, moveBadShips, moveBullets, newGame } from ".";
 import * as eventBus from "../events";
 import { newEventBus } from "../events";
 import * as animation from "../animation";
@@ -11,7 +11,13 @@ import {
 import { newBullet } from "../entitiies/bullet";
 import { SHIP_TYPE } from "../entitiies/goodShip";
 import { newShape } from "../canvas/shape";
-import { BAD_SHIP_TYPE } from "../entitiies/badShip";
+import { isAtExtremity } from "../canvas";
+import { BAD_SHIP_TYPE, newBadShip } from "../entitiies/badShip";
+import * as draw from "../functional/drawObject";
+
+jest.mock("../canvas", () => ({
+  isAtExtremity: jest.fn().mockReturnValue({}),
+}));
 
 describe("Game", () => {
   beforeEach(() => {
@@ -81,7 +87,7 @@ describe("Game", () => {
         action: expect.any(Function),
       };
       // Act
-      await initialiseGame(bus, game);
+      await initialiseGame(bus, game, {});
 
       // Assert
       expect(initialiseAnimationSpy).toHaveBeenCalledWith(
@@ -291,6 +297,98 @@ describe("Game", () => {
         x: 3,
         y: 18,
       });
+    });
+  });
+  describe("moveBadShips", () => {
+    it("should do nothing if there are no ships in a row", () => {
+      // Arrange
+      const bus = newEventBus();
+      const game = newGame();
+      const moveAndDrawSpy = jest.spyOn(draw, "moveAndDrawObject");
+      game.badShips = [[]];
+
+      // Act
+      moveBadShips(bus, game, {});
+
+      // Assert
+      expect(isAtExtremity).not.toHaveBeenCalled();
+      expect(moveAndDrawSpy).not.toHaveBeenCalled();
+    });
+    it("should move ships by a delta of 1 if any ship is at the left extremity", () => {
+      // Arrange
+      const bus = newEventBus();
+      const game = newGame();
+      const leftExtremityBadShape = newBadShip();
+      const moveAndDrawSpy = jest.spyOn(draw, "moveAndDrawObject");
+      leftExtremityBadShape.shapes = [
+        newShape(0, 89, 10, 10, "blue"),
+        newShape(5, 89, 10, 10, "blue"),
+      ];
+      game.badShips = [[leftExtremityBadShape], [newBadShip()]];
+      isAtExtremity.mockReturnValue({
+        left: true,
+        right: false,
+      });
+
+      // Act
+      moveBadShips(bus, game, {});
+
+      // Assert
+      expect(isAtExtremity).toHaveBeenCalledWith({}, [
+        newShape(0, 89, 10, 10, "blue"),
+        newShape(5, 89, 10, 10, "blue"),
+      ]);
+      expect(isAtExtremity).toHaveBeenCalledWith({}, [
+        newShape(20, 32, 60, 9, "white"),
+        newShape(40, 28, 20, 20, "white"),
+        newShape(20, 20, 12, 20, "white"),
+        newShape(68, 20, 12, 20, "white"),
+      ]);
+      expect(moveAndDrawSpy).toHaveBeenCalledTimes(2);
+      expect(moveAndDrawSpy).toHaveBeenCalledWith(
+        bus,
+        expect.any(Object),
+        1,
+        10
+      );
+    });
+    it("should move ships by a delta of -1 if any ship is at the right extremity", () => {
+      // Arrange
+      const bus = newEventBus();
+      const game = newGame();
+      const moveAndDrawSpy = jest.spyOn(draw, "moveAndDrawObject");
+      const rightExtremityBadShape = newBadShip();
+      rightExtremityBadShape.shapes = [
+        newShape(1, 89, 10, 10, "blue"),
+        newShape(90, 89, 10, 10, "blue"),
+      ];
+      game.badShips = [[rightExtremityBadShape], [newBadShip()]];
+      isAtExtremity.mockReturnValue({
+        left: false,
+        right: true,
+      });
+
+      // Act
+      moveBadShips(bus, game, {});
+
+      // Assert
+      expect(isAtExtremity).toHaveBeenCalledWith({}, [
+        newShape(1, 89, 10, 10, "blue"),
+        newShape(90, 89, 10, 10, "blue"),
+      ]);
+      expect(isAtExtremity).toHaveBeenCalledWith({}, [
+        newShape(20, 32, 60, 9, "white"),
+        newShape(40, 28, 20, 20, "white"),
+        newShape(20, 20, 12, 20, "white"),
+        newShape(68, 20, 12, 20, "white"),
+      ]);
+      expect(moveAndDrawSpy).toHaveBeenCalledTimes(2);
+      expect(moveAndDrawSpy).toHaveBeenCalledWith(
+        bus,
+        expect.any(Object),
+        -1,
+        10
+      );
     });
   });
 });
