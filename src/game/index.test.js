@@ -1,7 +1,7 @@
 import { initialiseGame, moveBadShips, moveBullets, newGame } from ".";
 import * as eventBus from "../events";
 import { newEventBus } from "../events";
-import * as animation from "../animation";
+import { runFrame } from "../animation";
 import {
   BULLET_CREATED,
   END_GAME,
@@ -17,6 +17,10 @@ import * as draw from "../functional/drawObject";
 
 jest.mock("../canvas", () => ({
   isAtExtremity: jest.fn().mockReturnValue({}),
+}));
+
+jest.mock("../animation", () => ({
+  runFrame: jest.fn(),
 }));
 
 describe("Game", () => {
@@ -61,7 +65,6 @@ describe("Game", () => {
         handlers = [...handlers, handler];
       });
       const subscribeSpy = jest.spyOn(eventBus, "subscribeToEventBus");
-      const initialiseAnimationSpy = jest.spyOn(animation, "runFrame");
       const expectedMoveGoodBulletsAnimationFrame = {
         _type: "_animationFrame",
         id: "moveGoodBullets",
@@ -90,7 +93,7 @@ describe("Game", () => {
       await initialiseGame(bus, game, {});
 
       // Assert
-      expect(initialiseAnimationSpy).toHaveBeenCalledWith(
+      expect(runFrame).toHaveBeenCalledWith(
         expect.arrayContaining([
           expectedMoveGoodBulletsAnimationFrame,
           expectedMoveBadBulletsAnimationFrame,

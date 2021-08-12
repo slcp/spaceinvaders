@@ -3,7 +3,7 @@ import { newAnimationFrame } from "../animation/animationFrame";
 import Canvas2D, { isAtExtremity } from "../canvas";
 import CollisionCheck from "../collisionCheck/collision";
 import BadShip, { BAD_SHIP_TYPE } from "../entitiies/badShip";
-import { BULLET_TYPE } from "../entitiies/bullet";
+import { BULLET_TYPE, fireBullet } from "../entitiies/bullet";
 import GoodShip, { newGoodShip, SHIP_TYPE } from "../entitiies/goodShip";
 import Rock, { ROCK_TYPE } from "../entitiies/rock";
 import { publishToEventBus, subscribeToEventBus } from "../events";
@@ -32,6 +32,20 @@ import { isBadShipBullet, isGoodShipBullet } from "./helpers";
 // TOOD: Build canvas operations that in an animation frame into the frame queue - killing objects
 
 const levelGen = levelsGenerator();
+
+export const shootBadBullets = (bus, game) => {
+  const rate = getSetting(
+    "badShipsBulletsPerSecond",
+    game.level[game.currentLevelMode]
+  );
+  for (let i = 1; i <= rate; i++) {
+    let rowIndex = getRandomInt({ max: game.badShips.length - 1 });
+    let shipIndex = getRandomInt({ max: game.badShips[rowIndex].length - 1 });
+    let ship = game.badShips[rowIndex][shipIndex];
+    // badShip may have already been destroyed
+    if (ship) fireBullet(bus, ship);
+  }
+};
 
 export const moveBadShips = (bus, game, { height, width }) => {
   game.badShips.forEach((row) => {
@@ -105,7 +119,7 @@ export const initialiseGame = async (bus, game, context) => {
           "badShipsBulletsPerSecond",
           game.level[game.currentLevelMode]
         ),
-      () => {} //() => this.shootBadBullets()
+      () => shootBadBullets(bus, game)
     ),
     newAnimationFrame(
       "moveBadBullets",
