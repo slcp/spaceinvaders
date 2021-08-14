@@ -10,7 +10,7 @@ describe("Rock", () => {
       // Assert
       expect(actual._type).toEqual("_rock");
       expect(actual.width).toEqual(100);
-      expect(actual.shapes).toBeFalsy();
+      expect(actual.shapes).toEqual([]);
     });
   });
   describe("initialiseRock", () => {

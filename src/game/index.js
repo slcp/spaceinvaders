@@ -1,11 +1,11 @@
 import GameAnimation, { runFrame } from "../animation";
 import { newAnimationFrame } from "../animation/animationFrame";
-import Canvas2D, { isAtExtremity } from "../canvas";
+import { isAtExtremity } from "../canvas";
 import CollisionCheck from "../collisionCheck/collision";
-import BadShip, { BAD_SHIP_TYPE, newBadShip } from "../entitiies/badShip";
+import { BAD_SHIP_TYPE, newBadShip } from "../entitiies/badShip";
 import { BULLET_TYPE, fireBullet } from "../entitiies/bullet";
-import GoodShip, { newGoodShip, SHIP_TYPE } from "../entitiies/goodShip";
-import Rock, { ROCK_TYPE } from "../entitiies/rock";
+import { newGoodShip, SHIP_TYPE } from "../entitiies/goodShip";
+import Rock, { initialiseRock, newRock, ROCK_TYPE } from "../entitiies/rock";
 import { publishToEventBus, subscribeToEventBus } from "../events";
 import {
   BAD_SHIP_CREATED,
@@ -23,7 +23,8 @@ import {
   ROCK_SLICE_KILLED_BY_GOOD_BULLET,
   START_NEXT_LEVEL,
 } from "../events/events";
-import { moveAndDrawObject } from "../functional/drawObject";
+import drawObject, { moveAndDrawObject } from "../functional/drawObject";
+import moveObject from "../functional/moveObject";
 import levelsGenerator from "../levels";
 import { getRandomInt } from "../levels/generators";
 import getSetting from "./getSetting";
@@ -32,6 +33,49 @@ import { isBadShipBullet, isGoodShipBullet } from "./helpers";
 // TOOD: Build canvas operations that in an animation frame into the frame queue - killing objects
 
 const levelGen = levelsGenerator();
+
+// Lower levels will have a central rock protecting goodPlayer spawn point
+// Higher levels will not have a central
+// 1. Draw rock in the middle
+// 2. Draw rock to left offset n
+// 3. Draw rock to right offset -n
+// 4. Draw rock to left offset n+1
+// 5. Draw rock to right offset -n+1
+// Repeat 2-5
+export const initialiseRocks = (bus, game, { width }, settings) => {
+  const canvasCentre = width / 2;
+  const rockWidth = getSetting("rockWidth", game.level[game.currentLevelMode]);
+  const numRocks = getSetting("numRocks", game.level[game.currentLevelMode]);
+  const rockWhiteSpace = getSetting(
+    "rockWhiteSpace",
+    game.level[game.currentLevelMode]
+  );
+  const xValueOfMiddleRock = canvasCentre - rockWidth / 2;
+  let rockPair = 1;
+
+  for (let i = 0; i < numRocks; i++) {
+    game.rocks = [...game.rocks, initialiseRock(newRock(rockWidth), settings)];
+  }
+
+  game.rocks.forEach((r, i) => {
+    // First rock is in the middle
+    if (i === 0) {
+      moveObject({ object: r, deltaX: xValueOfMiddleRock, deltaY: 0 });
+    } else {
+      // All other rocks are drawn in pairs with an equal offset but alternatig
+      // between positive and negative.
+      const offSet = i % 2 === 0 ? rockPair : -rockPair;
+
+      // This works but I cannot remember why
+      const deltaX =
+        xValueOfMiddleRock +
+        (offSet * rockWidth + offSet * rockWidth * rockWhiteSpace);
+      moveObject({ object: r, deltaX, deltaY: 0 });
+      rockPair = i % 2 === 0 ? rockPair + 1 : rockPair;
+    }
+    drawObject({ eventBus: bus, objcet: r });
+  });
+};
 
 export const checkForCollisions = () => {
   game.bullets.forEach((b) => {
@@ -332,9 +376,6 @@ export default class SpaceInvadersGame {
     this.startAnimation();
   }
 
-  // TODO: How to handle the movement of the good ship.
-  // Run a counter of moves for the good ship and move them, all at once? Need a framerate?
-  //   - Max moves for goodship per frame = 1 so just need bool for key press -> move
   startAnimation() {
     this.animation = new GameAnimation();
     this.animation.runFrame(this.frameActions);
@@ -345,121 +386,6 @@ export default class SpaceInvadersGame {
     this.endGame();
     this.level = this.levelData.next().value;
     this.startGame();
-  }
-
-  isColliding(object1, object2) {
-    return new CollisionCheck(object1.shapes, object2.shapes).isColliding();
-  }
-
-  // TODO: I think all events will get fired from here
-  checkForCollisions() {
-    for (let bullet of this.bullets) {
-      let collision = false;
-
-      for (let rock of this.rocks) {
-        if (!this.isColliding(bullet, rock)) continue;
-
-        // bullet + rock colliding
-        let shape = rock.findDamageFrom(bullet);
-        if (!shape) {
-          throw new Error("something has gone wrong, check the logging");
-        }
-        this.eventBus.publish(
-          bullet.owner instanceof GoodShip
-            ? ROCK_SLICE_KILLED_BY_GOOD_BULLET
-            : ROCK_SLICE_KILLED_BY_BAD_BULLET,
-          bullet.owner instanceof GoodShip && { id: bullet.owner.id }
-        );
-        this.destroyObject(bullet);
-        this.eventBus.publish(CANVAS_REMOVE, [shape]);
-        collision = true;
-        break;
-      }
-      if (collision) {
-        continue;
-      }
-
-      for (let row of this.badShips) {
-        for (let badShip of row) {
-          if (this.isColliding(bullet, badShip)) {
-            if (bullet.owner instanceof BadShip) {
-              this.drawObject(badShip);
-              continue;
-            } else if (bullet.owner instanceof GoodShip) {
-              // goodShip bullet + badShip colliding
-              this.destroyObject(badShip);
-              this.destroyObject(bullet);
-              this.eventBus.publish(BAD_SHIP_KILLED_BY_GOOD_BULLET, {
-                id: bullet.owner.id,
-                remainingShipCount: this.badShips.flat(Infinity).length,
-              });
-            }
-            collision = true;
-            break;
-          } else {
-            continue;
-          }
-        }
-        if (collision) {
-          break;
-        }
-      }
-
-      if (collision) {
-        continue;
-      }
-
-      for (let goodShip of this.goodShips) {
-        if (this.isColliding(bullet, goodShip)) {
-          if (bullet.owner instanceof BadShip) {
-            // badShip bullet + goodShip colliding
-            this.eventBus.publish(GOOD_SHIP_KILLED_BY_BAD_BULLET, {
-              id: goodShip.id,
-            });
-            this.destroyObject(bullet);
-            this.destroyObject(goodShip);
-
-            if (!goodShip.isDead()) {
-              this.initialiseGoodShip(goodShip);
-            } else {
-            }
-          } else if (bullet.owner instanceof GoodShip) {
-            // do nothing - this shouldn't be possible
-            this.drawObject(goodShip);
-            continue;
-          }
-          collision = true;
-          break;
-        } else {
-          continue;
-        }
-      }
-
-      if (collision) {
-        continue;
-      }
-
-      const { height, width } = this.context;
-      if (
-        Canvas2D.isAtExtremity({ height, width }, "top", bullet.shapes) ||
-        Canvas2D.isAtExtremity({ height, width }, "bottom", bullet.shapes)
-      ) {
-        this.destroyObject(bullet);
-      }
-    }
-
-    for (let row of this.badShips) {
-      for (let badShip of row) {
-        for (let rock of this.rocks) {
-          if (this.isColliding(badShip, rock)) {
-            // badShip + rock colliding
-            // damage rock precisely where positions intersect
-          } else {
-            continue;
-          }
-        }
-      }
-    }
   }
 
   destroyBadShips() {

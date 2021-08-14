@@ -34,7 +34,6 @@ export const initialiseRock = (rock, settings) => {
     throw new Error("rock width must be set");
   }
 
-  const shapes = [];
   const { rockParticleWidth, rockParticleHeight } = settings;
   for (
     let i = 0;
@@ -47,15 +46,14 @@ export const initialiseRock = (rock, settings) => {
       rockParticleWidth,
       rockParticleHeight
     );
-    shapes.push(shape);
-    rock.shapes = shapes;
+    rock.shapes = [...rock.shapes, shape];
   }
 };
 
 export const newRock = (width) => ({
   _type: ROCK_TYPE,
   id: uuid(),
-  shapes: false,
+  shapes: [],
   width,
   // height,
 });
