@@ -1,12 +1,4 @@
-import {
-  destroyObject,
-  initialiseBadShips,
-  initialiseGame,
-  moveBadShips,
-  moveBullets,
-  newGame,
-  shootBadBullets,
-} from ".";
+import * as gameExports from ".";
 import * as eventBus from "../events";
 import { newEventBus } from "../events";
 import { runFrame } from "../animation";
@@ -60,7 +52,7 @@ describe("Game", () => {
       };
 
       // Act
-      const actual = newGame();
+      const actual = gameExports.newGame();
 
       // Assert
       expect(actual).toEqual(expected);
@@ -70,7 +62,7 @@ describe("Game", () => {
     it("should do subscribe to the correct events and set up animation frames", async () => {
       // Arrange
       const bus = newEventBus();
-      const game = newGame();
+      const game = gameExports.newGame();
       game.level = {
         standard: {
           game: {
@@ -110,7 +102,7 @@ describe("Game", () => {
         action: expect.any(Function),
       };
       // Act
-      await initialiseGame(bus, game, {});
+      await gameExports.initialiseGame(bus, game, {});
 
       // Assert
       expect(runFrame).toHaveBeenCalledWith(
@@ -172,7 +164,7 @@ describe("Game", () => {
     it("should add bullet to game when responding to BULLET_CREATED event", async () => {
       // Arrange
       const bus = newEventBus();
-      const game = newGame();
+      const game = gameExports.newGame();
       const bullet = newBullet("OWNER_TYPE", "OWNER_ID");
       game.bullets = [
         newBullet("OWNER_TYPE", "OWNER_ID"),
@@ -190,7 +182,7 @@ describe("Game", () => {
       };
 
       // Act
-      await initialiseGame(bus, game, {});
+      await gameExports.initialiseGame(bus, game, {});
       await eventBus.publishToEventBus(bus, BULLET_CREATED, bullet);
 
       // Assert
@@ -199,7 +191,7 @@ describe("Game", () => {
     it("should add ship to game when responding to BAD_SHIP_CREATED event", async () => {
       // Arrange
       const bus = newEventBus();
-      const game = newGame();
+      const game = gameExports.newGame();
       const ship = newBadShip();
       game.bullets = [newBadShip(), newBadShip()];
       game.level = {
@@ -214,7 +206,7 @@ describe("Game", () => {
       };
 
       // Act
-      await initialiseGame(bus, game, {});
+      await gameExports.initialiseGame(bus, game, {});
       await eventBus.publishToEventBus(bus, BAD_SHIP_CREATED, ship);
 
       // Assert
@@ -226,14 +218,14 @@ describe("Game", () => {
       it(`should call the expected handler with type: ${type}`, () => {
         // Arrange
         const bus = newEventBus();
-        const game = newGame();
+        const game = gameExports.newGame();
         const handlers = {
           TYPE_ONE: jest.fn(),
           TYPE_TWO: jest.fn(),
         };
 
         // Act
-        moveBullets(bus, game, type, handlers);
+        gameExports.moveBullets(bus, game, type, handlers);
 
         // Assert
         expect(handlers[type]).toHaveBeenCalledWith(bus, game);
@@ -242,16 +234,16 @@ describe("Game", () => {
     it("should throw when the handler type is not known", () => {
       // Arrange
       const bus = newEventBus();
-      const game = newGame();
+      const game = gameExports.newGame();
       const handlers = {
         TYPE_ONE: jest.fn(),
       };
 
       // Act
       // Assert
-      expect(() => moveBullets(bus, game, "UNKOWN_TYPE", handlers)).toThrow(
-        "unknon ship type when trying to move bullets"
-      );
+      expect(() =>
+        gameExports.moveBullets(bus, game, "UNKOWN_TYPE", handlers)
+      ).toThrow("unknon ship type when trying to move bullets");
     });
     it("should move the expected bullets only when asked to move _goodShip bullets", () => {
       // Arrange
@@ -269,7 +261,7 @@ describe("Game", () => {
         return bullet;
       };
       const bus = newEventBus();
-      const game = newGame();
+      const game = gameExports.newGame();
       game.bullets = [
         goodShipBullet(),
         badShipBullet(),
@@ -278,7 +270,7 @@ describe("Game", () => {
       ];
 
       // Act
-      moveBullets(bus, game, SHIP_TYPE);
+      gameExports.moveBullets(bus, game, SHIP_TYPE);
 
       // Assert
       expect(game.bullets[0].shapes[0]).toEqual({
@@ -334,7 +326,7 @@ describe("Game", () => {
         return bullet;
       };
       const bus = newEventBus();
-      const game = newGame();
+      const game = gameExports.newGame();
       game.bullets = [
         goodShipBullet(),
         badShipBullet(),
@@ -343,7 +335,7 @@ describe("Game", () => {
       ];
 
       // Act
-      moveBullets(bus, game, BAD_SHIP_TYPE);
+      gameExports.moveBullets(bus, game, BAD_SHIP_TYPE);
 
       // Assert
       expect(game.bullets[0].shapes[0]).toEqual({
@@ -389,7 +381,7 @@ describe("Game", () => {
       it(`should call the expected handler with type: ${type}`, async () => {
         // Arrange
         const bus = newEventBus();
-        const game = newGame();
+        const game = gameExports.newGame();
         const o = {
           _type: type,
           shapes: ["mocked"],
@@ -401,7 +393,7 @@ describe("Game", () => {
         const publishSpy = jest.spyOn(eventBus, "publishToEventBus");
 
         // Act
-        await destroyObject(bus, game, o, handlers);
+        await gameExports.destroyObject(bus, game, o, handlers);
 
         // Assert
         expect(handlers[type]).toHaveBeenCalledWith(bus, o, game);
@@ -411,7 +403,7 @@ describe("Game", () => {
     it("should throw when the handler type is not known", async () => {
       // Arrange
       const bus = newEventBus();
-      const game = newGame();
+      const game = gameExports.newGame();
       const o = {
         _type: "UNKOWN_TYPE",
       };
@@ -422,7 +414,7 @@ describe("Game", () => {
 
       // Act
       // Assert
-      expect(destroyObject(bus, game, o, handlers)).rejects.toThrow(
+      expect(gameExports.destroyObject(bus, game, o, handlers)).rejects.toThrow(
         "unknon object type when trying to destory object"
       );
       expect(publishSpy).not.toHaveBeenCalled();
@@ -431,13 +423,13 @@ describe("Game", () => {
     it("should remove object from the game and publish an object destroyed event when object is a goodShip", async () => {
       // Arrange
       const bus = newEventBus();
-      const game = newGame();
+      const game = gameExports.newGame();
       const o = newGoodShip("an id");
       game.goodShips = [o];
       const publishSpy = jest.spyOn(eventBus, "publishToEventBus");
 
       // Act
-      await destroyObject(bus, game, o);
+      await gameExports.destroyObject(bus, game, o);
 
       // Assert
       expect(game.goodShips).toEqual([]);
@@ -449,13 +441,13 @@ describe("Game", () => {
     it("should remove object from the game and publish an object destroyed event when object is a badShip", async () => {
       // Arrange
       const bus = newEventBus();
-      const game = newGame();
+      const game = gameExports.newGame();
       const o = newBadShip();
       game.badShips = [o];
       const publishSpy = jest.spyOn(eventBus, "publishToEventBus");
 
       // Act
-      await destroyObject(bus, game, o);
+      await gameExports.destroyObject(bus, game, o);
 
       // Assert
       expect(game.badShips).toEqual([]);
@@ -467,13 +459,13 @@ describe("Game", () => {
     it("should remove object from the game and publish an object destroyed event when object is a rock", async () => {
       // Arrange
       const bus = newEventBus();
-      const game = newGame();
+      const game = gameExports.newGame();
       const o = newRock(100);
       game.rocks = [o];
       const publishSpy = jest.spyOn(eventBus, "publishToEventBus");
 
       // Act
-      await destroyObject(bus, game, o);
+      await gameExports.destroyObject(bus, game, o);
 
       // Assert
       expect(game.rocks).toEqual([]);
@@ -483,13 +475,13 @@ describe("Game", () => {
     it("should remove object from the game and publish an object destroyed event when object is a bullet", async () => {
       // Arrange
       const bus = newEventBus();
-      const game = newGame();
+      const game = gameExports.newGame();
       const o = newBullet("OWNER_TYPE", "OWNER_ID");
       game.bullets = [o];
       const publishSpy = jest.spyOn(eventBus, "publishToEventBus");
 
       // Act
-      await destroyObject(bus, game, o);
+      await gameExports.destroyObject(bus, game, o);
 
       // Assert
       expect(game.bullets).toEqual([]);
@@ -503,12 +495,12 @@ describe("Game", () => {
     it("should do nothing if there are no ships in a row", () => {
       // Arrange
       const bus = newEventBus();
-      const game = newGame();
+      const game = gameExports.newGame();
       const moveAndDrawSpy = jest.spyOn(draw, "moveAndDrawObject");
       game.badShips = [];
 
       // Act
-      moveBadShips(bus, game, {});
+      gameExports.moveBadShips(bus, game, {});
 
       // Assert
       expect(isAtExtremity).not.toHaveBeenCalled();
@@ -517,7 +509,7 @@ describe("Game", () => {
     it("should move ships by a delta of 1 if any ship is at the left extremity", () => {
       // Arrange
       const bus = newEventBus();
-      const game = newGame();
+      const game = gameExports.newGame();
       const leftExtremityBadShape = newBadShip();
       const moveAndDrawSpy = jest.spyOn(draw, "moveAndDrawObject");
       leftExtremityBadShape.shapes = [
@@ -531,7 +523,7 @@ describe("Game", () => {
       });
 
       // Act
-      moveBadShips(bus, game, {});
+      gameExports.moveBadShips(bus, game, {});
 
       // Assert
       expect(isAtExtremity).toHaveBeenCalledWith({}, [
@@ -555,7 +547,7 @@ describe("Game", () => {
     it("should move ships by a delta of -1 if any ship is at the right extremity", () => {
       // Arrange
       const bus = newEventBus();
-      const game = newGame();
+      const game = gameExports.newGame();
       const moveAndDrawSpy = jest.spyOn(draw, "moveAndDrawObject");
       const rightExtremityBadShape = newBadShip();
       rightExtremityBadShape.shapes = [
@@ -569,7 +561,7 @@ describe("Game", () => {
       });
 
       // Act
-      moveBadShips(bus, game, {});
+      gameExports.moveBadShips(bus, game, {});
 
       // Assert
       expect(isAtExtremity).toHaveBeenCalledWith({}, [
@@ -595,7 +587,7 @@ describe("Game", () => {
     it("should do nothing when there are no bad ships", () => {
       // Arrange
       const bus = newEventBus();
-      const game = newGame();
+      const game = gameExports.newGame();
       game.badShips = [];
       game.level = {
         standard: {
@@ -606,7 +598,7 @@ describe("Game", () => {
       };
 
       // Act
-      shootBadBullets(bus, game);
+      gameExports.shootBadBullets(bus, game);
 
       // Assert
       expect(fireBullet).not.toHaveBeenCalled();
@@ -614,7 +606,7 @@ describe("Game", () => {
     it("should do call fireBullet badShipsBulletsPerSecond times with a ship from the game", () => {
       // Arrange
       const bus = newEventBus();
-      const game = newGame();
+      const game = gameExports.newGame();
       game.level = {
         standard: {
           game: {
@@ -625,7 +617,7 @@ describe("Game", () => {
       game.badShips = [newBadShip(), newBadShip(), newBadShip()];
 
       // Act
-      shootBadBullets(bus, game);
+      gameExports.shootBadBullets(bus, game);
 
       // Assert
       expect(fireBullet).toHaveBeenCalledTimes(2);
@@ -641,7 +633,7 @@ describe("Game", () => {
     it("should X", async () => {
       // Arrange
       const bus = newEventBus();
-      const game = newGame();
+      const game = gameExports.newGame();
       game.level = {
         standard: {
           game: {
@@ -654,7 +646,7 @@ describe("Game", () => {
       const moveAndDrawSpy = jest.spyOn(draw, "moveAndDrawObject");
 
       // Act
-      await initialiseBadShips(bus, game);
+      await gameExports.initialiseBadShips(bus, game);
 
       // Assert
       expect(publishSpy).toHaveBeenCalledTimes(12); // 6 for CANVAS_DRAW + 6 for BAD_SHIP_CREATED
@@ -966,6 +958,54 @@ describe("Game", () => {
         165,
         230
       );
+    });
+  });
+  describe("handleIfOutOfPlay", () => {
+    it("should not destroy object if it is not out of play", async () => {
+      // Arrange
+      const bus = newEventBus();
+      const game = gameExports.newGame();
+      const bullet = newBullet();
+      const context = { height: 100, width: 100 };
+      const destroyObjectSpy = jest.spyOn(gameExports, "destroyObject");
+
+      // Act
+      await gameExports.handleIfOutOfPlay(bus, game, context, bullet);
+
+      // Assert
+      expect(destroyObjectSpy).not.toHaveBeenCalled();
+    });
+  });
+  [
+    {
+      top: true,
+      bottom: true,
+    },
+    {
+      top: false,
+      bottom: true,
+    },
+    {
+      top: true,
+      bottom: false,
+    },
+  ].forEach((r) => {
+    it("should if it is out of play", async () => {
+      // Arrange
+      const bus = newEventBus();
+      const game = gameExports.newGame();
+      const bullet = newBullet();
+      bullet.shapes[0] = newShape(50, 0, 10, 10, "white");
+      const context = { height: 100, width: 100 };
+      const publishSpy = jest.spyOn(eventBus, "publishToEventBus");
+      isAtExtremity.mockReturnValue(r);
+      // Act
+      await gameExports.handleIfOutOfPlay(bus, game, context, bullet);
+
+      // Assert
+      expect(publishSpy).toHaveBeenCalledWith(bus, BULLET_DESTROYED, {
+        id: bullet.id,
+      });
     });
   });
 });

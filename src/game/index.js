@@ -55,38 +55,45 @@ export const checkForCollisions = () => {
   // }
 };
 
-const handleIfCollidingWithRock = (bus, game, bullet) => {
+const handleIfCollidingWithRock = async (bus, game, bullet) => {
   const rocksHit = game.rocks.filter(
     (r) => !new CollisionCheck(bullet.shapes, r.shapes).isColliding()
   );
   if (!rocksHit.length) return false;
 
-  rocksHit.forEach((r) => {
-    rock.shapes = rock.shapes.filter((s) => {
-      const hit = new CollisionCheck(bullet.shapes, s).isColliding();
-      if (hit) publishToEventBus(bus, CANVAS_REMOVE, [s]);
-      return !hit;
-    });
-  });
+  await Promise.all(
+    rocksHit.map(async (r) => {
+      r.shapes = await asyncFilter(rock.shapes, async (s) => {
+        const hit = new CollisionCheck(bullet.shapes, s).isColliding();
+        if (hit) await publishToEventBus(bus, CANVAS_REMOVE, [s]);
+        return !hit;
+      });
+    })
+  );
 
-  publishToEventBus(
+  await publishToEventBus(
     bus,
     isGoodShipBullet(bullet)
       ? ROCK_SLICE_KILLED_BY_GOOD_BULLET
       : ROCK_SLICE_KILLED_BY_BAD_BULLET,
     { id: bullet.ownerId }
   );
-  destroyObject(bus, game, bullet);
+  await destroyObject(bus, game, bullet);
   return true;
 };
 
-const handleIfOutOfPlay = (bus, game, { height, width }, object) => {
+export const handleIfOutOfPlay = async (
+  bus,
+  game,
+  { height, width },
+  object
+) => {
   const { top, bottom } = isAtExtremity({ height, width }, object.shapes);
   if (!top && !bottom) return;
-  destroyObject(bus, game, object);
+  await destroyObject(bus, game, object);
 };
 
-const handleIfCollidingWithGoodShip = (bus, game, bullet) => {
+const handleIfCollidingWithGoodShip = async (bus, game, bullet) => {
   const isBadShip = isBadShipBullet(bullet);
   if (!isBadShip) return false;
 
@@ -95,19 +102,21 @@ const handleIfCollidingWithGoodShip = (bus, game, bullet) => {
   );
   if (!goodShipsHit.length) return false;
 
-  destroyObject(bus, game, bullet);
-  goodShipsHit.forEach((s) => {
-    publishToEventBus(bus, GOOD_SHIP_KILLED_BY_BAD_BULLET, {
-      id: s.id,
-    });
-    destroyObject(bus, game, s);
-  });
+  await destroyObject(bus, game, bullet);
+  await Promise.all(
+    goodShipsHit.map(async (s) => {
+      await publishToEventBus(bus, GOOD_SHIP_KILLED_BY_BAD_BULLET, {
+        id: s.id,
+      });
+      await destroyObject(bus, game, s);
+    })
+  );
   return true;
 
   // TODO: Game was creating new good ship here but it should happen off an event...what event and where?
 };
 
-const handleIfCollidingWithBadShip = (bus, game, bullet) => {
+const handleIfCollidingWithBadShip = async (bus, game, bullet) => {
   const isGoodShip = isGoodShipBullet(bullet);
   if (!isGoodShip) return false;
 
@@ -117,13 +126,15 @@ const handleIfCollidingWithBadShip = (bus, game, bullet) => {
 
   if (!badShipsHit.length) return false;
 
-  destroyObject(bus, game, bullet);
-  badShipsHit.forEach((s) => {
-    publishToEventBus(bus, BAD_SHIP_KILLED_BY_GOOD_BULLET, {
-      id: s.id,
-    });
-    destroyObject(bus, game, s);
-  });
+  await destroyObject(bus, game, bullet);
+  await Promise.all(
+    badShipsHit.map(async (s) => {
+      await publishToEventBus(bus, BAD_SHIP_KILLED_BY_GOOD_BULLET, {
+        id: s.id,
+      });
+      await destroyObject(bus, game, s);
+    })
+  );
   return true;
 };
 
@@ -178,6 +189,7 @@ export const moveBadShips = (bus, game, { height, width }) => {
   });
 };
 
+// TODO: these should be async
 const bulletMoveHandlers = {
   [BAD_SHIP_TYPE]: (bus, game) =>
     game.bullets
@@ -569,3 +581,8 @@ export default class SpaceInvadersGame {
     this.bullets = [];
   }
 }
+
+const asyncFilter = async (arr, predicate) => {
+  const results = await Promise.all(arr.map(predicate));
+  return arr.filter((_v, index) => results[index]);
+};
