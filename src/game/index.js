@@ -23,16 +23,109 @@ import {
   ROCK_SLICE_KILLED_BY_GOOD_BULLET,
   START_NEXT_LEVEL,
 } from "../events/events";
-import drawObject, { moveAndDrawObject } from "../functional/drawObject";
-import moveObject from "../functional/moveObject";
+import { moveAndDrawObject } from "../functional/drawObject";
 import levelsGenerator from "../levels";
 import { getRandomInt } from "../levels/generators";
-import getSetting, { getSettingFor } from "./getSetting";
+import getSetting from "./getSetting";
 import { isBadShipBullet, isGoodShipBullet } from "./helpers";
 
 // TOOD: Build canvas operations that in an animation frame into the frame queue - killing objects
 
 const levelGen = levelsGenerator();
+
+export const checkForCollisions = () => {
+  game.bullets.forEach((b) => {
+    if (handleIfCollidingWithRock(bus, game, b)) return;
+    if (handleIfCollidingWithBadShip(bus, game, b)) return;
+    if (handleIfCollidingWithGoodShip(bus, game, b)) return;
+    handleIfOutOfPlay(bus, game, context, bullet);
+  });
+
+  // for (let row of this.badShips) {
+  //   for (let badShip of row) {
+  //     for (let rock of this.rocks) {
+  //       if (this.isColliding(badShip, rock)) {
+  //         // badShip + rock colliding
+  //         // damage rock precisely where positions intersect
+  //       } else {
+  //         continue;
+  //       }
+  //     }
+  //   }
+  // }
+};
+
+const handleIfCollidingWithRock = (bus, game, bullet) => {
+  const rocksHit = game.rocks.filter(
+    (r) => !new CollisionCheck(bullet.shapes, r.shapes).isColliding()
+  );
+  if (!rocksHit.length) return false;
+
+  rocksHit.forEach((r) => {
+    rock.shapes = rock.shapes.filter((s) => {
+      const hit = new CollisionCheck(bullet.shapes, s).isColliding();
+      if (hit) publishToEventBus(bus, CANVAS_REMOVE, [s]);
+      return !hit;
+    });
+  });
+
+  publishToEventBus(
+    bus,
+    isGoodShipBullet(bullet)
+      ? ROCK_SLICE_KILLED_BY_GOOD_BULLET
+      : ROCK_SLICE_KILLED_BY_BAD_BULLET,
+    { id: bullet.ownerId }
+  );
+  destroyObject(bus, game, bullet);
+  return true;
+};
+
+const handleIfOutOfPlay = (bus, game, { height, width }, object) => {
+  const { top, bottom } = isAtExtremity({ height, width }, object.shapes);
+  if (!top && !bottom) return;
+  destroyObject(bus, game, object);
+};
+
+const handleIfCollidingWithGoodShip = (bus, game, bullet) => {
+  const isBadShip = isBadShipBullet(bullet);
+  if (!isBadShip) return false;
+
+  const goodShipsHit = game.goodShips.filter((s) =>
+    new CollisionCheck(bullet.shapes, s.shapes).isColliding()
+  );
+  if (!goodShipsHit.length) return false;
+
+  destroyObject(bus, game, bullet);
+  goodShipsHit.forEach((s) => {
+    publishToEventBus(bus, GOOD_SHIP_KILLED_BY_BAD_BULLET, {
+      id: s.id,
+    });
+    destroyObject(bus, game, s);
+  });
+  return true;
+
+  // TODO: Game was creating new good ship here but it should happen off an event...what event and where?
+};
+
+const handleIfCollidingWithBadShip = (bus, game, bullet) => {
+  const isGoodShip = isGoodShipBullet(bullet);
+  if (!isGoodShip) return false;
+
+  const badShipsHit = game.badShips.filter(
+    (s) => new CollisionCheck(bullet.shapes, s.shapes).isColliding
+  );
+
+  if (!badShipsHit.length) return false;
+
+  destroyObject(bus, game, bullet);
+  badShipsHit.forEach((s) => {
+    publishToEventBus(bus, BAD_SHIP_KILLED_BY_GOOD_BULLET, {
+      id: s.id,
+    });
+    destroyObject(bus, game, s);
+  });
+  return true;
+};
 
 export const initialiseBadShips = async (bus, game) => {
   const shipsPerRow = getSetting(
@@ -369,8 +462,6 @@ export default class SpaceInvadersGame {
       }
     }
   }
-
-  // Draw a grid of badShips
 
   destroyBadShips() {
     /*
