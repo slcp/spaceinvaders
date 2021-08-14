@@ -2,12 +2,13 @@ import GameAnimation, { runFrame } from "../animation";
 import { newAnimationFrame } from "../animation/animationFrame";
 import Canvas2D, { isAtExtremity } from "../canvas";
 import CollisionCheck from "../collisionCheck/collision";
-import BadShip, { BAD_SHIP_TYPE } from "../entitiies/badShip";
+import BadShip, { BAD_SHIP_TYPE, newBadShip } from "../entitiies/badShip";
 import { BULLET_TYPE, fireBullet } from "../entitiies/bullet";
 import GoodShip, { newGoodShip, SHIP_TYPE } from "../entitiies/goodShip";
 import Rock, { ROCK_TYPE } from "../entitiies/rock";
 import { publishToEventBus, subscribeToEventBus } from "../events";
 import {
+  BAD_SHIP_CREATED,
   BAD_SHIP_DESTROYED,
   BAD_SHIP_KILLED_BY_GOOD_BULLET,
   BULLET_CREATED,
@@ -33,37 +34,54 @@ import { isBadShipBullet, isGoodShipBullet } from "./helpers";
 
 const levelGen = levelsGenerator();
 
+export const initialiseBadShips = async (bus, game) => {
+  const shipsPerRow = getSetting(
+    "badShipsPerRow",
+    game.level[game.currentLevelMode]
+  );
+  const rows = getSetting("badShipRows", game.level[game.currentLevelMode]);
+
+  for (let i = 0; i < rows; i++) {
+    // Loop for number of rows required
+    for (let j = 0; j < shipsPerRow; j++) {
+      // Loop for ships required on each row
+      const newShip = newBadShip();
+      moveAndDrawObject(
+        bus,
+        newShip,
+        newShip.width * j + 5,
+        newShip.height * i + 150
+      ); // For initialise delta is set relative to 0, 0. newShip.width/height*j/i should offset from the previous ship and produce a gutter
+      publishToEventBus(bus, BAD_SHIP_CREATED, newShip);
+    }
+  }
+};
+
 export const shootBadBullets = (bus, game) => {
   const rate = getSetting(
     "badShipsBulletsPerSecond",
     game.level[game.currentLevelMode]
   );
   for (let i = 1; i <= rate; i++) {
-    let rowIndex = getRandomInt({ max: game.badShips.length - 1 });
-    let shipIndex = getRandomInt({ max: game.badShips[rowIndex].length - 1 });
-    let ship = game.badShips[rowIndex][shipIndex];
-    // badShip may have already been destroyed
+    const shipIndex = getRandomInt({ max: game.badShips.length - 1 });
+    const ship = game.badShips[shipIndex];
+    // badShip may have already been destrosyed
     if (ship) fireBullet(bus, ship);
   }
 };
 
 export const moveBadShips = (bus, game, { height, width }) => {
-  game.badShips.forEach((row) => {
-    // As badShips are destroyed rows become empty.
-    if (!row.length) return;
+  const results = game.badShips.map(({ shapes }) =>
+    isAtExtremity({ height, width }, shapes)
+  );
+  const left = results.some((r) => r.left === true);
+  const right = results.some((r) => r.right === true);
 
-    const deltaY = 10;
+  const deltaY = 10;
+  const deltaX = left && !right ? 1 : -1;
 
-    const { left } = isAtExtremity({ height, width }, row[0].shapes);
-    const { right } = isAtExtremity(
-      { height, width },
-      row[row.length - 1].shapes
-    );
-    const deltaX = left && !right ? 1 : -1;
-
-    row.forEach((ship) => {
-      moveAndDrawObject(bus, ship, deltaX, deltaY);
-    });
+  game.badShips.forEach((ship) => {
+    moveAndDrawObject(bus, ship, deltaX, deltaY);
   });
 };
 
@@ -103,6 +121,9 @@ export const initialiseGame = async (bus, game, context) => {
   );
   await subscribeToEventBus(bus, BULLET_CREATED, (bullet) => {
     game.bullets = [...game.bullets, bullet];
+  });
+  await subscribeToEventBus(bus, BAD_SHIP_CREATED, (ship) => {
+    game.badShips = [...game.badShips, ship];
   });
 
   runFrame([
@@ -161,12 +182,11 @@ const objectDestroyHandlers = {
     publishToEventBus(bus, GOOD_SHIP_DESTROYED, { id: ship.id });
   },
   [BAD_SHIP_TYPE]: (bus, ship, game) => {
-    game.badShips.map((r) => r.filter((s) => s.id !== ship.id)),
+    game.badShips.filter((s) => s.id !== ship.id),
       publishToEventBus(bus, BAD_SHIP_DESTROYED, { id: ship.id });
   },
   [ROCK_TYPE]: (_, rock, game) => game.rocks.filter((r) => r.id !== rock.id),
   [BULLET_TYPE]: (bus, bullet, game) => {
-    game.bullets.filter((b) => b.id !== bullet.id);
     game.bullets.filter((b) => b.id !== bullet.id);
     publishToEventBus(bus, BULLET_DESTROYED, { id: bullet.id });
   },
@@ -179,6 +199,9 @@ export const destroyObject = (
   handlers = objectDestroyHandlers
 ) => {
   const { _type } = object;
+  if (!handlers[_type]) {
+    throw new Error("unknon object type when trying to destory object");
+  }
   publishToEventBus(bus, CANVAS_REMOVE, object.shapes);
   handlers[_type](bus, object, game);
 };
@@ -226,15 +249,6 @@ export default class SpaceInvadersGame {
     this.endGame();
     this.level = this.levelData.next().value;
     this.startGame();
-  }
-
-  drawObject(object) {
-    drawObject({ eventBus: this.eventBus, object });
-  }
-
-  moveAndDrawObject(bus, object, deltaX, deltaY) {
-    moveObject({ object, deltaX, deltaY });
-    drawObject({ eventBus: bus, object });
   }
 
   isColliding(object1, object2) {
@@ -353,24 +367,6 @@ export default class SpaceInvadersGame {
   }
 
   // Draw a grid of badShips
-  initialiseBadShips() {
-    const settings = getSettingFor("badShip", level[this.currentLevelMode]);
-    const shipsPerRow = this.getSetting("badShipsPerRow");
-    for (let i = 0; i < this.getSetting("badShipRows"); i++) {
-      // Loop for number of rows required
-      this.badShips[i] = []; // Initialise row in array
-      for (let j = 0; j < shipsPerRow; j++) {
-        // Loop for ships required on each row
-        let newShip = new BadShip(this, settings);
-        this.moveAndDrawObject(
-          newShip,
-          newShip.width * j + 5,
-          newShip.height * i + 150
-        ); // For initialise delta is set relative to 0, 0. newShip.width/height*j/i should offset from the previous ship and produce a gutter
-        this.badShips[i].push(newShip);
-      }
-    }
-  }
 
   destroyBadShips() {
     /*
@@ -476,68 +472,5 @@ export default class SpaceInvadersGame {
         this.destroyObject(rock);
       });
     this.bullets = [];
-  }
-
-  moveBadShips() {
-    for (let row of this.badShips) {
-      // As badShips are destroyed rows become empty.
-      if (row.length) {
-        const { height, width } = this.context;
-        const firstShip = row[0];
-        const lastShip = row[row.length - 1];
-        let deltaX,
-          deltaY = 0;
-
-        // Ships have hit left edge of canvas, deltaX needs to be +1
-        if (
-          Canvas2D.isAtExtremity({ height, width }, "left", firstShip.shapes)
-        ) {
-          this.badShipDirection = "right";
-          deltaY = 10;
-          // Ships have hit right side of canvas, deltaX needs to be -1
-        } else if (
-          Canvas2D.isAtExtremity({ height, width }, "right", lastShip.shapes)
-        ) {
-          this.badShipDirection = "left";
-          deltaY = 10;
-        }
-
-        deltaX = this.badShipDirection === "right" ? 1 : -1;
-
-        row.forEach((ship) => {
-          this.moveAndDrawObject(ship, deltaX, deltaY);
-        });
-      }
-    }
-  }
-
-  moveBullets(ownerType) {
-    switch (ownerType) {
-      case "badShip":
-        this.bullets
-          .filter((bullet) => isBadShipBullet(bullet))
-          // Move the bullet down the screen
-          .forEach((bullet) => this.moveAndDrawObject(bullet, 0, 5));
-        break;
-      case "goodShip":
-        this.bullets
-          .filter((bullet) => isGoodShipBullet(bullet))
-          // Move the bullet up the screen
-          .forEach((bullet) => this.moveAndDrawObject(bullet, 0, -5));
-        break;
-      default:
-        break;
-    }
-  }
-
-  // shoot bullets from X random bad ships
-  shootBadBullets() {
-    for (let i = 1; i <= this.getSetting("badShipsBulletsPerSecond"); i++) {
-      let rowIndex = getRandomInt({ max: this.badShips.length - 1 });
-      let shipIndex = getRandomInt({ max: this.badShips[rowIndex].length - 1 });
-      let ship = this.badShips[rowIndex][shipIndex];
-      // badShip may have already been destroyed
-      if (ship) ship.fireBullet();
-    }
   }
 }

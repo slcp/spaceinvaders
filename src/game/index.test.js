@@ -1,14 +1,23 @@
-import { initialiseGame, moveBadShips, moveBullets, newGame } from ".";
+import {
+  destroyObject,
+  initialiseBadShips,
+  initialiseGame,
+  moveBadShips,
+  moveBullets,
+  newGame,
+  shootBadBullets,
+} from ".";
 import * as eventBus from "../events";
 import { newEventBus } from "../events";
 import { runFrame } from "../animation";
 import {
+  BAD_SHIP_CREATED,
   BULLET_CREATED,
   END_GAME,
   NEW_GAME,
   START_NEXT_LEVEL,
 } from "../events/events";
-import { newBullet } from "../entitiies/bullet";
+import { fireBullet, newBullet } from "../entitiies/bullet";
 import { SHIP_TYPE } from "../entitiies/goodShip";
 import { newShape } from "../canvas/shape";
 import { isAtExtremity } from "../canvas";
@@ -21,6 +30,11 @@ jest.mock("../canvas", () => ({
 
 jest.mock("../animation", () => ({
   runFrame: jest.fn(),
+}));
+
+jest.mock("../entitiies/bullet", () => ({
+  ...jest.requireActual("../entitiies/bullet"),
+  fireBullet: jest.fn(),
 }));
 
 describe("Game", () => {
@@ -113,6 +127,15 @@ describe("Game", () => {
       expect(subscribeSpy).toHaveBeenCalledWith(
         expect.objectContaining({
           events: expect.objectContaining({
+            [BAD_SHIP_CREATED]: expect.arrayContaining([expect.any(Function)]),
+          }),
+        }),
+        BAD_SHIP_CREATED,
+        expect.any(Function)
+      );
+      expect(subscribeSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          events: expect.objectContaining({
             [NEW_GAME]: expect.arrayContaining([expect.any(Function)]),
           }),
         }),
@@ -137,6 +160,59 @@ describe("Game", () => {
         END_GAME,
         expect.any(Function)
       );
+    });
+  });
+  describe("Event subscriptions", () => {
+    it("should add bullet to game when responding to BULLET_CREATED event", async () => {
+      // Arrange
+      const bus = newEventBus();
+      const game = newGame();
+      const bullet = newBullet("OWNER_TYPE", "OWNER_ID");
+      game.bullets = [
+        newBullet("OWNER_TYPE", "OWNER_ID"),
+        newBullet("OWNER_TYPE", "OWNER_ID"),
+      ];
+      game.level = {
+        standard: {
+          game: {
+            goodBulletFramerate: 1,
+            badShipsBulletsPerSecond: 2,
+            badBulletFramerate: 3,
+            badShipFramerate: 4,
+          },
+        },
+      };
+
+      // Act
+      await initialiseGame(bus, game, {});
+      await eventBus.publishToEventBus(bus, BULLET_CREATED, bullet);
+
+      // Assert
+      expect(game.bullets).toContain(bullet);
+    });
+    it("should add ship to game when responding to BAD_SHIP_CREATED event", async () => {
+      // Arrange
+      const bus = newEventBus();
+      const game = newGame();
+      const ship = newBadShip();
+      game.bullets = [newBadShip(), newBadShip()];
+      game.level = {
+        standard: {
+          game: {
+            goodBulletFramerate: 1,
+            badShipsBulletsPerSecond: 2,
+            badBulletFramerate: 3,
+            badShipFramerate: 4,
+          },
+        },
+      };
+
+      // Act
+      await initialiseGame(bus, game, {});
+      await eventBus.publishToEventBus(bus, BAD_SHIP_CREATED, ship);
+
+      // Assert
+      expect(game.badShips).toContain(ship);
     });
   });
   describe("moveBullets", () => {
@@ -302,13 +378,53 @@ describe("Game", () => {
       });
     });
   });
+  describe("destroyObject", () => {
+    ["TYPE_ONE", "TYPE_TWO"].forEach((type) => {
+      it(`should call the expected handler with type: ${type}`, () => {
+        // Arrange
+        const bus = newEventBus();
+        const game = newGame();
+        const o = {
+          _type: type,
+        };
+        const handlers = {
+          TYPE_ONE: jest.fn(),
+          TYPE_TWO: jest.fn(),
+        };
+
+        // Act
+        destroyObject(bus, game, o, handlers);
+
+        // Assert
+        expect(handlers[type]).toHaveBeenCalledWith(bus, o, game);
+      });
+    });
+    it("should throw when the handler type is not known", () => {
+      // Arrange
+      const bus = newEventBus();
+      const game = newGame();
+      const o = {
+        _type: "UNKOWN_TYPE",
+      };
+      const handlers = {
+        TYPE_ONE: jest.fn(),
+      };
+
+      // Act
+      // Assert
+      expect(() => destroyObject(bus, game, o, handlers)).toThrow(
+        "unknon object type when trying to destory object"
+      );
+    });
+    // TODO: Test default handlers!
+  });
   describe("moveBadShips", () => {
     it("should do nothing if there are no ships in a row", () => {
       // Arrange
       const bus = newEventBus();
       const game = newGame();
       const moveAndDrawSpy = jest.spyOn(draw, "moveAndDrawObject");
-      game.badShips = [[]];
+      game.badShips = [];
 
       // Act
       moveBadShips(bus, game, {});
@@ -327,7 +443,7 @@ describe("Game", () => {
         newShape(0, 89, 10, 10, "blue"),
         newShape(5, 89, 10, 10, "blue"),
       ];
-      game.badShips = [[leftExtremityBadShape], [newBadShip()]];
+      game.badShips = [leftExtremityBadShape, newBadShip()];
       isAtExtremity.mockReturnValue({
         left: true,
         right: false,
@@ -365,7 +481,7 @@ describe("Game", () => {
         newShape(1, 89, 10, 10, "blue"),
         newShape(90, 89, 10, 10, "blue"),
       ];
-      game.badShips = [[rightExtremityBadShape], [newBadShip()]];
+      game.badShips = [rightExtremityBadShape, newBadShip()];
       isAtExtremity.mockReturnValue({
         left: false,
         right: true,
@@ -391,6 +507,383 @@ describe("Game", () => {
         expect.any(Object),
         -1,
         10
+      );
+    });
+  });
+  describe("shootBadBullets", () => {
+    it("should do nothing when there are no bad ships", () => {
+      // Arrange
+      const bus = newEventBus();
+      const game = newGame();
+      game.badShips = [];
+      game.level = {
+        standard: {
+          game: {
+            badShipsBulletsPerSecond: 2,
+          },
+        },
+      };
+
+      // Act
+      shootBadBullets(bus, game);
+
+      // Assert
+      expect(fireBullet).not.toHaveBeenCalled();
+    });
+    it("should do call fireBullet badShipsBulletsPerSecond times with a ship from the game", () => {
+      // Arrange
+      const bus = newEventBus();
+      const game = newGame();
+      game.level = {
+        standard: {
+          game: {
+            badShipsBulletsPerSecond: 2,
+          },
+        },
+      };
+      game.badShips = [newBadShip(), newBadShip(), newBadShip()];
+
+      // Act
+      shootBadBullets(bus, game);
+
+      // Assert
+      expect(fireBullet).toHaveBeenCalledTimes(2);
+      expect(fireBullet).toHaveBeenCalledWith(
+        bus,
+        expect.objectContaining({
+          _type: BAD_SHIP_TYPE,
+        })
+      );
+    });
+  });
+  describe("initialiseBadShips", () => {
+    it("should X", async () => {
+      // Arrange
+      const bus = newEventBus();
+      const game = newGame();
+      game.level = {
+        standard: {
+          game: {
+            badShipRows: 2,
+            badShipsPerRow: 3,
+          },
+        },
+      };
+      const publishSpy = jest.spyOn(eventBus, "publishToEventBus");
+      const moveAndDrawSpy = jest.spyOn(draw, "moveAndDrawObject");
+
+      // Act
+      await initialiseBadShips(bus, game);
+
+      // Assert
+      expect(publishSpy).toHaveBeenCalledTimes(12); // 6 for CANVAS_DRAW + 6 for BAD_SHIP_CREATED
+      expect(moveAndDrawSpy).toHaveBeenCalledTimes(6);
+      // Assert calls for each expected ship
+      expect(moveAndDrawSpy).toHaveBeenCalledWith(
+        bus,
+        expect.objectContaining({
+          _type: "_badShip",
+          shapes: [
+            {
+              _type: "_shape",
+              color: "white",
+              height: 9,
+              oldX: 20,
+              oldY: 32,
+              width: 60,
+              x: 25,
+              y: 182,
+            },
+            {
+              _type: "_shape",
+              color: "white",
+              height: 20,
+              oldX: 40,
+              oldY: 28,
+              width: 20,
+              x: 45,
+              y: 178,
+            },
+            {
+              _type: "_shape",
+              color: "white",
+              height: 20,
+              oldX: 20,
+              oldY: 20,
+              width: 12,
+              x: 25,
+              y: 170,
+            },
+            {
+              _type: "_shape",
+              color: "white",
+              height: 20,
+              oldX: 68,
+              oldY: 20,
+              width: 12,
+              x: 73,
+              y: 170,
+            },
+          ],
+          width: 80,
+        }),
+        5,
+        150
+      );
+      expect(moveAndDrawSpy).toHaveBeenCalledWith(
+        bus,
+        expect.objectContaining({
+          _type: "_badShip",
+          shapes: [
+            {
+              _type: "_shape",
+              color: "white",
+              height: 9,
+              oldX: 20,
+              oldY: 32,
+              width: 60,
+              x: 105,
+              y: 182,
+            },
+            {
+              _type: "_shape",
+              color: "white",
+              height: 20,
+              oldX: 40,
+              oldY: 28,
+              width: 20,
+              x: 125,
+              y: 178,
+            },
+            {
+              _type: "_shape",
+              color: "white",
+              height: 20,
+              oldX: 20,
+              oldY: 20,
+              width: 12,
+              x: 105,
+              y: 170,
+            },
+            {
+              _type: "_shape",
+              color: "white",
+              height: 20,
+              oldX: 68,
+              oldY: 20,
+              width: 12,
+              x: 153,
+              y: 170,
+            },
+          ],
+          width: 80,
+        }),
+        85,
+        150
+      );
+      expect(moveAndDrawSpy).toHaveBeenCalledWith(
+        bus,
+        expect.objectContaining({
+          _type: "_badShip",
+          shapes: [
+            {
+              _type: "_shape",
+              color: "white",
+              height: 9,
+              oldX: 20,
+              oldY: 32,
+              width: 60,
+              x: 185,
+              y: 182,
+            },
+            {
+              _type: "_shape",
+              color: "white",
+              height: 20,
+              oldX: 40,
+              oldY: 28,
+              width: 20,
+              x: 205,
+              y: 178,
+            },
+            {
+              _type: "_shape",
+              color: "white",
+              height: 20,
+              oldX: 20,
+              oldY: 20,
+              width: 12,
+              x: 185,
+              y: 170,
+            },
+            {
+              _type: "_shape",
+              color: "white",
+              height: 20,
+              oldX: 68,
+              oldY: 20,
+              width: 12,
+              x: 233,
+              y: 170,
+            },
+          ],
+          width: 80,
+        }),
+        165,
+        150
+      );
+      expect(moveAndDrawSpy).toHaveBeenCalledWith(
+        bus,
+        expect.objectContaining({
+          _type: "_badShip",
+          shapes: [
+            {
+              _type: "_shape",
+              color: "white",
+              height: 9,
+              oldX: 20,
+              oldY: 32,
+              width: 60,
+              x: 25,
+              y: 262,
+            },
+            {
+              _type: "_shape",
+              color: "white",
+              height: 20,
+              oldX: 40,
+              oldY: 28,
+              width: 20,
+              x: 45,
+              y: 258,
+            },
+            {
+              _type: "_shape",
+              color: "white",
+              height: 20,
+              oldX: 20,
+              oldY: 20,
+              width: 12,
+              x: 25,
+              y: 250,
+            },
+            {
+              _type: "_shape",
+              color: "white",
+              height: 20,
+              oldX: 68,
+              oldY: 20,
+              width: 12,
+              x: 73,
+              y: 250,
+            },
+          ],
+          width: 80,
+        }),
+        5,
+        230
+      );
+      expect(moveAndDrawSpy).toHaveBeenCalledWith(
+        bus,
+        expect.objectContaining({
+          _type: "_badShip",
+          shapes: [
+            {
+              _type: "_shape",
+              color: "white",
+              height: 9,
+              oldX: 20,
+              oldY: 32,
+              width: 60,
+              x: 105,
+              y: 262,
+            },
+            {
+              _type: "_shape",
+              color: "white",
+              height: 20,
+              oldX: 40,
+              oldY: 28,
+              width: 20,
+              x: 125,
+              y: 258,
+            },
+            {
+              _type: "_shape",
+              color: "white",
+              height: 20,
+              oldX: 20,
+              oldY: 20,
+              width: 12,
+              x: 105,
+              y: 250,
+            },
+            {
+              _type: "_shape",
+              color: "white",
+              height: 20,
+              oldX: 68,
+              oldY: 20,
+              width: 12,
+              x: 153,
+              y: 250,
+            },
+          ],
+          width: 80,
+        }),
+        85,
+        230
+      );
+      expect(moveAndDrawSpy).toHaveBeenCalledWith(
+        bus,
+        expect.objectContaining({
+          _type: "_badShip",
+          shapes: [
+            {
+              _type: "_shape",
+              color: "white",
+              height: 9,
+              oldX: 20,
+              oldY: 32,
+              width: 60,
+              x: 185,
+              y: 262,
+            },
+            {
+              _type: "_shape",
+              color: "white",
+              height: 20,
+              oldX: 40,
+              oldY: 28,
+              width: 20,
+              x: 205,
+              y: 258,
+            },
+            {
+              _type: "_shape",
+              color: "white",
+              height: 20,
+              oldX: 20,
+              oldY: 20,
+              width: 12,
+              x: 185,
+              y: 250,
+            },
+            {
+              _type: "_shape",
+              color: "white",
+              height: 20,
+              oldX: 68,
+              oldY: 20,
+              width: 12,
+              x: 233,
+              y: 250,
+            },
+          ],
+          width: 80,
+        }),
+        165,
+        230
       );
     });
   });
