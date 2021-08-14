@@ -995,7 +995,6 @@ describe("Game", () => {
       const bus = newEventBus();
       const game = gameExports.newGame();
       const bullet = newBullet();
-      bullet.shapes[0] = newShape(50, 0, 10, 10, "white");
       const context = { height: 100, width: 100 };
       const publishSpy = jest.spyOn(eventBus, "publishToEventBus");
       isAtExtremity.mockReturnValue(r);
