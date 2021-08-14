@@ -17,7 +17,6 @@ export const isAtExtremity = ({ height, width }, shapes) => {
   extremities.right = rightMostXValue >= width;
 
   const topMostYValue = Math.floor(...shapes.map((shape) => shape.y));
-  console.log("y: ", topMostYValue)
   extremities.top = topMostYValue <= 0;
 
   const bottomMostYValue = Math.max(

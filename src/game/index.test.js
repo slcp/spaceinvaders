@@ -5,6 +5,7 @@ import { runFrame } from "../animation";
 import {
   BAD_SHIP_CREATED,
   BAD_SHIP_DESTROYED,
+  BAD_SHIP_KILLED_BY_GOOD_BULLET,
   BULLET_CREATED,
   BULLET_DESTROYED,
   CANVAS_DRAW,
@@ -967,13 +968,14 @@ describe("Game", () => {
       const game = gameExports.newGame();
       const bullet = newBullet();
       const context = { height: 100, width: 100 };
-      const destroyObjectSpy = jest.spyOn(gameExports, "destroyObject");
+      const publishSpy = jest.spyOn(eventBus, "publishToEventBus");
+      isAtExtremity.mockReturnValue({ top: false, bottom: false });
 
       // Act
       await gameExports.handleIfOutOfPlay(bus, game, context, bullet);
 
       // Assert
-      expect(destroyObjectSpy).not.toHaveBeenCalled();
+      expect(publishSpy).not.toHaveBeenCalled();
     });
   });
   [
@@ -998,6 +1000,7 @@ describe("Game", () => {
       const context = { height: 100, width: 100 };
       const publishSpy = jest.spyOn(eventBus, "publishToEventBus");
       isAtExtremity.mockReturnValue(r);
+
       // Act
       await gameExports.handleIfOutOfPlay(bus, game, context, bullet);
 
@@ -1005,6 +1008,94 @@ describe("Game", () => {
       expect(publishSpy).toHaveBeenCalledWith(bus, BULLET_DESTROYED, {
         id: bullet.id,
       });
+    });
+  });
+  describe("handleIfCollidingWithBadShip", () => {
+    it("should return false when bullet is not owned by a goodShip", async () => {
+      // Arrange
+      const bus = newEventBus();
+      const game = gameExports.newGame();
+      const bullet = newBullet(BAD_SHIP_TYPE, "an id");
+
+      // Act
+      const is = await gameExports.handleIfCollidingWithBadShip(
+        bus,
+        game,
+        bullet
+      );
+
+      // Assert
+      expect(is).toEqual(false);
+    });
+    it("should destroy bullet and ship if good bullet hits bad ship", async () => {
+      // Arrange
+      const bus = newEventBus();
+      const game = gameExports.newGame();
+      const badShip = newBadShip();
+      badShip.shapes = [newShape(75, 74, 7, 21)];
+      game.badShips = [badShip];
+      const publishSpy = jest.spyOn(eventBus, "publishToEventBus");
+
+      const bullet = newBullet(SHIP_TYPE, "an id");
+      bullet.shapes = [newShape(75, 75, 4, 20)];
+
+      // Act
+      const is = await gameExports.handleIfCollidingWithBadShip(
+        bus,
+        game,
+        bullet
+      );
+
+      // Assert
+      expect(is).toEqual(true);
+      expect(publishSpy).toHaveBeenCalledWith(bus, BULLET_DESTROYED, {
+        id: bullet.id,
+      });
+      expect(publishSpy).toHaveBeenCalledWith(bus, BAD_SHIP_DESTROYED, {
+        id: badShip.id,
+      });
+      expect(publishSpy).toHaveBeenCalledWith(
+        bus,
+        BAD_SHIP_KILLED_BY_GOOD_BULLET,
+        {
+          id: badShip.id,
+        }
+      );
+    });
+    it("should do nothing if good bullet hits no bad ships", async () => {
+      // Arrange
+      const bus = newEventBus();
+      const game = gameExports.newGame();
+      const badShip = newBadShip();
+      badShip.shapes = [newShape(1, 1, 7, 21)];
+      game.badShips = [badShip];
+      const publishSpy = jest.spyOn(eventBus, "publishToEventBus");
+
+      const bullet = newBullet(SHIP_TYPE, "an id");
+      bullet.shapes = [newShape(75, 75, 4, 20)];
+
+      // Act
+      const is = await gameExports.handleIfCollidingWithBadShip(
+        bus,
+        game,
+        bullet
+      );
+
+      // Assert
+      expect(is).toEqual(false);
+      expect(publishSpy).not.toHaveBeenCalledWith(bus, BULLET_DESTROYED, {
+        id: bullet.id,
+      });
+      expect(publishSpy).not.toHaveBeenCalledWith(bus, BAD_SHIP_DESTROYED, {
+        id: badShip.id,
+      });
+      expect(publishSpy).not.toHaveBeenCalledWith(
+        bus,
+        BAD_SHIP_KILLED_BY_GOOD_BULLET,
+        {
+          id: badShip.id,
+        }
+      );
     });
   });
 });

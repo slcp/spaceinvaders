@@ -116,12 +116,12 @@ const handleIfCollidingWithGoodShip = async (bus, game, bullet) => {
   // TODO: Game was creating new good ship here but it should happen off an event...what event and where?
 };
 
-const handleIfCollidingWithBadShip = async (bus, game, bullet) => {
+export const handleIfCollidingWithBadShip = async (bus, game, bullet) => {
   const isGoodShip = isGoodShipBullet(bullet);
   if (!isGoodShip) return false;
 
-  const badShipsHit = game.badShips.filter(
-    (s) => new CollisionCheck(bullet.shapes, s.shapes).isColliding
+  const badShipsHit = game.badShips.filter((s) =>
+    new CollisionCheck(bullet.shapes, s.shapes).isColliding()
   );
 
   if (!badShipsHit.length) return false;
