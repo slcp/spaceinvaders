@@ -40,30 +40,17 @@ export const checkForCollisions = () => {
     if (handleIfCollidingWithGoodShip(bus, game, b)) return;
     handleIfOutOfPlay(bus, game, context, bullet);
   });
-
-  // for (let row of this.badShips) {
-  //   for (let badShip of row) {
-  //     for (let rock of this.rocks) {
-  //       if (this.isColliding(badShip, rock)) {
-  //         // badShip + rock colliding
-  //         // damage rock precisely where positions intersect
-  //       } else {
-  //         continue;
-  //       }
-  //     }
-  //   }
-  // }
 };
 
-const handleIfCollidingWithRock = async (bus, game, bullet) => {
-  const rocksHit = game.rocks.filter(
-    (r) => !new CollisionCheck(bullet.shapes, r.shapes).isColliding()
+export const handleIfCollidingWithRock = async (bus, game, bullet) => {
+  const rocksHit = game.rocks.filter((r) =>
+    new CollisionCheck(bullet.shapes, r.shapes).isColliding()
   );
   if (!rocksHit.length) return false;
 
   await Promise.all(
     rocksHit.map(async (r) => {
-      r.shapes = await asyncFilter(rock.shapes, async (s) => {
+      r.shapes = await asyncFilter(r.shapes, async (s) => {
         const hit = new CollisionCheck(bullet.shapes, s).isColliding();
         if (hit) await publishToEventBus(bus, CANVAS_REMOVE, [s]);
         return !hit;
@@ -76,7 +63,7 @@ const handleIfCollidingWithRock = async (bus, game, bullet) => {
     isGoodShipBullet(bullet)
       ? ROCK_SLICE_KILLED_BY_GOOD_BULLET
       : ROCK_SLICE_KILLED_BY_BAD_BULLET,
-    { id: bullet.ownerId }
+    { id: bullet.id }
   );
   await destroyObject(bus, game, bullet);
   return true;

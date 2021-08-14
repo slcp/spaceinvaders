@@ -1,6 +1,3 @@
-import { newShape } from "../canvas/shape";
-import { BAD_SHIP_TYPE } from "./badShip";
-import { newBullet } from "./bullet";
 import { initialiseRock, newRock } from "./rock";
 
 describe("Rock", () => {
@@ -122,7 +119,9 @@ describe("Rock", () => {
 
       // Act
       // Assert
-      expect(() => initialiseRock(rock, settings)).toThrow("rock width must be set");
+      expect(() => initialiseRock(rock, settings)).toThrow(
+        "rock width must be set"
+      );
     });
   });
 });

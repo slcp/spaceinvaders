@@ -29,12 +29,6 @@ import { v4 as uuid } from "uuid";
 
 export const ROCK_TYPE = "_rock";
 
-export const findRockDamageFromBullet = (rock, bullet) => {
-  rock.shapes = rock.shapes.filter(
-    (s) => !new CollisionCheck(bullet.shapes, s).isColliding()
-  );
-};
-
 export const initialiseRock = (rock, settings) => {
   if (!rock.width) {
     throw new Error("rock width must be set");

@@ -5,7 +5,7 @@ import { newShape } from "../canvas/shape";
 import { BAD_SHIP_TYPE, newBadShip } from "../entitiies/badShip";
 import { fireBullet, newBullet } from "../entitiies/bullet";
 import { newGoodShip, SHIP_TYPE } from "../entitiies/goodShip";
-import { newRock } from "../entitiies/rock";
+import { initialiseRock, newRock } from "../entitiies/rock";
 import * as eventBus from "../events";
 import { newEventBus } from "../events";
 import {
@@ -19,6 +19,8 @@ import {
   GOOD_SHIP_DESTROYED,
   GOOD_SHIP_KILLED_BY_BAD_BULLET,
   NEW_GAME,
+  ROCK_SLICE_KILLED_BY_BAD_BULLET,
+  ROCK_SLICE_KILLED_BY_GOOD_BULLET,
   START_NEXT_LEVEL,
 } from "../events/events";
 import * as draw from "../functional/drawObject";
@@ -1184,6 +1186,62 @@ describe("Game", () => {
           id: ship.id,
         }
       );
+    });
+  });
+  describe("handleIfCollidingWithRock", () => {
+    [
+      { shipType: BAD_SHIP_TYPE, eventType: ROCK_SLICE_KILLED_BY_BAD_BULLET },
+      { shipType: SHIP_TYPE, eventType: ROCK_SLICE_KILLED_BY_GOOD_BULLET },
+    ].forEach(({ shipType, eventType }) => {
+      it(`should destroy the expected part of the rock and publish ${eventType} event when ship type is ${shipType}`, async () => {
+        // Arrange
+        const bus = newEventBus();
+        const game = gameExports.newGame();
+        const rock = newRock(5);
+        const targetShape = {
+          _type: "_shape",
+          x: 50,
+          y: 800,
+          width: 50,
+          height: 10,
+          color: undefined,
+        };
+        rock.shapes = [
+          {
+            _type: "_shape",
+            x: 0,
+            y: 800,
+            width: 50,
+            height: 10,
+            color: undefined,
+          },
+          targetShape,
+        ];
+        game.rocks = [rock];
+        const bullet = newBullet(shipType, "an id");
+        bullet.shapes[0] = newShape(70, 800, 10, 10);
+        const publishSpy = jest.spyOn(eventBus, "publishToEventBus");
+
+        // Act
+        const is = await gameExports.handleIfCollidingWithRock(
+          bus,
+          game,
+          bullet
+        );
+
+        // Assert
+        expect(is).toEqual(true);
+        expect(rock.shapes).toHaveLength(1);
+        expect(publishSpy).toHaveBeenCalledWith(bus, CANVAS_REMOVE, [
+          targetShape,
+        ]);
+        expect(publishSpy).toHaveBeenCalledWith(bus, BULLET_DESTROYED, {
+          id: bullet.id,
+        });
+        expect(publishSpy).toHaveBeenCalledWith(bus, eventType, {
+          id: bullet.id,
+        });
+      });
     });
   });
 });
