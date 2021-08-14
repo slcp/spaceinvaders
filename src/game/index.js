@@ -93,7 +93,7 @@ export const handleIfOutOfPlay = async (
   await destroyObject(bus, game, object);
 };
 
-const handleIfCollidingWithGoodShip = async (bus, game, bullet) => {
+export const handleIfCollidingWithGoodShip = async (bus, game, bullet) => {
   const isBadShip = isBadShipBullet(bullet);
   if (!isBadShip) return false;
 
