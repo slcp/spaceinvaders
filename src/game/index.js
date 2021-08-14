@@ -177,22 +177,26 @@ export const newGame = () => ({
 });
 
 const objectDestroyHandlers = {
-  [SHIP_TYPE]: (bus, ship, game) => {
-    game.goodShips.filter((s) => s.id !== ship.id);
-    publishToEventBus(bus, GOOD_SHIP_DESTROYED, { id: ship.id });
+  [SHIP_TYPE]: async (bus, ship, game) => {
+    game.goodShips = game.goodShips.filter((s) => {
+      return s.id !== ship.id;
+    });
+    await publishToEventBus(bus, GOOD_SHIP_DESTROYED, { id: ship.id });
   },
-  [BAD_SHIP_TYPE]: (bus, ship, game) => {
-    game.badShips.filter((s) => s.id !== ship.id),
-      publishToEventBus(bus, BAD_SHIP_DESTROYED, { id: ship.id });
+  [BAD_SHIP_TYPE]: async (bus, ship, game) => {
+    (game.badShips = game.badShips.filter((s) => s.id !== ship.id)),
+      await publishToEventBus(bus, BAD_SHIP_DESTROYED, { id: ship.id });
   },
-  [ROCK_TYPE]: (_, rock, game) => game.rocks.filter((r) => r.id !== rock.id),
-  [BULLET_TYPE]: (bus, bullet, game) => {
-    game.bullets.filter((b) => b.id !== bullet.id);
-    publishToEventBus(bus, BULLET_DESTROYED, { id: bullet.id });
+  [ROCK_TYPE]: async (_, rock, game) => {
+    game.rocks = game.rocks.filter((r) => r.id !== rock.id);
+  },
+  [BULLET_TYPE]: async (bus, bullet, game) => {
+    game.bullets = game.bullets.filter((b) => b.id !== bullet.id);
+    await publishToEventBus(bus, BULLET_DESTROYED, { id: bullet.id });
   },
 };
 
-export const destroyObject = (
+export const destroyObject = async (
   bus,
   game,
   object,
@@ -202,8 +206,8 @@ export const destroyObject = (
   if (!handlers[_type]) {
     throw new Error("unknon object type when trying to destory object");
   }
-  publishToEventBus(bus, CANVAS_REMOVE, object.shapes);
-  handlers[_type](bus, object, game);
+  await publishToEventBus(bus, CANVAS_REMOVE, object.shapes);
+  await handlers[_type](bus, object, game);
 };
 
 export default class SpaceInvadersGame {
