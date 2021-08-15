@@ -1,7 +1,9 @@
 import GameAnimation, { runFrame } from "../animation";
 import { newAnimationFrame } from "../animation/animationFrame";
 import { isAtExtremity } from "../canvas";
-import CollisionCheck from "../collisionCheck/collision";
+import { handleIfCollidingWithBadShip } from "../collisionCheck/badShip";
+import { handleIfCollidingWithGoodShip } from "../collisionCheck/goodShip";
+import { handleIfCollidingWithRock } from "../collisionCheck/rocks";
 import { BAD_SHIP_TYPE, newBadShip } from "../entitiies/badShip";
 import { BULLET_TYPE, fireBullet } from "../entitiies/bullet";
 import { newGoodShip, SHIP_TYPE } from "../entitiies/goodShip";
@@ -10,19 +12,16 @@ import { publishToEventBus, subscribeToEventBus } from "../events";
 import {
   BAD_SHIP_CREATED,
   BAD_SHIP_DESTROYED,
-  BAD_SHIP_KILLED_BY_GOOD_BULLET,
   BULLET_CREATED,
   BULLET_DESTROYED,
   CANVAS_REMOVE,
   END_GAME,
   GOOD_SHIP_DESTROYED,
-  GOOD_SHIP_KILLED_BY_BAD_BULLET,
   NEW_GAME,
   RESPAWN_GOOD_SHIP,
-  ROCK_SLICE_KILLED_BY_BAD_BULLET,
-  ROCK_SLICE_KILLED_BY_GOOD_BULLET,
   START_NEXT_LEVEL,
 } from "../events/events";
+import { asyncForEach } from "../functional/asyncArrayMethods";
 import drawObject, { moveAndDrawObject } from "../functional/drawObject";
 import moveObject from "../functional/moveObject";
 import levelsGenerator from "../levels";
@@ -88,33 +87,6 @@ export const checkForCollisions = () => {
   });
 };
 
-export const handleIfCollidingWithRock = async (bus, game, bullet) => {
-  const rocksHit = game.rocks.filter((r) =>
-    new CollisionCheck(bullet.shapes, r.shapes).isColliding()
-  );
-  if (!rocksHit.length) return false;
-
-  await Promise.all(
-    rocksHit.map(async (r) => {
-      r.shapes = await asyncFilter(r.shapes, async (s) => {
-        const hit = new CollisionCheck(bullet.shapes, s).isColliding();
-        if (hit) await publishToEventBus(bus, CANVAS_REMOVE, [s]);
-        return !hit;
-      });
-    })
-  );
-
-  await publishToEventBus(
-    bus,
-    isGoodShipBullet(bullet)
-      ? ROCK_SLICE_KILLED_BY_GOOD_BULLET
-      : ROCK_SLICE_KILLED_BY_BAD_BULLET,
-    { id: bullet.id }
-  );
-  await destroyObject(bus, game, bullet);
-  return true;
-};
-
 export const handleIfOutOfPlay = async (
   bus,
   game,
@@ -124,51 +96,6 @@ export const handleIfOutOfPlay = async (
   const { top, bottom } = isAtExtremity({ height, width }, object.shapes);
   if (!top && !bottom) return;
   await destroyObject(bus, game, object);
-};
-
-export const handleIfCollidingWithGoodShip = async (bus, game, bullet) => {
-  const isBadShip = isBadShipBullet(bullet);
-  if (!isBadShip) return false;
-
-  const goodShipsHit = game.goodShips.filter((s) =>
-    new CollisionCheck(bullet.shapes, s.shapes).isColliding()
-  );
-  if (!goodShipsHit.length) return false;
-
-  await destroyObject(bus, game, bullet);
-  await Promise.all(
-    goodShipsHit.map(async (s) => {
-      await publishToEventBus(bus, GOOD_SHIP_KILLED_BY_BAD_BULLET, {
-        id: s.id,
-      });
-      await destroyObject(bus, game, s);
-    })
-  );
-  return true;
-
-  // TODO: Game was creating new good ship here but it should happen off an event...what event and where?
-};
-
-export const handleIfCollidingWithBadShip = async (bus, game, bullet) => {
-  const isGoodShip = isGoodShipBullet(bullet);
-  if (!isGoodShip) return false;
-
-  const badShipsHit = game.badShips.filter((s) =>
-    new CollisionCheck(bullet.shapes, s.shapes).isColliding()
-  );
-
-  if (!badShipsHit.length) return false;
-
-  await destroyObject(bus, game, bullet);
-  await Promise.all(
-    badShipsHit.map(async (s) => {
-      await publishToEventBus(bus, BAD_SHIP_KILLED_BY_GOOD_BULLET, {
-        id: s.id,
-      });
-      await destroyObject(bus, game, s);
-    })
-  );
-  return true;
 };
 
 export const initialiseBadShips = async (bus, game) => {
@@ -496,13 +423,3 @@ export default class SpaceInvadersGame {
     this.bullets = [];
   }
 }
-
-const asyncFilter = async (arr, predicate) => {
-  const results = await Promise.all(arr.map(predicate));
-  return arr.filter((_v, index) => results[index]);
-};
-
-const asyncForEach = async (arr, predicate) => {
-  const results = await Promise.all(arr.map(predicate));
-  return results;
-};
