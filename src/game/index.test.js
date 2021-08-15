@@ -5,7 +5,7 @@ import { newShape } from "../canvas/shape";
 import { BAD_SHIP_TYPE, newBadShip } from "../entitiies/badShip";
 import { fireBullet, newBullet } from "../entitiies/bullet";
 import { newGoodShip, SHIP_TYPE } from "../entitiies/goodShip";
-import { initialiseRock, newRock } from "../entitiies/rock";
+import { newRock } from "../entitiies/rock";
 import * as eventBus from "../events";
 import { newEventBus } from "../events";
 import {
@@ -24,6 +24,7 @@ import {
   START_NEXT_LEVEL,
 } from "../events/events";
 import * as draw from "../functional/drawObject";
+import * as move from "../functional/moveObject";
 
 jest.mock("../canvas", () => ({
   isAtExtremity: jest.fn().mockReturnValue({}),
@@ -1242,6 +1243,101 @@ describe("Game", () => {
           id: bullet.id,
         });
       });
+    });
+    it("should do nothing when no rock is hit", async () => {
+      // Arrange
+      const bus = newEventBus();
+      const game = gameExports.newGame();
+      const rock = newRock(5);
+      rock.shapes = [
+        {
+          _type: "_shape",
+          x: 0,
+          y: 800,
+          width: 50,
+          height: 10,
+          color: undefined,
+        },
+        {
+          _type: "_shape",
+          x: 50,
+          y: 800,
+          width: 50,
+          height: 10,
+          color: undefined,
+        },
+      ];
+      game.rocks = [rock];
+      const bullet = newBullet(SHIP_TYPE, "an id");
+      bullet.shapes[0] = newShape(70, 300, 10, 10);
+      const publishSpy = jest.spyOn(eventBus, "publishToEventBus");
+
+      // Act
+      const is = await gameExports.handleIfCollidingWithRock(bus, game, bullet);
+
+      // Assert
+      expect(is).toEqual(false);
+      expect(rock.shapes).toHaveLength(2);
+      expect(publishSpy).not.toHaveBeenCalled();
+    });
+  });
+  describe("initialiseRocks", () => {
+    it("should X", async () => {
+      // Arrange
+      const bus = newEventBus();
+      const game = gameExports.newGame();
+      const context = { width: 1000 };
+      const settings = {
+        standard: {
+          game: {
+            rockWidth: 10,
+            numRocks: 2,
+            rockWhiteSpace: 1,
+            rockParticleWidth: 100,
+            rockParticleHeight: 10,
+          },
+        },
+      };
+      game.level = settings;
+      const moveObjectSpy = jest.spyOn(move, "default");
+      const drawObjectSpy = jest.spyOn(draw, "default");
+      const expectedFirstRock = expect.objectContaining({
+        _type: "_rock",
+        shapes: [
+          {
+            _type: "_shape",
+            color: undefined,
+            height: 10,
+            oldX: 0,
+            oldY: 800,
+            width: 100,
+            x: 495,
+            y: 800,
+          },
+        ],
+        width: 10,
+      });
+
+      // Act
+      await gameExports.initialiseRocks(
+        bus,
+        game,
+        context,
+        settings.standard.game
+      );
+
+      // Assert
+      expect(moveObjectSpy).toHaveBeenNthCalledWith(1, {
+        deltaX: 495,
+        deltaY: 0,
+        object: expectedFirstRock,
+      });
+      expect(drawObjectSpy).toHaveBeenNthCalledWith(1, {
+        eventBus: bus,
+        object: expectedFirstRock,
+      });
+
+      // TODO: test the rest of the move and draw calls
     });
   });
 });

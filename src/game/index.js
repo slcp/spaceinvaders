@@ -42,7 +42,7 @@ const levelGen = levelsGenerator();
 // 4. Draw rock to left offset n+1
 // 5. Draw rock to right offset -n+1
 // Repeat 2-5
-export const initialiseRocks = (bus, game, { width }, settings) => {
+export const initialiseRocks = async (bus, game, { width }, settings) => {
   const canvasCentre = width / 2;
   const rockWidth = getSetting("rockWidth", game.level[game.currentLevelMode]);
   const numRocks = getSetting("numRocks", game.level[game.currentLevelMode]);
@@ -54,13 +54,15 @@ export const initialiseRocks = (bus, game, { width }, settings) => {
   let rockPair = 1;
 
   for (let i = 0; i < numRocks; i++) {
-    game.rocks = [...game.rocks, initialiseRock(newRock(rockWidth), settings)];
+    const rock = newRock(rockWidth);
+    initialiseRock(rock, settings);
+    game.rocks = [...game.rocks, rock];
   }
 
-  game.rocks.forEach((r, i) => {
+  await asyncForEach(game.rocks, async (r, i) => {
     // First rock is in the middle
     if (i === 0) {
-      moveObject({ object: r, deltaX: xValueOfMiddleRock, deltaY: 0 });
+      await moveObject({ object: r, deltaX: xValueOfMiddleRock, deltaY: 0 });
     } else {
       // All other rocks are drawn in pairs with an equal offset but alternatig
       // between positive and negative.
@@ -70,10 +72,10 @@ export const initialiseRocks = (bus, game, { width }, settings) => {
       const deltaX =
         xValueOfMiddleRock +
         (offSet * rockWidth + offSet * rockWidth * rockWhiteSpace);
-      moveObject({ object: r, deltaX, deltaY: 0 });
+      await moveObject({ object: r, deltaX, deltaY: 0 });
       rockPair = i % 2 === 0 ? rockPair + 1 : rockPair;
     }
-    drawObject({ eventBus: bus, objcet: r });
+    await drawObject({ eventBus: bus, object: r });
   });
 };
 
@@ -498,4 +500,9 @@ export default class SpaceInvadersGame {
 const asyncFilter = async (arr, predicate) => {
   const results = await Promise.all(arr.map(predicate));
   return arr.filter((_v, index) => results[index]);
+};
+
+const asyncForEach = async (arr, predicate) => {
+  const results = await Promise.all(arr.map(predicate));
+  return results;
 };
