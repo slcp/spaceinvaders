@@ -17,9 +17,12 @@ import {
   END_GAME,
   GOOD_SHIP_DESTROYED,
   NEW_GAME,
-  START_NEXT_LEVEL
+  START_NEXT_LEVEL,
 } from "../events/events";
 import * as draw from "../functional/drawObject";
+import * as badShipCollisions from "../collisionCheck/badShip";
+import * as goodShipCollisions from "../collisionCheck/goodShip";
+import * as rockShipCollisions from "../collisionCheck/rocks";
 
 jest.mock("../canvas", () => ({
   isAtExtremity: jest.fn().mockReturnValue({}),
@@ -674,6 +677,46 @@ describe("Game", () => {
       // Assert
       expect(publishSpy).toHaveBeenCalledWith(bus, BULLET_DESTROYED, {
         id: bullet.id,
+      });
+    });
+  });
+  describe("checkForCollisions", () => {
+    [
+      { goodShip: false, badShip: false, rock: false },
+      { goodShip: false, badShip: false, rock: true },
+      { goodShip: false, badShip: true, rock: false },
+      { goodShip: true, badShip: false, rock: false },
+      { goodShip: true, badShip: true, rock: true },
+    ].forEach(({ goodShip, badShip, rock }) => {
+      it("should X", () => {
+        // Arrange
+        const bus = newEventBus();
+        const game = gameExports.newGame();
+        game.bullets = [newBullet(SHIP_TYPE, "an id")];
+        const context = { height: 100, width: 100 };
+        const goodShipSpy = jest.spyOn(
+          goodShipCollisions,
+          "handleIfCollidingWithGoodShip"
+        );
+        const badShipSpy = jest.spyOn(
+          badShipCollisions,
+          "handleIfCollidingWithBadShip"
+        );
+        const rockSpy = jest.spyOn(
+          rockShipCollisions,
+          "handleIfCollidingWithRock"
+        );
+        goodShipSpy.mockReturnValue(goodShip);
+        badShipSpy.mockReturnValue(badShip);
+        rockSpy.mockReturnValue(rock);
+
+        // Act
+        gameExports.checkForCollisions(bus, game, context);
+
+        // Assert
+        expect(rockSpy).toHaveBeenCalled();
+        if (!rock) expect(badShipSpy).toHaveBeenCalled();
+        if (!rock && !badShip) expect(goodShipSpy).toHaveBeenCalled();
       });
     });
   });

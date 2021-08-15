@@ -4,7 +4,7 @@ import { isAtExtremity } from "../canvas";
 import { handleIfCollidingWithBadShip } from "../collisionCheck/badShip";
 import { handleIfCollidingWithGoodShip } from "../collisionCheck/goodShip";
 import { handleIfCollidingWithRock } from "../collisionCheck/rocks";
-import { BAD_SHIP_TYPE, newBadShip } from "../entitiies/badShip";
+import { BAD_SHIP_TYPE } from "../entitiies/badShip";
 import { BULLET_TYPE, fireBullet } from "../entitiies/bullet";
 import { newGoodShip, SHIP_TYPE } from "../entitiies/goodShip";
 import Rock, { ROCK_TYPE } from "../entitiies/rock";
@@ -30,6 +30,72 @@ import { isBadShipBullet, isGoodShipBullet } from "./helpers";
 // TOOD: Build canvas operations that in an animation frame into the frame queue - killing objects
 
 const levelGen = levelsGenerator();
+
+export const newGame = () => ({
+  // The bad ships that are in play
+  badShips: [],
+  // The good ships (or players) that in play
+  goodShips: [],
+  // The bullets that in play
+  bullets: [],
+  // The rocks that are in play
+  rocks: [],
+  // The current game mode - what is game mode?
+  currentLevelMode: "standard",
+  level: {},
+});
+
+export const initialiseGame = async (bus, game, context) => {
+  await subscribeToEventBus(bus, NEW_GAME, () => {}); //this.newGame.bind(this));
+  await subscribeToEventBus(bus, START_NEXT_LEVEL, () => {}); //this.nextLevel.bind(this));
+  await subscribeToEventBus(bus, END_GAME, () => {}); //this.endGame.bind(this));
+  await subscribeToEventBus(
+    bus,
+    RESPAWN_GOOD_SHIP,
+    () => {} //this.respawnGoodShip.bind(this)
+  );
+  await subscribeToEventBus(bus, BULLET_CREATED, (bullet) => {
+    game.bullets = [...game.bullets, bullet];
+  });
+  await subscribeToEventBus(bus, BAD_SHIP_CREATED, (ship) => {
+    game.badShips = [...game.badShips, ship];
+  });
+
+  runFrame([
+    newAnimationFrame(
+      "moveGoodBullets",
+      1000 /
+        getSetting("goodBulletFramerate", game.level[game.currentLevelMode]),
+      () => moveBullets(bus, game, SHIP_TYPE)
+    ),
+    newAnimationFrame(
+      "shootBadBullets",
+      1000 /
+        getSetting(
+          "badShipsBulletsPerSecond",
+          game.level[game.currentLevelMode]
+        ),
+      () => shootBadBullets(bus, game)
+    ),
+    newAnimationFrame(
+      "moveBadBullets",
+      1000 /
+        getSetting("badBulletFramerate", game.level[game.currentLevelMode]),
+      () => moveBullets(bus, game, BAD_SHIP_TYPE)
+    ),
+    newAnimationFrame(
+      "moveBadShips",
+      1000 / getSetting("badShipFramerate", game.level[game.currentLevelMode]),
+      () => moveBadShips(bus, game, context)
+    ),
+    newAnimationFrame(
+      "checkForCollisions",
+      // Run on every frame
+      0,
+      () => checkForCollisions(bus, game, context)
+    ),
+  ]);
+};
 
 export const checkForCollisions = (bus, game, context) => {
   game.bullets.forEach((b) => {
@@ -104,72 +170,6 @@ export const moveBullets = (
   }
   handlers[ownerType](bus, game);
 };
-
-export const initialiseGame = async (bus, game, context) => {
-  await subscribeToEventBus(bus, NEW_GAME, () => {}); //this.newGame.bind(this));
-  await subscribeToEventBus(bus, START_NEXT_LEVEL, () => {}); //this.nextLevel.bind(this));
-  await subscribeToEventBus(bus, END_GAME, () => {}); //this.endGame.bind(this));
-  await subscribeToEventBus(
-    bus,
-    RESPAWN_GOOD_SHIP,
-    () => {} //this.respawnGoodShip.bind(this)
-  );
-  await subscribeToEventBus(bus, BULLET_CREATED, (bullet) => {
-    game.bullets = [...game.bullets, bullet];
-  });
-  await subscribeToEventBus(bus, BAD_SHIP_CREATED, (ship) => {
-    game.badShips = [...game.badShips, ship];
-  });
-
-  runFrame([
-    newAnimationFrame(
-      "moveGoodBullets",
-      1000 /
-        getSetting("goodBulletFramerate", game.level[game.currentLevelMode]),
-      () => moveBullets(bus, game, SHIP_TYPE)
-    ),
-    newAnimationFrame(
-      "shootBadBullets",
-      1000 /
-        getSetting(
-          "badShipsBulletsPerSecond",
-          game.level[game.currentLevelMode]
-        ),
-      () => shootBadBullets(bus, game)
-    ),
-    newAnimationFrame(
-      "moveBadBullets",
-      1000 /
-        getSetting("badBulletFramerate", game.level[game.currentLevelMode]),
-      () => moveBullets(bus, game, BAD_SHIP_TYPE)
-    ),
-    newAnimationFrame(
-      "moveBadShips",
-      1000 / getSetting("badShipFramerate", game.level[game.currentLevelMode]),
-      () => moveBadShips(bus, game, context)
-    ),
-    newAnimationFrame(
-      "checkForCollisions",
-      // Run on every frame
-      0,
-      () => checkForCollisions(bus, game, context)
-    ),
-  ]);
-};
-
-export const newGame = () => ({
-  // The bad ships that are in play
-  badShips: [],
-  // The good ships (or players) that in play
-  goodShips: [],
-  // The bullets that in play
-  bullets: [],
-  // The rocks that are in play
-  rocks: [],
-  // The current game mode - what is game mode?
-  currentLevelMode: "standard",
-  level: {},
-});
 
 const objectDestroyHandlers = {
   [SHIP_TYPE]: async (bus, ship, game) => {
