@@ -217,7 +217,7 @@ describe("Game", () => {
   });
   describe("moveBullets", () => {
     ["TYPE_ONE", "TYPE_TWO"].forEach((type) => {
-      it(`should call the expected handler with type: ${type}`, () => {
+      it(`should call the expected handler with type: ${type}`, async () => {
         // Arrange
         const bus = newEventBus();
         const game = gameExports.newGame();
@@ -227,7 +227,7 @@ describe("Game", () => {
         };
 
         // Act
-        gameExports.moveBullets(bus, game, type, handlers);
+        await gameExports.moveBullets(bus, game, type, handlers);
 
         // Assert
         expect(handlers[type]).toHaveBeenCalledWith(bus, game);
@@ -243,11 +243,11 @@ describe("Game", () => {
 
       // Act
       // Assert
-      expect(() =>
+      expect(
         gameExports.moveBullets(bus, game, "UNKOWN_TYPE", handlers)
-      ).toThrow("unknon ship type when trying to move bullets");
+      ).rejects.toThrow("unknon ship type when trying to move bullets");
     });
-    it("should move the expected bullets only when asked to move _goodShip bullets", () => {
+    it("should move the expected bullets only when asked to move _goodShip bullets", async () => {
       // Arrange
       let id = 1;
       const goodShipBullet = () => {
@@ -272,7 +272,7 @@ describe("Game", () => {
       ];
 
       // Act
-      gameExports.moveBullets(bus, game, SHIP_TYPE);
+      await gameExports.moveBullets(bus, game, SHIP_TYPE);
 
       // Assert
       expect(game.bullets[0].shapes[0]).toEqual({
@@ -312,7 +312,7 @@ describe("Game", () => {
         y: 13,
       });
     });
-    it("should move the expected bullets only when asked to move _badShip bullets", () => {
+    it("should move the expected bullets only when asked to move _badShip bullets", async () => {
       // Arrange
       let id = 1;
       const goodShipBullet = () => {
@@ -337,7 +337,7 @@ describe("Game", () => {
       ];
 
       // Act
-      gameExports.moveBullets(bus, game, BAD_SHIP_TYPE);
+      await gameExports.moveBullets(bus, game, BAD_SHIP_TYPE);
 
       // Assert
       expect(game.bullets[0].shapes[0]).toEqual({

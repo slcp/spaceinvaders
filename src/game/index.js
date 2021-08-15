@@ -21,6 +21,7 @@ import {
   RESPAWN_GOOD_SHIP,
   START_NEXT_LEVEL,
 } from "../events/events";
+import { asyncForEach } from "../functional/asyncArrayMethods";
 import { moveAndDrawObject } from "../functional/drawObject";
 import levelsGenerator from "../levels";
 import { getRandomInt } from "../levels/generators";
@@ -145,21 +146,22 @@ export const moveBadShips = (bus, game, { height, width }) => {
   });
 };
 
-// TODO: these should be async
 const bulletMoveHandlers = {
-  [BAD_SHIP_TYPE]: (bus, game) =>
-    game.bullets
-      .filter((bullet) => isBadShipBullet(bullet))
+  [BAD_SHIP_TYPE]: async (bus, game) =>
+    await asyncForEach(
+      game.bullets.filter((bullet) => isBadShipBullet(bullet)),
       // Move the bullet down the screen
-      .forEach((bullet) => moveAndDrawObject(bus, bullet, 0, 5)),
-  [SHIP_TYPE]: (bus, game) =>
-    game.bullets
-      .filter((bullet) => isGoodShipBullet(bullet))
+      async (bullet) => moveAndDrawObject(bus, bullet, 0, 5)
+    ),
+  [SHIP_TYPE]: async (bus, game) =>
+    await asyncForEach(
+      game.bullets.filter((bullet) => isGoodShipBullet(bullet)),
       // Move the bullet up the screen
-      .forEach((bullet) => moveAndDrawObject(bus, bullet, 0, -5)),
+      async (bullet) => moveAndDrawObject(bus, bullet, 0, -5)
+    ),
 };
 
-export const moveBullets = (
+export const moveBullets = async (
   bus,
   game,
   ownerType,
@@ -168,7 +170,7 @@ export const moveBullets = (
   if (!handlers[ownerType]) {
     throw new Error("unknon ship type when trying to move bullets");
   }
-  handlers[ownerType](bus, game);
+  await handlers[ownerType](bus, game);
 };
 
 const objectDestroyHandlers = {
