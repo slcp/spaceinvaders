@@ -1282,7 +1282,7 @@ describe("Game", () => {
     });
   });
   describe("initialiseRocks", () => {
-    it("should X", async () => {
+    it("should move the rocks to the expected positions and draw them", async () => {
       // Arrange
       const bus = newEventBus();
       const game = gameExports.newGame();
@@ -1317,6 +1317,22 @@ describe("Game", () => {
         ],
         width: 10,
       });
+      const expectedSecondRock = expect.objectContaining({
+        _type: "_rock",
+        shapes: [
+          {
+            _type: "_shape",
+            color: undefined,
+            height: 10,
+            oldX: 0,
+            oldY: 800,
+            width: 100,
+            x: 475,
+            y: 800,
+          },
+        ],
+        width: 10,
+      });
 
       // Act
       await gameExports.initialiseRocks(
@@ -1327,6 +1343,7 @@ describe("Game", () => {
       );
 
       // Assert
+      expect(moveObjectSpy).toHaveBeenCalledTimes(2);
       expect(moveObjectSpy).toHaveBeenNthCalledWith(1, {
         deltaX: 495,
         deltaY: 0,
@@ -1336,8 +1353,15 @@ describe("Game", () => {
         eventBus: bus,
         object: expectedFirstRock,
       });
-
-      // TODO: test the rest of the move and draw calls
+      expect(moveObjectSpy).toHaveBeenCalledWith({
+        deltaX: 475,
+        deltaY: 0,
+        object: expectedSecondRock,
+      });
+      expect(drawObjectSpy).toHaveBeenCalledWith({
+        eventBus: bus,
+        object: expectedSecondRock,
+      });
     });
   });
 });
