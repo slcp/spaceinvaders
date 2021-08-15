@@ -6,7 +6,11 @@ import { handleIfCollidingWithGoodShip } from "../collisionCheck/goodShip";
 import { handleIfCollidingWithRock } from "../collisionCheck/rocks";
 import { BAD_SHIP_TYPE } from "../entitiies/badShip";
 import { BULLET_TYPE, fireBullet } from "../entitiies/bullet";
-import { newGoodShip, SHIP_TYPE } from "../entitiies/goodShip";
+import {
+  initialiseGoodShip,
+  newGoodShip,
+  SHIP_TYPE,
+} from "../entitiies/goodShip";
 import Rock, { ROCK_TYPE } from "../entitiies/rock";
 import { publishToEventBus, subscribeToEventBus } from "../events";
 import {
@@ -21,12 +25,13 @@ import {
   RESPAWN_GOOD_SHIP,
   START_NEXT_LEVEL,
 } from "../events/events";
-import { asyncForEach } from "../functional/asyncArrayMethods";
+import { asyncForEach, asyncMap } from "../functional/asyncArrayMethods";
 import { moveAndDrawObject } from "../functional/drawObject";
 import levelsGenerator from "../levels";
 import { getRandomInt } from "../levels/generators";
 import getSetting from "./getSetting";
 import { isBadShipBullet, isGoodShipBullet } from "./helpers";
+import { initialiseBadShips, initialiseRocks } from "./initialise";
 
 // TOOD: Build canvas operations that in an animation frame into the frame queue - killing objects
 
@@ -96,6 +101,21 @@ export const initialiseGame = async (bus, game, context) => {
       () => checkForCollisions(bus, game, context)
     ),
   ]);
+};
+
+export const startGame = async (bus, game, context) => {
+  const { players } = this.context;
+  // Game must be intialised first as it listens to other entity creation events
+  await initialiseGame(bus, game, context);
+  await initialiseBadShips(bus, game);
+  game.goodShips = await asyncMap(players, async (id) => {
+    const ship = newGoodShip({
+      id,
+    });
+    await initialiseGoodShip(bus, ship);
+    return ship;
+  });
+  await initialiseRocks(bus, game, context);
 };
 
 export const checkForCollisions = (bus, game, context) => {

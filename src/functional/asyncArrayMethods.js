@@ -3,7 +3,9 @@ export const asyncFilter = async (arr, predicate) => {
   return arr.filter((_v, index) => results[index]);
 };
 
-export const asyncForEach = async (arr, predicate) => {
+export const asyncMap = async (arr, predicate) => {
   const results = await Promise.all(arr.map(predicate));
   return results;
 };
+
+export const asyncForEach = asyncMap;

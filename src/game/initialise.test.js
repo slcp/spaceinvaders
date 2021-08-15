@@ -17,9 +17,8 @@ describe("initialiseRocks", () => {
           rockWidth: 10,
           numRocks: 2,
           rockWhiteSpace: 1,
-          rockParticleWidth: 100,
-          rockParticleHeight: 10,
         },
+        rock: { rockParticleWidth: 100, rockParticleHeight: 10 },
       },
     };
     game.level = settings;
@@ -59,7 +58,7 @@ describe("initialiseRocks", () => {
     });
 
     // Act
-    await initialiseRocks(bus, game, context, settings.standard.game);
+    await initialiseRocks(bus, game, context);
 
     // Assert
     expect(moveObjectSpy).toHaveBeenCalledTimes(2);

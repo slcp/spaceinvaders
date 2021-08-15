@@ -16,7 +16,7 @@ import moveObject from "../functional/moveObject";
 import getSetting from "./getSetting";
 
 // Repeat 2-5
-export const initialiseRocks = async (bus, game, { width }, settings) => {
+export const initialiseRocks = async (bus, game, { width }) => {
   const canvasCentre = width / 2;
   const rockWidth = getSetting("rockWidth", game.level[game.currentLevelMode]);
   const numRocks = getSetting("numRocks", game.level[game.currentLevelMode]);
@@ -29,7 +29,16 @@ export const initialiseRocks = async (bus, game, { width }, settings) => {
 
   for (let i = 0; i < numRocks; i++) {
     const rock = newRock(rockWidth);
-    initialiseRock(rock, settings);
+    initialiseRock(rock, {
+      rockParticleWidth: getSetting(
+        "rockParticleWidth",
+        game.level[game.currentLevelMode]
+      ),
+      rockParticleHeight: getSetting(
+        "rockParticleHeight",
+        game.level[game.currentLevelMode]
+      ),
+    });
     game.rocks = [...game.rocks, rock];
   }
 
