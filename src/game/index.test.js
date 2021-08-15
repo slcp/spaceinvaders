@@ -692,7 +692,8 @@ describe("Game", () => {
         // Arrange
         const bus = newEventBus();
         const game = gameExports.newGame();
-        game.bullets = [newBullet(SHIP_TYPE, "an id")];
+        const bullet = newBullet(SHIP_TYPE, "an id");
+        game.bullets = [bullet];
         const context = { height: 100, width: 100 };
         const goodShipSpy = jest.spyOn(
           goodShipCollisions,
@@ -714,9 +715,10 @@ describe("Game", () => {
         gameExports.checkForCollisions(bus, game, context);
 
         // Assert
-        expect(rockSpy).toHaveBeenCalled();
-        if (!rock) expect(badShipSpy).toHaveBeenCalled();
-        if (!rock && !badShip) expect(goodShipSpy).toHaveBeenCalled();
+        expect(rockSpy).toHaveBeenCalledWith(bus, game, bullet);
+        if (!rock) expect(badShipSpy).toHaveBeenCalledWith(bus, game, bullet);
+        if (!rock && !badShip)
+          expect(goodShipSpy).toHaveBeenCalledWith(bus, game, bullet);
       });
     });
   });
