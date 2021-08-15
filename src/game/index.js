@@ -31,12 +31,12 @@ import { isBadShipBullet, isGoodShipBullet } from "./helpers";
 
 const levelGen = levelsGenerator();
 
-export const checkForCollisions = () => {
+export const checkForCollisions = (bus, game, context) => {
   game.bullets.forEach((b) => {
     if (handleIfCollidingWithRock(bus, game, b)) return;
     if (handleIfCollidingWithBadShip(bus, game, b)) return;
     if (handleIfCollidingWithGoodShip(bus, game, b)) return;
-    handleIfOutOfPlay(bus, game, context, bullet);
+    handleIfOutOfPlay(bus, game, context, b);
   });
 };
 
@@ -152,7 +152,7 @@ export const initialiseGame = async (bus, game, context) => {
       "checkForCollisions",
       // Run on every frame
       0,
-      () => {} //() => this.checkForCollisions()
+      () => checkForCollisions(bus, game, context)
     ),
   ]);
 };
