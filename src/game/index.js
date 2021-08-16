@@ -1,5 +1,3 @@
-import GameAnimation, { runFrame } from "../animation";
-import { newAnimationFrame } from "../animation/animationFrame";
 import { isAtExtremity } from "../canvas";
 import { handleIfCollidingWithBadShip } from "../collisionCheck/badShip";
 import { handleIfCollidingWithGoodShip } from "../collisionCheck/goodShip";
@@ -11,19 +9,13 @@ import {
   newGoodShip,
   SHIP_TYPE,
 } from "../entitiies/goodShip";
-import Rock, { ROCK_TYPE } from "../entitiies/rock";
-import { publishToEventBus, subscribeToEventBus } from "../events";
+import { ROCK_TYPE } from "../entitiies/rock";
+import { publishToEventBus } from "../events";
 import {
-  BAD_SHIP_CREATED,
   BAD_SHIP_DESTROYED,
-  BULLET_CREATED,
   BULLET_DESTROYED,
   CANVAS_REMOVE,
-  END_GAME,
   GOOD_SHIP_DESTROYED,
-  NEW_GAME,
-  RESPAWN_GOOD_SHIP,
-  START_NEXT_LEVEL,
 } from "../events/events";
 import { asyncForEach, asyncMap } from "../functional/asyncArrayMethods";
 import { moveAndDrawObject } from "../functional/drawObject";
@@ -48,7 +40,7 @@ export const newGame = () => ({
   rocks: [],
   // The current game mode - what is game mode?
   currentLevelMode: "standard",
-  level: {},
+  level: levelGen.next().value,
 });
 
 export const startGame = async (bus, game, context) => {
@@ -175,151 +167,151 @@ export const destroyObject = async (
   await handlers[_type](bus, object, game);
 };
 
-export default class SpaceInvadersGame {
-  newGame() {
-    this.endGame();
-    this.level = this.levelData.next().value;
-    this.startGame();
-  }
+// export default class SpaceInvadersGame {
+//   newGame() {
+//     this.endGame();
+//     this.level = this.levelData.next().value;
+//     this.startGame();
+//   }
 
-  endGame() {
-    this.destroyGoodShips();
-    this.destroyRocks();
-    this.destroyBullets();
-    this.destroyBadShips();
-    if (this.animation) {
-      this.animation.cancel();
-    }
-  }
+//   endGame() {
+//     this.destroyGoodShips();
+//     this.destroyRocks();
+//     this.destroyBullets();
+//     this.destroyBadShips();
+//     if (this.animation) {
+//       this.animation.cancel();
+//     }
+//   }
 
-  startGame() {
-    const { players } = this.context;
-    this.initialiseBadShips();
-    this.goodShips = players.map((id) =>
-      newGoodShip({
-        id,
-      })
-    );
-    this.goodShips.forEach((ship) => this.initialiseGoodShip(ship));
-    this.initialiseRocks();
-    this.startAnimation();
-  }
+//   startGame() {
+//     const { players } = this.context;
+//     this.initialiseBadShips();
+//     this.goodShips = players.map((id) =>
+//       newGoodShip({
+//         id,
+//       })
+//     );
+//     this.goodShips.forEach((ship) => this.initialiseGoodShip(ship));
+//     this.initialiseRocks();
+//     this.startAnimation();
+//   }
 
-  startAnimation() {
-    this.animation = new GameAnimation();
-    this.animation.runFrame(this.frameActions);
-  }
+//   startAnimation() {
+//     this.animation = new GameAnimation();
+//     this.animation.runFrame(this.frameActions);
+//   }
 
-  // Keep for now - we will need to change levels
-  nextLevel() {
-    this.endGame();
-    this.level = this.levelData.next().value;
-    this.startGame();
-  }
+//   // Keep for now - we will need to change levels
+//   nextLevel() {
+//     this.endGame();
+//     this.level = this.levelData.next().value;
+//     this.startGame();
+//   }
 
-  destroyBadShips() {
-    /*
-     * destroyObject will modify this.badShips so that cannot be forEach-ed directly as it will be changing under us.
-     * Creating a flat map of this.badShips allows us to iterate over the ships in the game and call destroyObject
-     * on them
-     */
-    this.badShips.flat(Infinity).forEach((ship) => {
-      this.destroyObject(ship);
-    });
-    this.badShips = [];
-  }
+//   destroyBadShips() {
+//     /*
+//      * destroyObject will modify this.badShips so that cannot be forEach-ed directly as it will be changing under us.
+//      * Creating a flat map of this.badShips allows us to iterate over the ships in the game and call destroyObject
+//      * on them
+//      */
+//     this.badShips.flat(Infinity).forEach((ship) => {
+//       this.destroyObject(ship);
+//     });
+//     this.badShips = [];
+//   }
 
-  respawnGoodShip({ id }) {
-    const ship = newGoodShip({ id });
-    this.goodShips.push(ship);
-    this.initialiseGoodShip(ship);
-  }
+//   respawnGoodShip({ id }) {
+//     const ship = newGoodShip({ id });
+//     this.goodShips.push(ship);
+//     this.initialiseGoodShip(ship);
+//   }
 
-  initialiseGoodShip(goodShip) {
-    goodShip.init();
-    // Draw in centre of canvas
-    const { width, height } = this.context;
-    this.moveAndDrawObject(
-      goodShip,
-      width / 2 - goodShip.width / 2,
-      height - (goodShip.height + 10)
-    );
-  }
+//   initialiseGoodShip(goodShip) {
+//     goodShip.init();
+//     // Draw in centre of canvas
+//     const { width, height } = this.context;
+//     this.moveAndDrawObject(
+//       goodShip,
+//       width / 2 - goodShip.width / 2,
+//       height - (goodShip.height + 10)
+//     );
+//   }
 
-  destroyGoodShips() {
-    for (let ship of this.goodShips) {
-      this.destroyObject(ship);
-    }
-    this.goodShips = [];
-  }
+//   destroyGoodShips() {
+//     for (let ship of this.goodShips) {
+//       this.destroyObject(ship);
+//     }
+//     this.goodShips = [];
+//   }
 
-  // Lower levels will have a central rock protecting goodPlayer spawn point
-  // Higher levels will not have a central
-  // 1. Draw rock in the middle
-  // 2. Draw rock to left offset n
-  // 3. Draw rock to right offset -n
-  // 4. Draw rock to left offset n+1
-  // 5. Draw rock to right offset -n+1
-  // Repeat 2-5
-  initialiseRocks() {
-    const { width } = this.context;
-    const canvasCentre = width / 2;
-    const xValueOfMiddleRock = canvasCentre - this.getSetting("rockWidth") / 2;
-    let rockPair = 1;
+//   // Lower levels will have a central rock protecting goodPlayer spawn point
+//   // Higher levels will not have a central
+//   // 1. Draw rock in the middle
+//   // 2. Draw rock to left offset n
+//   // 3. Draw rock to right offset -n
+//   // 4. Draw rock to left offset n+1
+//   // 5. Draw rock to right offset -n+1
+//   // Repeat 2-5
+//   initialiseRocks() {
+//     const { width } = this.context;
+//     const canvasCentre = width / 2;
+//     const xValueOfMiddleRock = canvasCentre - this.getSetting("rockWidth") / 2;
+//     let rockPair = 1;
 
-    for (let i = 0; i < this.getSetting("numRocks"); i++) {
-      let rock = new Rock(
-        this.getSetting("rockWidth"),
-        this.getSettingsFor("rock")
-      );
+//     for (let i = 0; i < this.getSetting("numRocks"); i++) {
+//       let rock = new Rock(
+//         this.getSetting("rockWidth"),
+//         this.getSettingsFor("rock")
+//       );
 
-      // First rock is in the middle
-      if (i === 0) {
-        rock.move(xValueOfMiddleRock, 0);
-      } else {
-        // All other rocks are drawn in pairs with an equal offset but alternatig
-        // between positive and negative.
-        const offSet = i % 2 === 0 ? rockPair : -rockPair;
+//       // First rock is in the middle
+//       if (i === 0) {
+//         rock.move(xValueOfMiddleRock, 0);
+//       } else {
+//         // All other rocks are drawn in pairs with an equal offset but alternatig
+//         // between positive and negative.
+//         const offSet = i % 2 === 0 ? rockPair : -rockPair;
 
-        // This works but I cannot remember why
-        const deltaX =
-          xValueOfMiddleRock +
-          (offSet * this.getSetting("rockWidth") +
-            offSet *
-              this.getSetting("rockWidth") *
-              this.getSetting("rockWhiteSpace"));
-        rock.move(deltaX, 0);
-        rockPair = i % 2 === 0 ? rockPair + 1 : rockPair;
-      }
+//         // This works but I cannot remember why
+//         const deltaX =
+//           xValueOfMiddleRock +
+//           (offSet * this.getSetting("rockWidth") +
+//             offSet *
+//               this.getSetting("rockWidth") *
+//               this.getSetting("rockWhiteSpace"));
+//         rock.move(deltaX, 0);
+//         rockPair = i % 2 === 0 ? rockPair + 1 : rockPair;
+//       }
 
-      this.rocks.push(rock);
-      this.drawObject(rock);
-    }
-  }
+//       this.rocks.push(rock);
+//       this.drawObject(rock);
+//     }
+//   }
 
-  destroyRocks() {
-    /*
-     * destroyObject will modify this.rocks so that cannot be forEach-ed directly as it will be changing under us.
-     * Creating a flat map of this.rocks allows us to iterate over the rocks in the game and call destroyObject
-     * on them
-     */
-    this.rocks.flat(Infinity).forEach((rock) => {
-      this.destroyObject(rock);
-    });
-    this.rocks = [];
-  }
+//   destroyRocks() {
+//     /*
+//      * destroyObject will modify this.rocks so that cannot be forEach-ed directly as it will be changing under us.
+//      * Creating a flat map of this.rocks allows us to iterate over the rocks in the game and call destroyObject
+//      * on them
+//      */
+//     this.rocks.flat(Infinity).forEach((rock) => {
+//       this.destroyObject(rock);
+//     });
+//     this.rocks = [];
+//   }
 
-  destroyBullets() {
-    /*
-     * destroyObject will modify this.bullets so that cannot be forEach-ed directly as it will be changing under us.
-     * Creating a map of this.bullets allows us to iterate over the rocks in the game and call destroyObject
-     * on them
-     */
-    this.bullets
-      .map((b) => b)
-      .forEach((rock) => {
-        this.destroyObject(rock);
-      });
-    this.bullets = [];
-  }
-}
+//   destroyBullets() {
+//     /*
+//      * destroyObject will modify this.bullets so that cannot be forEach-ed directly as it will be changing under us.
+//      * Creating a map of this.bullets allows us to iterate over the rocks in the game and call destroyObject
+//      * on them
+//      */
+//     this.bullets
+//       .map((b) => b)
+//       .forEach((rock) => {
+//         this.destroyObject(rock);
+//       });
+//     this.bullets = [];
+//   }
+// }

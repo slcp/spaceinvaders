@@ -1,52 +1,69 @@
+import { publishToEventBus, subscribeToEventBus } from "../events";
 import {
-    BAD_SHIP_KILLED_BY_GOOD_BULLET,
-    END_GAME,
-    NEW_GAME, PLAYER_LOST_LIFE, SET_MESSAGE, START_NEXT_LEVEL
+  BAD_SHIP_KILLED_BY_GOOD_BULLET,
+  END_GAME,
+  NEW_GAME,
+  PLAYER_LOST_LIFE,
+  SET_MESSAGE,
+  START_NEXT_LEVEL,
 } from "../events/events";
 
-class GameState {
-    constructor({ eventBus }) {
-        this.eventBus = eventBus;
-        this.badShips = null;
-        this.playerLives = null;
-    }
+export const newGameState = () => ({
+  badShips: [],
+  playerLives: [],
+});
 
-    init() {
-        this.eventBus.subscribe(PLAYER_LOST_LIFE, this.playerKilled.bind(this))
-        this.eventBus.subscribe(BAD_SHIP_KILLED_BY_GOOD_BULLET, this.badShipKilled.bind(this))
-        this.eventBus.subscribe(NEW_GAME, this.newGame.bind(this))
-    }
+export const initialiseGameState = async (bus, state) => {
+  subscribeToEventBus(bus, PLAYER_LOST_LIFE, async (event) =>
+    playerKilled(bus, state, event)
+  );
+  subscribeToEventBus(
+    bus,
+    BAD_SHIP_KILLED_BY_GOOD_BULLET,
+    async (event) => await badShipKilled(bus, state, event)
+  );
+  subscribeToEventBus(
+    bus,
+    NEW_GAME,
+    async () =>
+      await publishToEventBus(bus, SET_MESSAGE, {
+        message: "New game -  enjoy!!",
+      })
+  );
+};
 
-    badShipKilled({ remainingShipCount, id }) {
-        if (remainingShipCount === undefined) {
-            throw ("need some data with this event!")
-        }
-        this.badShips = remainingShipCount;
-        this.checkGameState();
-    }
+export const badShipKilled = async (bus, state, { remainingShipCount }) => {
+  if (typeof remainingLives !== "number") {
+    throw new Error(
+      `The type of remainingShipCount must be a number, received: ${typeof remainingShipCount}`
+    );
+  }
+  state.badShips = remainingShipCount;
+  await checkGameState(bus, state);
+};
 
-    playerKilled({ remainingLives }) {
-        if (remainingLives === undefined) {
-            throw ("need some data with this event!")
-        }
-        this.playerLives = remainingLives;
-        this.checkGameState();
-    }
+export const playerKilled = async (bus, state, { remainingLives }) => {
+  if (typeof remainingLives !== "number") {
+    throw new Error(
+      `The type of remainingLives must be a number, received: ${typeof remainingLives}`
+    );
+  }
+  state.playerLives = remainingLives;
+  await checkGameState(bus, state);
+};
 
-    checkGameState() {
-        if (this.badShips === 0) {
-            this.eventBus.publish(START_NEXT_LEVEL)
-            this.eventBus.publish(SET_MESSAGE, { message: "Next level" })
-        }
-        if (this.playerLives === 0) {
-            this.eventBus.publish(END_GAME)
-            this.eventBus.publish(SET_MESSAGE, { message: "Game over", persist: true })
-        }
-    }
-
-    newGame() {
-        this.eventBus.publish(SET_MESSAGE, { message: "New game -  enjoy!!" })
-    }
-}
-
-export default GameState;
+export const checkGameState = async (bus, state) => {
+  if (state.badShips === 0) {
+    await publishToEventBus(bus, START_NEXT_LEVEL);
+    await publishToEventBus(bus, SET_MESSAGE, { message: "Next level" });
+    return;
+  }
+  if (state.playerLives === 0) {
+    await publishToEventBus(bus, END_GAME);
+    await publishToEventBus(bus, SET_MESSAGE, {
+      message: "Game over",
+      persist: true,
+    });
+    return;
+  }
+};

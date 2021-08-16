@@ -1,9 +1,13 @@
 import { intialiseCanvas, new2DCanvas } from "./canvas";
 import { newEventBus, publishToEventBus } from "./events";
 import { NEW_GAME } from "./events/events";
-import { initialiseGame, newGame } from "./game";
+import { newGame, startGame } from "./game";
+import { initialiseGame } from "./game/initialise";
 import GameMessage from "./gameMessage/gameMessage";
-import GameState from "./gameState/gameState";
+import GameState, {
+  initialiseGameState,
+  newGameState,
+} from "./gameState/gameState";
 import { initialisePlayer, newPlayer } from "./player/player";
 import { initialiseLife, newLife } from "./ui/lives";
 import { initialiseScore, newScore } from "./ui/score";
@@ -28,7 +32,8 @@ Promise.all(
     await initialisePlayer(p, eventBus);
     return [
       await initialiseScore(
-        newScore({ element: scoreContainers[i], id: p.id }, eventBus)
+        newScore({ element: scoreContainers[i], id: p.id }),
+        eventBus
       ),
       await initialiseLife(
         newLife({ element: livesContainers[i], id: p.id }),
@@ -36,19 +41,30 @@ Promise.all(
       ),
     ];
   })
-).then(async () => {
-  new GameMessage({
-    eventBus,
-    element: document.getElementById("game-message"),
-  }).init();
-  initialiseGame(eventBus, newGame(), gameContext);
-  new GameState({ eventBus }).init();
-  // The canvas that is responsible for drawing the game
-  await intialiseCanvas(
-    new2DCanvas(document.getElementById("game-canvas")),
-    eventBus
-  );
-  gameContext.newGameButton.addEventListener("click", function () {
-    publishToEventBus(eventBus, NEW_GAME);
+)
+  .then(async () => {
+    new GameMessage({
+      eventBus,
+      element: document.getElementById("game-message"),
+    }).init();
+    const game = newGame();
+    return initialiseGame(eventBus, game, gameContext);
+  })
+  .then(() => {
+    return initialiseGameState(eventBus, newGameState());
+  })
+  .then(() => {
+    return intialiseCanvas(
+      // The canvas that is responsible for drawing the game
+      new2DCanvas(document.getElementById("game-canvas")),
+      eventBus
+    );
+  })
+  .then(() => {
+    return startGame(eventBus, game, gameContext);
+  })
+  .then(() => {
+    gameContext.newGameButton.addEventListener("click", () => {
+      publishToEventBus(eventBus, NEW_GAME);
+    });
   });
-});

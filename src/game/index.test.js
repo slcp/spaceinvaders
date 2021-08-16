@@ -30,6 +30,16 @@ jest.mock("../entitiies/bullet", () => ({
   fireBullet: jest.fn(),
 }));
 
+jest.mock("../levels", () =>
+  jest.fn().mockReturnValue({
+    next: jest.fn().mockReturnValue({
+      value: {
+        level: "data",
+      },
+    }),
+  })
+);
+
 describe("Game", () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -41,7 +51,7 @@ describe("Game", () => {
         badShips: [],
         bullets: [],
         goodShips: [],
-        level: {},
+        level: { level: "data" },
         rocks: [],
         currentLevelMode: "standard",
       };
