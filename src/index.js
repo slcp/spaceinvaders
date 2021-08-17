@@ -4,10 +4,7 @@ import { NEW_GAME } from "./events/events";
 import { newGame, startGame } from "./game";
 import { initialiseGame } from "./game/initialise";
 import GameMessage from "./gameMessage/gameMessage";
-import GameState, {
-  initialiseGameState,
-  newGameState,
-} from "./gameState/gameState";
+import { initialiseGameState, newGameState } from "./gameState/gameState";
 import { initialisePlayer, newPlayer } from "./player/player";
 import { initialiseLife, newLife } from "./ui/lives";
 import { initialiseScore, newScore } from "./ui/score";
@@ -24,6 +21,7 @@ const gameContext = {
   width: 1000,
   players: players.map((p) => p.id),
 };
+const game = newGame();
 
 // These can safely be mapped in order to players
 const [scoreContainers, livesContainers] = makeUI(players);
@@ -47,7 +45,6 @@ Promise.all(
       eventBus,
       element: document.getElementById("game-message"),
     }).init();
-    const game = newGame();
     return initialiseGame(eventBus, game, gameContext);
   })
   .then(() => {

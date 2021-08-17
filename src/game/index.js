@@ -23,7 +23,7 @@ import levelsGenerator from "../levels";
 import { getRandomInt } from "../levels/generators";
 import getSetting from "./getSetting";
 import { isBadShipBullet, isGoodShipBullet } from "./helpers";
-import { initialiseBadShips, initialiseRocks } from "./initialise";
+import { initialiseBadShips, initialiseGame, initialiseRocks } from "./initialise";
 
 // TOOD: Build canvas operations that in an animation frame into the frame queue - killing objects
 
@@ -44,9 +44,9 @@ export const newGame = () => ({
 });
 
 export const startGame = async (bus, game, context) => {
-  const { players } = this.context;
+  const { players } = context;
   // Game must be intialised first as it listens to other entity creation events
-  await initialiseGame(bus, game, context);
+  // await initialiseGame(bus, game, context);
   await initialiseBadShips(bus, game);
   game.goodShips = await asyncMap(players, async (id) => {
     const ship = newGoodShip({
