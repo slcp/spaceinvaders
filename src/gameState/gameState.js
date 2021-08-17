@@ -33,7 +33,7 @@ export const initialiseGameState = async (bus, state) => {
 };
 
 export const badShipKilled = async (bus, state, { remainingShipCount }) => {
-  if (typeof remainingLives !== "number") {
+  if (typeof remainingShipCount !== "number") {
     throw new Error(
       `The type of remainingShipCount must be a number, received: ${typeof remainingShipCount}`
     );
