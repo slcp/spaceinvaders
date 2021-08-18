@@ -1,5 +1,5 @@
 import * as gameExports from ".";
-import { isAtExtremity } from "../canvas";
+import * as canvas from "../canvas";
 import { newShape } from "../canvas/shape";
 import * as badShipCollisions from "../collisionCheck/badShip";
 import * as goodShipCollisions from "../collisionCheck/goodShip";
@@ -20,10 +20,6 @@ import {
 } from "../events/events";
 import * as draw from "../functional/drawObject";
 import { initialiseGame } from "./initialise";
-
-jest.mock("../canvas", () => ({
-  isAtExtremity: jest.fn().mockReturnValue({}),
-}));
 
 jest.mock("../entitiies/bullet", () => ({
   ...jest.requireActual("../entitiies/bullet"),
@@ -395,45 +391,43 @@ describe("Game", () => {
     });
   });
   describe("moveBadShips", () => {
-    it("should do nothing if there are no ships in a row", () => {
+    it("should do nothing if there are no ships in a row", async () => {
       // Arrange
       const bus = newEventBus();
       const game = gameExports.newGame();
       const moveAndDrawSpy = jest.spyOn(draw, "moveAndDrawObject");
       game.badShips = [];
+      const extremitySpy = jest.spyOn(canvas, "isAtExtremity");
 
       // Act
-      gameExports.moveBadShips(bus, game, {});
+      await gameExports.moveBadShips(bus, game, {});
 
       // Assert
-      expect(isAtExtremity).not.toHaveBeenCalled();
+      expect(extremitySpy).not.toHaveBeenCalled();
       expect(moveAndDrawSpy).not.toHaveBeenCalled();
     });
-    it("should move ships by a delta of 1 if any ship is at the left extremity", () => {
+    it("should move ships by a delta of 1 if any ship is at the left extremity", async () => {
       // Arrange
       const bus = newEventBus();
       const game = gameExports.newGame();
+      const context = { height: 100, width: 100 };
       const leftExtremityBadShape = newBadShip();
       const moveAndDrawSpy = jest.spyOn(draw, "moveAndDrawObject");
-      leftExtremityBadShape.shapes = [
+      const extremitySpy = jest.spyOn(canvas, "isAtExtremity");
+      const leftMostShapes = [
         newShape(0, 89, 10, 10, "blue"),
         newShape(5, 89, 10, 10, "blue"),
       ];
+      leftExtremityBadShape.shapes = leftMostShapes;
       game.badShips = [leftExtremityBadShape, newBadShip()];
-      isAtExtremity.mockReturnValue({
-        left: true,
-        right: false,
-      });
 
       // Act
-      gameExports.moveBadShips(bus, game, {});
+      await gameExports.moveBadShips(bus, game, context);
 
       // Assert
-      expect(isAtExtremity).toHaveBeenCalledWith({}, [
-        newShape(0, 89, 10, 10, "blue"),
-        newShape(5, 89, 10, 10, "blue"),
-      ]);
-      expect(isAtExtremity).toHaveBeenCalledWith({}, [
+      expect(extremitySpy).toHaveBeenCalledWith("left", context, leftMostShapes);
+      expect(extremitySpy).toHaveBeenCalledWith("right", context, leftMostShapes);
+      expect(extremitySpy).toHaveBeenCalledWith("right", context, [
         newShape(20, 32, 60, 9, "white"),
         newShape(40, 28, 20, 20, "white"),
         newShape(20, 20, 12, 20, "white"),
@@ -447,31 +441,28 @@ describe("Game", () => {
         10
       );
     });
-    it("should move ships by a delta of -1 if any ship is at the right extremity", () => {
+    it("should move ships by a delta of -1 if any ship is at the right extremity", async () => {
       // Arrange
       const bus = newEventBus();
       const game = gameExports.newGame();
+      const context = { height: 100, width: 100 };
       const moveAndDrawSpy = jest.spyOn(draw, "moveAndDrawObject");
+      const extremitySpy = jest.spyOn(canvas, "isAtExtremity");
       const rightExtremityBadShape = newBadShip();
-      rightExtremityBadShape.shapes = [
-        newShape(1, 89, 10, 10, "blue"),
+      const rightMostShapes = [
+        newShape(50, 89, 10, 10, "blue"),
         newShape(90, 89, 10, 10, "blue"),
       ];
+      rightExtremityBadShape.shapes = rightMostShapes;
       game.badShips = [rightExtremityBadShape, newBadShip()];
-      isAtExtremity.mockReturnValue({
-        left: false,
-        right: true,
-      });
 
       // Act
-      gameExports.moveBadShips(bus, game, {});
+      await gameExports.moveBadShips(bus, game, context);
 
       // Assert
-      expect(isAtExtremity).toHaveBeenCalledWith({}, [
-        newShape(1, 89, 10, 10, "blue"),
-        newShape(90, 89, 10, 10, "blue"),
-      ]);
-      expect(isAtExtremity).toHaveBeenCalledWith({}, [
+      expect(extremitySpy).toHaveBeenCalledWith("right", context, rightMostShapes);
+      expect(extremitySpy).toHaveBeenCalledWith("left", context, rightMostShapes);
+      expect(extremitySpy).toHaveBeenCalledWith("left", context, [
         newShape(20, 32, 60, 9, "white"),
         newShape(40, 28, 20, 20, "white"),
         newShape(20, 20, 12, 20, "white"),
@@ -540,7 +531,10 @@ describe("Game", () => {
       const bullet = newBullet();
       const context = { height: 100, width: 100 };
       const publishSpy = jest.spyOn(eventBus, "publishToEventBus");
-      isAtExtremity.mockReturnValue({ top: false, bottom: false });
+      const extremitySpy = jest
+        .spyOn(canvas, "isAtExtremity")
+        .mockReturnValueOnce(false)
+        .mockReturnValueOnce(false);
 
       // Act
       await gameExports.handleIfOutOfPlay(bus, game, context, bullet);
@@ -562,7 +556,7 @@ describe("Game", () => {
       top: true,
       bottom: false,
     },
-  ].forEach((r) => {
+  ].forEach(({ top, bottom }) => {
     it("should if it is out of play", async () => {
       // Arrange
       const bus = newEventBus();
@@ -570,7 +564,10 @@ describe("Game", () => {
       const bullet = newBullet();
       const context = { height: 100, width: 100 };
       const publishSpy = jest.spyOn(eventBus, "publishToEventBus");
-      isAtExtremity.mockReturnValue(r);
+      const extremitySpy = jest
+        .spyOn(canvas, "isAtExtremity")
+        .mockReturnValueOnce(top)
+        .mockReturnValueOnce(bottom);
 
       // Act
       await gameExports.handleIfOutOfPlay(bus, game, context, bullet);

@@ -23,7 +23,7 @@ import levelsGenerator from "../levels";
 import { getRandomInt } from "../levels/generators";
 import getSetting from "./getSetting";
 import { isBadShipBullet, isGoodShipBullet } from "./helpers";
-import { initialiseBadShips, initialiseGame, initialiseRocks } from "./initialise";
+import { initialiseBadShips, initialiseRocks } from "./initialise";
 
 // TOOD: Build canvas operations that in an animation frame into the frame queue - killing objects
 
@@ -73,7 +73,8 @@ export const handleIfOutOfPlay = async (
   { height, width },
   object
 ) => {
-  const { top, bottom } = isAtExtremity({ height, width }, object.shapes);
+  const top = isAtExtremity("top", { height, width }, object.shapes);
+  const bottom = isAtExtremity("bottom", { height, width }, object.shapes);
   if (!top && !bottom) return;
   await destroyObject(bus, game, object);
 };
@@ -91,17 +92,23 @@ export const shootBadBullets = (bus, game) => {
   }
 };
 
-export const moveBadShips = (bus, game, { height, width }) => {
-  const results = game.badShips.map(({ shapes }) =>
-    isAtExtremity({ height, width }, shapes)
+let direction = null;
+
+export const moveBadShips = async (bus, game, { height, width }) => {
+  const left = game.badShips.some((r) =>
+    isAtExtremity("left", { height, width }, r.shapes)
   );
-  const left = results.some((r) => r.left === true);
-  const right = results.some((r) => r.right === true);
+  const right = game.badShips.some((r) =>
+    isAtExtremity("right", { height, width }, r.shapes)
+  );
 
-  const deltaY = 10;
-  const deltaX = left && !right ? 1 : -1;
+  if (left) direction = "right";
+  if (right) direction = "left";
 
-  game.badShips.forEach((ship) => {
+  const deltaY = left || right ? 10 : 0;
+  const deltaX = direction === "right" ? 1 : -1;
+
+  await asyncForEach(game.badShips, (ship) => {
     moveAndDrawObject(bus, ship, deltaX, deltaY);
   });
 };

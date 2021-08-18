@@ -119,15 +119,10 @@ describe("canvas", () => {
       ];
 
       // Act
-      const extremities = isAtExtremity(context, shapes);
+      const extremities = isAtExtremity("left", context, shapes);
 
       // Assert
-      expect(extremities).toEqual({
-        left: true,
-        right: false,
-        top: false,
-        bottom: false,
-      });
+      expect(extremities).toEqual(true);
     });
     it("should identify that one shape is at the right extremity", () => {
       // Arrange
@@ -138,15 +133,10 @@ describe("canvas", () => {
       ];
 
       // Act
-      const extremities = isAtExtremity(context, shapes);
+      const extremities = isAtExtremity("right", context, shapes);
 
       // Assert
-      expect(extremities).toEqual({
-        left: false,
-        right: true,
-        top: false,
-        bottom: false,
-      });
+      expect(extremities).toEqual(true);
     });
     it("should identify that one shape is at the top extremity", () => {
       // Arrange
@@ -157,15 +147,10 @@ describe("canvas", () => {
       ];
 
       // Act
-      const extremities = isAtExtremity(context, shapes);
+      const extremities = isAtExtremity("top", context, shapes);
 
       // Assert
-      expect(extremities).toEqual({
-        left: false,
-        right: false,
-        top: true,
-        bottom: false,
-      });
+      expect(extremities).toEqual(true);
     });
     it("should identify that one shape is at the bottom extremity", () => {
       // Arrange
@@ -176,15 +161,10 @@ describe("canvas", () => {
       ];
 
       // Act
-      const extremities = isAtExtremity(context, shapes);
+      const extremities = isAtExtremity("bottom", context, shapes);
 
       // Assert
-      expect(extremities).toEqual({
-        left: false,
-        right: false,
-        top: false,
-        bottom: true,
-      });
+      expect(extremities).toEqual(true);
     });
   });
 });

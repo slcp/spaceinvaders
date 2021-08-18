@@ -1,30 +1,36 @@
 import { subscribeToEventBus } from "../events";
 import { CANVAS_DRAW, CANVAS_REMOVE } from "../events/events";
 
-export const isAtExtremity = ({ height, width }, shapes) => {
-  const extremities = {
-    left: null,
-    right: null,
-    top: null,
-    bottom: null,
-  };
-  const leftMostXValue = Math.floor(...shapes.map((shape) => shape.x));
-  extremities.left = leftMostXValue <= 0;
+const extremityHandlers = {
+  left: (shapes, _, __) => {
+    const leftMostXValue = Math.floor(...shapes.map((shape) => shape.x));
+    return leftMostXValue <= 0;
+  },
+  right: (shapes, _, width) => {
+    const rightMostXValue = Math.max(
+      ...shapes.map((shape) => shape.x + shape.width)
+    );
+    return rightMostXValue >= width;
+  },
+  top: (shapes, _, __) => {
+    const topMostYValue = Math.floor(...shapes.map((shape) => shape.y));
+    return topMostYValue <= 0;
+  },
+  bottom: (shapes, height, __) => {
+    const bottomMostYValue = Math.max(
+      ...shapes.map((shape) => shape.y + shape.height)
+    );
+    return bottomMostYValue >= height;
+  },
+};
 
-  const rightMostXValue = Math.max(
-    ...shapes.map((shape) => shape.x + shape.width)
-  );
-  extremities.right = rightMostXValue >= width;
-
-  const topMostYValue = Math.floor(...shapes.map((shape) => shape.y));
-  extremities.top = topMostYValue <= 0;
-
-  const bottomMostYValue = Math.max(
-    ...shapes.map((shape) => shape.y + shape.height)
-  );
-  extremities.bottom = bottomMostYValue >= height;
-
-  return extremities;
+export const isAtExtremity = (
+  direction,
+  { height, width },
+  shapes,
+  handlers = extremityHandlers
+) => {
+  return handlers[direction](shapes, height, width)
 };
 
 export const CANVAS_TYPE = "_canvas2D";
