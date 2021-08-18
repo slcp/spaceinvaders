@@ -384,9 +384,7 @@ describe("Game", () => {
 
       // Assert
       expect(game.bullets).toEqual([]);
-      expect(publishSpy).toHaveBeenCalledWith(bus, BULLET_DESTROYED, {
-        id: o.id,
-      });
+      expect(publishSpy).toHaveBeenCalledWith(bus, BULLET_DESTROYED, o);
       expect(publishSpy).toHaveBeenCalledWith(bus, CANVAS_REMOVE, o.shapes);
     });
   });
@@ -573,9 +571,7 @@ describe("Game", () => {
       await gameExports.handleIfOutOfPlay(bus, game, context, bullet);
 
       // Assert
-      expect(publishSpy).toHaveBeenCalledWith(bus, BULLET_DESTROYED, {
-        id: bullet.id,
-      });
+      expect(publishSpy).toHaveBeenCalledWith(bus, BULLET_DESTROYED, bullet);
     });
   });
   describe("checkForCollisions", () => {

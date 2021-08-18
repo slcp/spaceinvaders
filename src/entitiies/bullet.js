@@ -7,7 +7,7 @@ import moveObject from "../functional/moveObject";
 
 export const BULLET_TYPE = "_bullet";
 
-export const fireBullet = (bus, { id, _type, bulletInPlay, shapes }) => {
+export const fireBullet = async (bus, { id, _type, bulletInPlay, shapes }) => {
   if (!bulletInPlay /* || settings.continuousFire*/) {
     const bullet = newBullet(_type, id);
     const xValues = shapes.map((shape) => shape.x);
@@ -22,8 +22,8 @@ export const fireBullet = (bus, { id, _type, bulletInPlay, shapes }) => {
       deltaX: minX + diff / 2 - bullet.shapes[0].width / 2,
       deltaY: Math.min(...shapes.map((shape) => shape.y)),
     });
-    drawObject({ eventBus: bus, object: bullet });
-    publishToEventBus(bus, BULLET_CREATED, bullet);
+    await drawObject({ eventBus: bus, object: bullet });
+    await publishToEventBus(bus, BULLET_CREATED, bullet);
   }
 };
 

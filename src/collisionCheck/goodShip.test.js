@@ -45,9 +45,7 @@ describe("handleIfCollidingWithGoodShip", () => {
 
     // Assert
     expect(is).toEqual(true);
-    expect(publishSpy).toHaveBeenCalledWith(bus, BULLET_DESTROYED, {
-      id: bullet.id,
-    });
+    expect(publishSpy).toHaveBeenCalledWith(bus, BULLET_DESTROYED, bullet);
     expect(publishSpy).toHaveBeenCalledWith(bus, GOOD_SHIP_DESTROYED, {
       id: ship.id,
     });

@@ -60,9 +60,7 @@ describe("handleIfCollidingWithRock", () => {
       expect(publishSpy).toHaveBeenCalledWith(bus, CANVAS_REMOVE, [
         targetShape,
       ]);
-      expect(publishSpy).toHaveBeenCalledWith(bus, BULLET_DESTROYED, {
-        id: bullet.id,
-      });
+      expect(publishSpy).toHaveBeenCalledWith(bus, BULLET_DESTROYED, bullet);
       expect(publishSpy).toHaveBeenCalledWith(bus, eventType, {
         id: bullet.id,
       });

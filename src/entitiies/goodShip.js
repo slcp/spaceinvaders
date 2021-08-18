@@ -168,13 +168,9 @@ const keyHandlers = {
   },
 };
 
-const handleKeyEvent = (
-  bus,
-  { type, code, preventDefault },
-  goodShip,
-  handlers = keyHandlers
-) => {
-  preventDefault();
+const handleKeyEvent = (bus, event, goodShip, handlers = keyHandlers) => {
+  const { type, code } = event;
+  event.preventDefault();
   if (!handlers[code] || !handlers[code][type]) {
     throw new Error(`No handler know for key code: ${code}`);
   }
@@ -183,21 +179,19 @@ const handleKeyEvent = (
 };
 
 export const moveShip = async (bus, goodShip) => {
-  if (goodShip.keys["RIGHT"]) {
+  if (goodShip.keys[ARROW_RIGHT]) {
     moveObject({ object: goodShip, deltaX: 2, deltaY: 0 });
-    publishToEventBus(bus, CANVAS_DRAW, goodShip.shapes);
+    await publishToEventBus(bus, CANVAS_DRAW, goodShip.shapes);
     return;
   }
-  if (goodShip.keys["LEFT"]) {
+  if (goodShip.keys[ARROW_LEFT]) {
     moveObject({ object: goodShip, deltaX: -2, deltaY: 0 });
-    publishToEventBus(bus, CANVAS_DRAW, goodShip.shapes);
+    await publishToEventBus(bus, CANVAS_DRAW, goodShip.shapes);
     return;
   }
 };
 
 export const initialiseGoodShip = async (bus, goodShip) => {
-  // this.startAnimation();
-  // addEventListeners
   window.addEventListener("keydown", (event) =>
     handleKeyEvent(bus, event, goodShip)
   );

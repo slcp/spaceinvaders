@@ -44,7 +44,7 @@ export const newGame = () => ({
 });
 
 export const startGame = async (bus, game, context) => {
-  const { players } = context;
+  const { players, width, height } = context;
   // Game must be intialised first as it listens to other entity creation events
   // await initialiseGame(bus, game, context);
   await initialiseBadShips(bus, game);
@@ -52,6 +52,12 @@ export const startGame = async (bus, game, context) => {
     const ship = newGoodShip({
       id,
     });
+    await moveAndDrawObject(
+      bus,
+      ship,
+      width / 2 - ship.width / 2,
+      height - (ship.height + 10)
+    );
     await initialiseGoodShip(bus, ship);
     return ship;
   });
@@ -60,10 +66,10 @@ export const startGame = async (bus, game, context) => {
 
 export const checkForCollisions = (bus, game, context) => {
   game.bullets.forEach((b) => {
+    handleIfOutOfPlay(bus, game, context, b); // TODO: Why does this work if done first
     if (handleIfCollidingWithRock(bus, game, b)) return;
     if (handleIfCollidingWithBadShip(bus, game, b)) return;
     if (handleIfCollidingWithGoodShip(bus, game, b)) return;
-    handleIfOutOfPlay(bus, game, context, b);
   });
 };
 
@@ -156,7 +162,7 @@ const objectDestroyHandlers = {
   },
   [BULLET_TYPE]: async (bus, bullet, game) => {
     game.bullets = game.bullets.filter((b) => b.id !== bullet.id);
-    await publishToEventBus(bus, BULLET_DESTROYED, { id: bullet.id });
+    await publishToEventBus(bus, BULLET_DESTROYED, bullet);
   },
 };
 

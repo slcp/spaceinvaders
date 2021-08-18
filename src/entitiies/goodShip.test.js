@@ -3,6 +3,7 @@ import { newShape } from "../canvas/shape";
 import * as eventBus from "../events";
 import { newEventBus } from "../events";
 import { BULLET_CREATED, BULLET_DESTROYED, CANVAS_DRAW } from "../events/events";
+import { ARROW_LEFT, ARROW_RIGHT } from "../keyCodes";
 import * as bullet from "./bullet";
 import { initialiseGoodShip, moveShip, newGoodShip } from "./goodShip";
 import { newShip } from "./ship";
@@ -337,7 +338,7 @@ describe("Good ship", () => {
     it("should update the x,y values of the ship and publish an event when keys['RIGHT'] is true", async () => {
       // Arrange
       const ship = newGoodShip("an id");
-      ship.keys["RIGHT"] = true;
+      ship.keys[ARROW_RIGHT] = true;
       ship.shapes = [{ x: 2, y: 4 }];
       const bus = newEventBus();
       const publishSpy = jest.spyOn(eventBus, "publishToEventBus");
@@ -366,7 +367,7 @@ describe("Good ship", () => {
     it("should update the x,y values of the ship and publish an event when keys['LEFT'] is true", async () => {
       // Arrange
       const ship = newGoodShip("an id");
-      ship.keys["LEFT"] = true;
+      ship.keys[ARROW_LEFT] = true;
       ship.shapes = [{ x: 2, y: 4 }];
       const bus = newEventBus();
       const publishSpy = jest.spyOn(eventBus, "publishToEventBus");

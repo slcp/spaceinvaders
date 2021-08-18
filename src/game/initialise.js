@@ -78,13 +78,13 @@ export const initialiseBadShips = async (bus, game) => {
     for (let j = 0; j < shipsPerRow; j++) {
       // Loop for ships required on each row
       const newShip = newBadShip();
-      moveAndDrawObject(
+      await moveAndDrawObject(
         bus,
         newShip,
         newShip.width * j + 5,
         newShip.height * i + 150
       ); // For initialise delta is set relative to 0, 0. newShip.width/height*j/i should offset from the previous ship and produce a gutter
-      publishToEventBus(bus, BAD_SHIP_CREATED, newShip);
+      await publishToEventBus(bus, BAD_SHIP_CREATED, newShip);
     }
   }
 };

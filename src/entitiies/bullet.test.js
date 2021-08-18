@@ -30,7 +30,7 @@ describe("Bullet", () => {
     });
   });
   describe("fireBullet", () => {
-    it("should calcuate new bullet shape x,y and move/draw object", () => {
+    it("should calcuate new bullet shape x,y and move/draw object", async () => {
       // Arrange
       const bus = eventBus.newEventBus();
       const ship = newGoodShip("an id");
@@ -42,7 +42,7 @@ describe("Bullet", () => {
       const publishSpy = jest.spyOn(eventBus, "publishToEventBus");
 
       // Act
-      fireBullet(bus, ship);
+      await fireBullet(bus, ship);
 
       // Assert
       expect(moveObjectSpy).toHaveBeenCalledWith({
