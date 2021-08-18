@@ -64,12 +64,12 @@ export const startGame = async (bus, game, context) => {
   await initialiseRocks(bus, game, context);
 };
 
-export const checkForCollisions = (bus, game, context) => {
-  game.bullets.forEach((b) => {
+export const checkForCollisions = async (bus, game, context) => {
+  await asyncForEach(game.bullets, async (b) => {
     handleIfOutOfPlay(bus, game, context, b); // TODO: Why does this work if done first
-    if (handleIfCollidingWithRock(bus, game, b)) return;
-    if (handleIfCollidingWithBadShip(bus, game, b)) return;
-    if (handleIfCollidingWithGoodShip(bus, game, b)) return;
+    if (await handleIfCollidingWithRock(bus, game, b)) return;
+    if (await handleIfCollidingWithBadShip(bus, game, b)) return;
+    if (await handleIfCollidingWithGoodShip(bus, game, b)) return;
   });
 };
 

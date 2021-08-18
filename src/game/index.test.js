@@ -582,7 +582,7 @@ describe("Game", () => {
       { goodShip: true, badShip: false, rock: false },
       { goodShip: true, badShip: true, rock: true },
     ].forEach(({ goodShip, badShip, rock }) => {
-      it("should X", () => {
+      it("should X", async () => {
         // Arrange
         const bus = newEventBus();
         const game = gameExports.newGame();
@@ -606,7 +606,7 @@ describe("Game", () => {
         rockSpy.mockReturnValue(rock);
 
         // Act
-        gameExports.checkForCollisions(bus, game, context);
+        await gameExports.checkForCollisions(bus, game, context);
 
         // Assert
         expect(rockSpy).toHaveBeenCalledWith(bus, game, bullet);
