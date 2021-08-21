@@ -45,8 +45,6 @@ export const newGame = () => ({
 
 export const startGame = async (bus, game, context) => {
   const { players, width, height } = context;
-  // Game must be intialised first as it listens to other entity creation events
-  // await initialiseGame(bus, game, context);
   await initialiseBadShips(bus, game);
   game.goodShips = await asyncMap(players, async (id) => {
     const ship = newGoodShip({
@@ -154,8 +152,8 @@ const objectDestroyHandlers = {
     await publishToEventBus(bus, GOOD_SHIP_DESTROYED, { id: ship.id });
   },
   [BAD_SHIP_TYPE]: async (bus, ship, game) => {
-    (game.badShips = game.badShips.filter((s) => s.id !== ship.id)),
-      await publishToEventBus(bus, BAD_SHIP_DESTROYED, { id: ship.id });
+    game.badShips = game.badShips.filter((s) => s.id !== ship.id);
+    await publishToEventBus(bus, BAD_SHIP_DESTROYED, { id: ship.id });
   },
   [ROCK_TYPE]: async (_, rock, game) => {
     game.rocks = game.rocks.filter((r) => r.id !== rock.id);

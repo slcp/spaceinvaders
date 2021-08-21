@@ -73,22 +73,20 @@ export const PLAYER_TYPE = "_player";
 
 let players = [];
 
-const handlePlayerKilled =
-  (bus) =>
-  ({ id }) => {
-    const player = players.find((p) => id === p.id);
-    player.lives = player.lives - 1;
-    publishToEventBus(bus, PLAYER_LOST_LIFE, {
-      id,
-      remainingLives: player.lives,
-    });
-    if (player.lives) {
-      publishToEventBus(bus, RESPAWN_GOOD_SHIP, { id });
-    }
-  };
+const handlePlayerKilled = (bus) => ({ id }) => {
+  const player = players.find((p) => id === p.id);
+  player.lives = player.lives - 1;
+  publishToEventBus(bus, PLAYER_LOST_LIFE, {
+    id,
+    remainingLives: player.lives,
+  });
+  if (player.lives) {
+    publishToEventBus(bus, RESPAWN_GOOD_SHIP, { id });
+  }
+};
 
 const handleBadShipKilled = ({ id }) => {
-  const player = players.find((p) => id === p.id);
+  const player = players.find((p) => id.id === p.id);
   player.score = player.score + 10;
 };
 

@@ -18,7 +18,8 @@ export const handleIfCollidingWithBadShip = async (bus, game, bullet) => {
   await destroyObject(bus, game, bullet);
   await asyncForEach(badShipsHit, async (s) => {
     await publishToEventBus(bus, BAD_SHIP_KILLED_BY_GOOD_BULLET, {
-      id: s.id,
+      id: bullet.ownerId,
+      remainingShipCount: game.badShips.length ? game.badShips.length - 1 : 0,
     });
     await destroyObject(bus, game, s);
   });

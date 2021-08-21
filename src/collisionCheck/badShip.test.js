@@ -53,7 +53,8 @@ describe("handleIfCollidingWithBadShip", () => {
       bus,
       BAD_SHIP_KILLED_BY_GOOD_BULLET,
       {
-        id: badShip.id,
+        id: bullet.ownerId,
+        remainingShipCount: 0,
       }
     );
   });
