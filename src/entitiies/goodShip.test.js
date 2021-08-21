@@ -363,6 +363,12 @@ describe("Good ship", () => {
           oldY: 4,
         }),
       ]);
+      expect(publishSpy).toHaveBeenCalledWith(bus, CANVAS_DRAW, [
+        expect.objectContaining({
+          x: 2, 
+          y: 4,
+        }),
+      ]);
     });
     it("should update the x,y values of the ship and publish an event when keys['LEFT'] is true", async () => {
       // Arrange
@@ -412,7 +418,12 @@ describe("Good ship", () => {
           y: 4, // no change
         })
       );
-      expect(publishSpy).not.toHaveBeenCalled();
+      expect(publishSpy).toHaveBeenCalledWith(bus, CANVAS_DRAW, [
+        expect.objectContaining({
+          x: 2, 
+          y: 4,
+        }),
+      ]);
     });
   });
 });

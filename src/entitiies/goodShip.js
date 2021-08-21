@@ -179,6 +179,7 @@ const handleKeyEvent = (bus, event, goodShip, handlers = keyHandlers) => {
 };
 
 export const moveShip = async (bus, goodShip) => {
+  await publishToEventBus(bus, CANVAS_DRAW, goodShip.shapes);
   if (goodShip.keys[ARROW_RIGHT]) {
     moveObject({ object: goodShip, deltaX: 2, deltaY: 0 });
     await publishToEventBus(bus, CANVAS_DRAW, goodShip.shapes);
