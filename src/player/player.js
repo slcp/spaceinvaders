@@ -5,6 +5,7 @@ import {
   GOOD_SHIP_KILLED_BY_BAD_BULLET,
   PLAYER_LOST_LIFE,
   RESPAWN_GOOD_SHIP,
+  SET_SCORE,
 } from "../events/events";
 
 // class Player {
@@ -85,9 +86,15 @@ const handlePlayerKilled = (bus) => ({ id }) => {
   }
 };
 
-const handleBadShipKilled = ({ id }) => {
-  const player = players.find((p) => id.id === p.id);
+const handleBadShipKilled = (bus) => ({ id }) => {
+  const player = players.find((p) => id === p.id);
+  if (!player) {
+    throw new Error(
+      `player with id '${id}' is not known, cannot set score`
+    );
+  }
   player.score = player.score + 10;
+  publishToEventBus(bus, SET_SCORE, { id: player.id, value: player.score });
 };
 
 export const initialisePlayer = async (player, bus) => {
@@ -100,7 +107,7 @@ export const initialisePlayer = async (player, bus) => {
   await subscribeToEventBus(
     bus,
     BAD_SHIP_KILLED_BY_GOOD_BULLET,
-    handleBadShipKilled
+    handleBadShipKilled(bus)
   );
 };
 

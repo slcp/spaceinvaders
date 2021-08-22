@@ -130,5 +130,32 @@ describe("player", () => {
         { id: "uuid4" }
       );
     });
+    it("should publish SET_SCORE event when responding to BAD_SHIP_KILLED_BY_GOOD_BULLET event", async () => {
+      // Arrange
+      const player = newPlayer();
+      player.score = 10;
+      const publishSpy = jest.spyOn(eventBus, "publishToEventBus");
+      const bus = eventBus.newEventBus();
+
+      // Act
+      await initialisePlayer(player, bus);
+
+      await eventBus.publishToEventBus(bus, "BAD_SHIP_KILLED_BY_GOOD_BULLET", {
+        id: "uuid5",
+      });
+
+      // Assert
+      expect(player.score).toEqual(20);
+      expect(publishSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          events: {
+            BAD_SHIP_KILLED_BY_GOOD_BULLET: [expect.any(Function)],
+            GOOD_SHIP_KILLED_BY_BAD_BULLET: [expect.any(Function)],
+          },
+        }),
+        "SET_SCORE",
+        { id: "uuid5", value: 20 }
+      );
+    });
   });
 });
