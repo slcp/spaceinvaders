@@ -47,9 +47,7 @@ export const startGame = async (bus, game, context) => {
   const { players, width, height } = context;
   await initialiseBadShips(bus, game);
   game.goodShips = await asyncMap(players, async (id) => {
-    const ship = newGoodShip({
-      id,
-    });
+    const ship = newGoodShip(id);
     await moveAndDrawObject(
       bus,
       ship,
