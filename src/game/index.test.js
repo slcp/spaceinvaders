@@ -7,8 +7,10 @@ import * as rockShipCollisions from "../collisionCheck/rocks";
 import { BAD_SHIP_TYPE, newBadShip } from "../entitiies/badShip";
 import { fireBullet, newBullet } from "../entitiies/bullet";
 import { newGoodShip, SHIP_TYPE } from "../entitiies/goodShip";
+import * as goodShipExports from "../entitiies/goodShip";
 import { newRock } from "../entitiies/rock";
 import * as eventBus from "../events";
+import * as initExports from "./initialise";
 import { newEventBus } from "../events";
 import {
   BAD_SHIP_CREATED,
@@ -423,8 +425,16 @@ describe("Game", () => {
       await gameExports.moveBadShips(bus, game, context);
 
       // Assert
-      expect(extremitySpy).toHaveBeenCalledWith("left", context, leftMostShapes);
-      expect(extremitySpy).toHaveBeenCalledWith("right", context, leftMostShapes);
+      expect(extremitySpy).toHaveBeenCalledWith(
+        "left",
+        context,
+        leftMostShapes
+      );
+      expect(extremitySpy).toHaveBeenCalledWith(
+        "right",
+        context,
+        leftMostShapes
+      );
       expect(extremitySpy).toHaveBeenCalledWith("right", context, [
         newShape(20, 32, 60, 9, "white"),
         newShape(40, 28, 20, 20, "white"),
@@ -458,8 +468,16 @@ describe("Game", () => {
       await gameExports.moveBadShips(bus, game, context);
 
       // Assert
-      expect(extremitySpy).toHaveBeenCalledWith("right", context, rightMostShapes);
-      expect(extremitySpy).toHaveBeenCalledWith("left", context, rightMostShapes);
+      expect(extremitySpy).toHaveBeenCalledWith(
+        "right",
+        context,
+        rightMostShapes
+      );
+      expect(extremitySpy).toHaveBeenCalledWith(
+        "left",
+        context,
+        rightMostShapes
+      );
       expect(extremitySpy).toHaveBeenCalledWith("left", context, [
         newShape(20, 32, 60, 9, "white"),
         newShape(40, 28, 20, 20, "white"),
@@ -582,7 +600,7 @@ describe("Game", () => {
       { goodShip: true, badShip: false, rock: false },
       { goodShip: true, badShip: true, rock: true },
     ].forEach(({ goodShip, badShip, rock }) => {
-      it("should X", async () => {
+      it("should call the expected functions based on collision context", async () => {
         // Arrange
         const bus = newEventBus();
         const game = gameExports.newGame();
@@ -614,6 +632,46 @@ describe("Game", () => {
         if (!rock && !badShip)
           expect(goodShipSpy).toHaveBeenCalledWith(bus, game, bullet);
       });
+    });
+  });
+  describe("startGame", () => {
+    it("should X", async () => {
+      // Arrange
+      const bus = newEventBus();
+      const game = gameExports.newGame();
+      const context = { players: ["playerOne"], width: 100, height: 100 };
+      const publishSpy = jest.spyOn(eventBus, "publishToEventBus");
+      const initBadSpy = jest
+        .spyOn(initExports, "initialiseBadShips")
+        .mockResolvedValue(null);
+      const initRockSpy = jest
+        .spyOn(initExports, "initialiseRocks")
+        .mockResolvedValue(null);
+      const initGoodSpy = jest
+        .spyOn(goodShipExports, "initialiseGoodShip")
+        .mockResolvedValue(null);
+      const moveAndDrawSpy = jest
+        .spyOn(draw, "moveAndDrawObject")
+        .mockResolvedValue(null);
+
+      // Act
+      await gameExports.startGame(bus, game, context);
+
+      // Assert
+      expect(initBadSpy).toHaveBeenCalledWith(bus, game);
+      expect(initRockSpy).toHaveBeenCalledWith(bus, game, context);
+      expect(initGoodSpy).toHaveBeenCalledWith(
+        bus,
+        expect.objectContaining({ id: "playerOne" })
+      );
+      expect(moveAndDrawSpy).toHaveBeenCalledWith(
+        bus,
+        expect.objectContaining({ id: "playerOne" }),
+        10,
+        10
+      );
+
+      expect(publishSpy).not.toHaveBeenCalled();
     });
   });
 });
