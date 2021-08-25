@@ -6,14 +6,27 @@
 // 4. Draw rock to left offset n+1
 // 5. Draw rock to right offset -n+1
 
-import { checkForCollisions, moveBadShips, moveBullets, shootBadBullets } from ".";
+import {
+  checkForCollisions,
+  moveBadShips,
+  moveBullets,
+  shootBadBullets,
+  spawnGoodShip,
+} from ".";
 import { runFrame } from "../animation";
 import { newAnimationFrame } from "../animation/animationFrame";
 import { BAD_SHIP_TYPE, newBadShip } from "../entitiies/badShip";
 import { SHIP_TYPE } from "../entitiies/goodShip";
 import { initialiseRock, newRock } from "../entitiies/rock";
 import { publishToEventBus, subscribeToEventBus } from "../events";
-import { BAD_SHIP_CREATED, BULLET_CREATED, END_GAME, NEW_GAME, RESPAWN_GOOD_SHIP, START_NEXT_LEVEL } from "../events/events";
+import {
+  BAD_SHIP_CREATED,
+  BULLET_CREATED,
+  END_GAME,
+  NEW_GAME,
+  RESPAWN_GOOD_SHIP,
+  START_NEXT_LEVEL,
+} from "../events/events";
 import { asyncForEach } from "../functional/asyncArrayMethods";
 import drawObject, { moveAndDrawObject } from "../functional/drawObject";
 import moveObject from "../functional/moveObject";
@@ -96,7 +109,7 @@ export const initialiseGame = async (bus, game, context) => {
   await subscribeToEventBus(
     bus,
     RESPAWN_GOOD_SHIP,
-    () => {} //this.respawnGoodShip.bind(this)
+    async ({ id }) => await spawnGoodShip(bus, id, context)
   );
   await subscribeToEventBus(bus, BULLET_CREATED, (bullet) => {
     game.bullets = [...game.bullets, bullet];

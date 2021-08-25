@@ -12,26 +12,30 @@ export const PLAYER_TYPE = "_player";
 
 let players = [];
 
-const handlePlayerKilled = (bus) => ({ id }) => {
-  const player = players.find((p) => id === p.id);
-  player.lives = player.lives - 1;
-  publishToEventBus(bus, PLAYER_LOST_LIFE, {
-    id,
-    remainingLives: player.lives,
-  });
-  if (player.lives) {
-    publishToEventBus(bus, RESPAWN_GOOD_SHIP, { id });
-  }
-};
+const handlePlayerKilled =
+  (bus) =>
+  async ({ id }) => {
+    const player = players.find((p) => id === p.id);
+    player.lives = player.lives - 1;
+    await publishToEventBus(bus, PLAYER_LOST_LIFE, {
+      id,
+      remainingLives: player.lives,
+    });
+    if (player.lives) {
+      await publishToEventBus(bus, RESPAWN_GOOD_SHIP, { id });
+    }
+  };
 
-const handleBadShipKilled = (bus) => ({ id }) => {
-  const player = players.find((p) => id === p.id);
-  if (!player) {
-    throw new Error(`player with id '${id}' is not known, cannot set score`);
-  }
-  player.score = player.score + 10;
-  publishToEventBus(bus, SET_SCORE, { id: player.id, value: player.score });
-};
+const handleBadShipKilled =
+  (bus) =>
+  ({ id }) => {
+    const player = players.find((p) => id === p.id);
+    if (!player) {
+      throw new Error(`player with id '${id}' is not known, cannot set score`);
+    }
+    player.score = player.score + 10;
+    publishToEventBus(bus, SET_SCORE, { id: player.id, value: player.score });
+  };
 
 export const initialisePlayer = async (player, bus) => {
   players = [...players, player];

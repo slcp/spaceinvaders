@@ -43,20 +43,25 @@ export const newGame = () => ({
   level: levelGen.next().value,
 });
 
+export const spawnGoodShip = async (bus, id, { width, height }) => {
+  const ship = newGoodShip(id);
+  await moveAndDrawObject(
+    bus,
+    ship,
+    width / 2 - ship.width / 2,
+    height - (ship.height + 10)
+  );
+  await initialiseGoodShip(bus, ship);
+  return ship;
+};
+
 export const startGame = async (bus, game, context) => {
-  const { players, width, height } = context;
+  const { players } = context;
   await initialiseBadShips(bus, game);
-  game.goodShips = await asyncMap(players, async (id) => {
-    const ship = newGoodShip(id);
-    await moveAndDrawObject(
-      bus,
-      ship,
-      width / 2 - ship.width / 2,
-      height - (ship.height + 10)
-    );
-    await initialiseGoodShip(bus, ship);
-    return ship;
-  });
+  game.goodShips = await asyncMap(
+    players,
+    async (id) => await spawnGoodShip(bus, id, context)
+  );
   await initialiseRocks(bus, game, context);
 };
 
@@ -193,24 +198,6 @@ export const destroyObject = async (
 //     }
 //   }
 
-//   startGame() {
-//     const { players } = this.context;
-//     this.initialiseBadShips();
-//     this.goodShips = players.map((id) =>
-//       newGoodShip({
-//         id,
-//       })
-//     );
-//     this.goodShips.forEach((ship) => this.initialiseGoodShip(ship));
-//     this.initialiseRocks();
-//     this.startAnimation();
-//   }
-
-//   startAnimation() {
-//     this.animation = new GameAnimation();
-//     this.animation.runFrame(this.frameActions);
-//   }
-
 //   // Keep for now - we will need to change levels
 //   nextLevel() {
 //     this.endGame();
@@ -236,66 +223,11 @@ export const destroyObject = async (
 //     this.initialiseGoodShip(ship);
 //   }
 
-//   initialiseGoodShip(goodShip) {
-//     goodShip.init();
-//     // Draw in centre of canvas
-//     const { width, height } = this.context;
-//     this.moveAndDrawObject(
-//       goodShip,
-//       width / 2 - goodShip.width / 2,
-//       height - (goodShip.height + 10)
-//     );
-//   }
-
 //   destroyGoodShips() {
 //     for (let ship of this.goodShips) {
 //       this.destroyObject(ship);
 //     }
 //     this.goodShips = [];
-//   }
-
-//   // Lower levels will have a central rock protecting goodPlayer spawn point
-//   // Higher levels will not have a central
-//   // 1. Draw rock in the middle
-//   // 2. Draw rock to left offset n
-//   // 3. Draw rock to right offset -n
-//   // 4. Draw rock to left offset n+1
-//   // 5. Draw rock to right offset -n+1
-//   // Repeat 2-5
-//   initialiseRocks() {
-//     const { width } = this.context;
-//     const canvasCentre = width / 2;
-//     const xValueOfMiddleRock = canvasCentre - this.getSetting("rockWidth") / 2;
-//     let rockPair = 1;
-
-//     for (let i = 0; i < this.getSetting("numRocks"); i++) {
-//       let rock = new Rock(
-//         this.getSetting("rockWidth"),
-//         this.getSettingsFor("rock")
-//       );
-
-//       // First rock is in the middle
-//       if (i === 0) {
-//         rock.move(xValueOfMiddleRock, 0);
-//       } else {
-//         // All other rocks are drawn in pairs with an equal offset but alternatig
-//         // between positive and negative.
-//         const offSet = i % 2 === 0 ? rockPair : -rockPair;
-
-//         // This works but I cannot remember why
-//         const deltaX =
-//           xValueOfMiddleRock +
-//           (offSet * this.getSetting("rockWidth") +
-//             offSet *
-//               this.getSetting("rockWidth") *
-//               this.getSetting("rockWhiteSpace"));
-//         rock.move(deltaX, 0);
-//         rockPair = i % 2 === 0 ? rockPair + 1 : rockPair;
-//       }
-
-//       this.rocks.push(rock);
-//       this.drawObject(rock);
-//     }
 //   }
 
 //   destroyRocks() {
