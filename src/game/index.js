@@ -26,8 +26,6 @@ import getSetting from "./getSetting";
 import { isBadShipBullet, isGoodShipBullet } from "./helpers";
 import { initialiseBadShips, initialiseRocks } from "./initialise";
 
-// TOOD: Build canvas operations that in an animation frame into the frame queue - killing objects
-
 const levelGen = levelsGenerator();
 
 export const newGame = () => ({

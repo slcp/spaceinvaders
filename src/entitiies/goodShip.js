@@ -1,4 +1,3 @@
-import { v4 as uuid } from "uuid";
 import { cancelFrame, runFrame } from "../animation";
 import { newAnimationFrame } from "../animation/animationFrame";
 import { newShape } from "../canvas/shape";

@@ -9,7 +9,12 @@ import {
 } from "../events/events";
 import { ARROW_LEFT, ARROW_RIGHT } from "../keyCodes";
 import * as bullet from "./bullet";
-import { initialiseGoodShip, moveShip, newGoodShip } from "./goodShip";
+import {
+  destroyGoodShip,
+  initialiseGoodShip,
+  moveShip,
+  newGoodShip,
+} from "./goodShip";
 import { newShip } from "./ship";
 
 jest.mock("./ship", () => ({
@@ -419,6 +424,30 @@ describe("Good ship", () => {
           y: 4,
         }),
       ]);
+    });
+  });
+  describe("destroyGoodShip", () => {
+    it("should X", () => {
+      // Arrange
+      removeEventListener = jest.fn();
+      const cancelFrameSpy = jest.spyOn(animation, "cancelFrame");
+
+      // Act
+      destroyGoodShip();
+
+      // Assert
+      expect(removeEventListener).toHaveBeenCalledTimes(2);
+      expect(removeEventListener).toHaveBeenCalledWith(
+        "keydown",
+        expect.any(Function)
+      );
+      expect(removeEventListener).toHaveBeenCalledWith(
+        "keyup",
+        expect.any(Function)
+      );
+      expect(cancelFrameSpy).toHaveBeenCalledTimes(2);
+      expect(cancelFrameSpy).toHaveBeenCalledWith("moveShip");
+      expect(cancelFrameSpy).toHaveBeenCalledWith("fireIfPossible");
     });
   });
 });
