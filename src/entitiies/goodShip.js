@@ -1,14 +1,12 @@
 import { v4 as uuid } from "uuid";
-import { runFrame } from "../animation";
-import {
-  newAnimationFrame
-} from "../animation/animationFrame";
+import { cancelFrame, runFrame } from "../animation";
+import { newAnimationFrame } from "../animation/animationFrame";
 import { newShape } from "../canvas/shape";
 import { publishToEventBus, subscribeToEventBus } from "../events";
 import {
   BULLET_CREATED,
   BULLET_DESTROYED,
-  CANVAS_DRAW
+  CANVAS_DRAW,
 } from "../events/events";
 import moveObject from "../functional/moveObject";
 import { ARROW_LEFT, ARROW_RIGHT, SPACE } from "../keyCodes";
@@ -43,6 +41,13 @@ import { newShip } from "./ship";
 // }
 
 export const SHIP_TYPE = "_goodShip";
+
+export const destroyGoodShip = async () => {
+  removeEventListener("keydown", keyEventListener);
+  removeEventListener("keyup", keyEventListener);
+  cancelFrame("moveShip");
+  cancelFrame("fireIfPossible");
+};
 
 const handleShoot = (bus, goodShip) => {
   const immediateFire = !goodShip.keys[SPACE];
@@ -104,13 +109,12 @@ export const moveShip = async (bus, goodShip) => {
   }
 };
 
+let keyEventListener;
+
 export const initialiseGoodShip = async (bus, goodShip) => {
-  window.addEventListener("keydown", (event) =>
-    handleKeyEvent(bus, event, goodShip)
-  );
-  window.addEventListener("keyup", (event) =>
-    handleKeyEvent(bus, event, goodShip)
-  );
+  keyEventListener = (event) => handleKeyEvent(bus, event, goodShip);
+  window.addEventListener("keydown", keyEventListener);
+  window.addEventListener("keyup", keyEventListener);
   await subscribeToEventBus(bus, BULLET_CREATED, (bullet) => {
     if (bullet.ownerId != goodShip.id || bullet.ownerType != goodShip._type) {
       return;
@@ -127,8 +131,10 @@ export const initialiseGoodShip = async (bus, goodShip) => {
   });
   // createAnimationFrames
   runFrame([
-    newAnimationFrame(uuid(), 0, () => moveShip(bus, goodShip)),
-    newAnimationFrame(uuid(), 800, () => fireIfPossible(bus, goodShip)),
+    newAnimationFrame("moveShip", 0, () => moveShip(bus, goodShip)),
+    newAnimationFrame("fireIfPossible", 800, () =>
+      fireIfPossible(bus, goodShip)
+    ),
   ]);
 };
 

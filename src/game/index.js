@@ -5,6 +5,7 @@ import { handleIfCollidingWithRock } from "../collisionCheck/rocks";
 import { BAD_SHIP_TYPE } from "../entitiies/badShip";
 import { BULLET_TYPE, fireBullet } from "../entitiies/bullet";
 import {
+  destroyGoodShip,
   initialiseGoodShip,
   newGoodShip,
   SHIP_TYPE,
@@ -152,6 +153,7 @@ const objectDestroyHandlers = {
     game.goodShips = game.goodShips.filter((s) => {
       return s.id !== ship.id;
     });
+    await destroyGoodShip();
     await publishToEventBus(bus, GOOD_SHIP_DESTROYED, { id: ship.id });
   },
   [BAD_SHIP_TYPE]: async (bus, ship, game) => {
@@ -177,8 +179,8 @@ export const destroyObject = async (
   if (!handlers[_type]) {
     throw new Error("unknon object type when trying to destory object");
   }
-  await publishToEventBus(bus, CANVAS_REMOVE, object.shapes);
   await handlers[_type](bus, object, game);
+  await publishToEventBus(bus, CANVAS_REMOVE, object.shapes);
 };
 
 // export default class SpaceInvadersGame {

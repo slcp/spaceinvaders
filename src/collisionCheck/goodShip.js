@@ -16,10 +16,10 @@ export const handleIfCollidingWithGoodShip = async (bus, game, bullet) => {
 
   await destroyObject(bus, game, bullet);
   await asyncForEach(goodShipsHit, async (s) => {
+    await destroyObject(bus, game, s); // This has some positive impact on losing lives and killing goodships
     await publishToEventBus(bus, GOOD_SHIP_KILLED_BY_BAD_BULLET, {
       id: s.id,
     });
-    await destroyObject(bus, game, s);
   });
 
   return true;

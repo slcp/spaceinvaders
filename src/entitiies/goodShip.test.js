@@ -2,18 +2,15 @@ import * as animation from "../animation";
 import { newShape } from "../canvas/shape";
 import * as eventBus from "../events";
 import { newEventBus } from "../events";
-import { BULLET_CREATED, BULLET_DESTROYED, CANVAS_DRAW } from "../events/events";
+import {
+  BULLET_CREATED,
+  BULLET_DESTROYED,
+  CANVAS_DRAW,
+} from "../events/events";
 import { ARROW_LEFT, ARROW_RIGHT } from "../keyCodes";
 import * as bullet from "./bullet";
 import { initialiseGoodShip, moveShip, newGoodShip } from "./goodShip";
 import { newShip } from "./ship";
-
-jest.mock("uuid", () => ({
-  v4: jest.fn(() => {
-    const value = "uuid";
-    return value;
-  }),
-}));
 
 jest.mock("./ship", () => ({
   newShip: jest.fn(() => ({
@@ -64,20 +61,17 @@ describe("Good ship", () => {
       window.addEventListener = jest.fn((option, handler) => {
         handlers = [...handlers, handler];
       });
-      const initialiseAnimationSpy = jest.spyOn(
-        animation,
-        "runFrame"
-      );
+      const initialiseAnimationSpy = jest.spyOn(animation, "runFrame");
       const subscribeSpy = jest.spyOn(eventBus, "subscribeToEventBus");
       const expectedFireBulletAnimationFrame = {
         _type: "_animationFrame",
-        id: "uuid",
+        id: "fireIfPossible",
         ms: 800,
         action: expect.any(Function),
       };
       const expectedMoveShipAnimationFrame = {
         _type: "_animationFrame",
-        id: "uuid",
+        id: "moveShip",
         ms: 0,
         action: expect.any(Function),
       };
@@ -95,9 +89,10 @@ describe("Good ship", () => {
         expect.any(Function)
       );
       expect(handlers).toHaveLength(2);
-      expect(initialiseAnimationSpy).toHaveBeenCalledWith(
-        [expectedMoveShipAnimationFrame, expectedFireBulletAnimationFrame]
-      );
+      expect(initialiseAnimationSpy).toHaveBeenCalledWith([
+        expectedMoveShipAnimationFrame,
+        expectedFireBulletAnimationFrame,
+      ]);
       expect(subscribeSpy).toHaveBeenCalledWith(
         expect.objectContaining({
           events: expect.objectContaining({
@@ -365,7 +360,7 @@ describe("Good ship", () => {
       ]);
       expect(publishSpy).toHaveBeenCalledWith(bus, CANVAS_DRAW, [
         expect.objectContaining({
-          x: 2, 
+          x: 2,
           y: 4,
         }),
       ]);
@@ -420,7 +415,7 @@ describe("Good ship", () => {
       );
       expect(publishSpy).toHaveBeenCalledWith(bus, CANVAS_DRAW, [
         expect.objectContaining({
-          x: 2, 
+          x: 2,
           y: 4,
         }),
       ]);

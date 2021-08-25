@@ -109,7 +109,11 @@ export const initialiseGame = async (bus, game, context) => {
   await subscribeToEventBus(
     bus,
     RESPAWN_GOOD_SHIP,
-    async ({ id }) => await spawnGoodShip(bus, id, context)
+    async ({ id }) =>
+      (game.goodShips = [
+        ...game.goodShips,
+        await spawnGoodShip(bus, id, context),
+      ])
   );
   await subscribeToEventBus(bus, BULLET_CREATED, (bullet) => {
     game.bullets = [...game.bullets, bullet];
@@ -123,7 +127,7 @@ export const initialiseGame = async (bus, game, context) => {
       "moveGoodBullets",
       1000 /
         getSetting("goodBulletFramerate", game.level[game.currentLevelMode]),
-      () => moveBullets(bus, game, SHIP_TYPE)
+      async () => await moveBullets(bus, game, SHIP_TYPE)
     ),
     newAnimationFrame(
       "shootBadBullets",
@@ -132,24 +136,24 @@ export const initialiseGame = async (bus, game, context) => {
           "badShipsBulletsPerSecond",
           game.level[game.currentLevelMode]
         ),
-      () => shootBadBullets(bus, game)
+      async () => await shootBadBullets(bus, game)
     ),
     newAnimationFrame(
       "moveBadBullets",
       1000 /
         getSetting("badBulletFramerate", game.level[game.currentLevelMode]),
-      () => moveBullets(bus, game, BAD_SHIP_TYPE)
+      async () => await moveBullets(bus, game, BAD_SHIP_TYPE)
     ),
     newAnimationFrame(
       "moveBadShips",
       1000 / getSetting("badShipFramerate", game.level[game.currentLevelMode]),
-      () => moveBadShips(bus, game, context)
+      async () => await moveBadShips(bus, game, context)
     ),
     newAnimationFrame(
       "checkForCollisions",
       // Run on every frame
       0,
-      () => checkForCollisions(bus, game, context)
+      async () => await checkForCollisions(bus, game, context)
     ),
   ]);
 };
