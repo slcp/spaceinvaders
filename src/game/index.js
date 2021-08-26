@@ -1,3 +1,4 @@
+import { cancelFrames } from "../animation";
 import { isAtExtremity } from "../canvas";
 import { handleIfCollidingWithBadShip } from "../collisionCheck/badShip";
 import { handleIfCollidingWithGoodShip } from "../collisionCheck/goodShip";
@@ -62,6 +63,43 @@ export const startGame = async (bus, game, context) => {
     async (id) => await spawnGoodShip(bus, id, context)
   );
   await initialiseRocks(bus, game, context);
+};
+
+export const startNextLevel = async (bus, game, context) => {
+  await asyncForEach(game.rocks, async (r) => {
+    await destroyObject(bus, game, r);
+  });
+  await asyncForEach(game.badShips, async (s) => {
+    await destroyObject(bus, game, s);
+  });
+  await asyncForEach(game.bullets, async (b) => {
+    await destroyObject(bus, game, b);
+  });
+  game.level = levelGen.next().value;
+  await initialiseBadShips(bus, game);
+  await initialiseRocks(bus, game, context);
+};
+
+export const endGame = async (bus, game) => {
+  await asyncForEach(game.goodShips, async (s) => {
+    await destroyObject(bus, game, s);
+  });
+  await asyncForEach(game.rocks, async (r) => {
+    await destroyObject(bus, game, r);
+  });
+  await asyncForEach(game.badShips, async (s) => {
+    await destroyObject(bus, game, s);
+  });
+  await asyncForEach(game.bullets, async (b) => {
+    await destroyObject(bus, game, b);
+  });
+  cancelFrames(
+    "moveGoodBullets",
+    "shootBadBullets",
+    "moveBadBullets",
+    "moveBadShips",
+    "checkForCollisions"
+  );
 };
 
 export const checkForCollisions = async (bus, game, context) => {
@@ -188,71 +226,10 @@ export const destroyObject = async (
 //     this.startGame();
 //   }
 
-//   endGame() {
-//     this.destroyGoodShips();
-//     this.destroyRocks();
-//     this.destroyBullets();
-//     this.destroyBadShips();
-//     if (this.animation) {
-//       this.animation.cancel();
-//     }
-//   }
-
 //   // Keep for now - we will need to change levels
 //   nextLevel() {
 //     this.endGame();
 //     this.level = this.levelData.next().value;
 //     this.startGame();
-//   }
-
-//   destroyBadShips() {
-//     /*
-//      * destroyObject will modify this.badShips so that cannot be forEach-ed directly as it will be changing under us.
-//      * Creating a flat map of this.badShips allows us to iterate over the ships in the game and call destroyObject
-//      * on them
-//      */
-//     this.badShips.flat(Infinity).forEach((ship) => {
-//       this.destroyObject(ship);
-//     });
-//     this.badShips = [];
-//   }
-
-//   respawnGoodShip({ id }) {
-//     const ship = newGoodShip({ id });
-//     this.goodShips.push(ship);
-//     this.initialiseGoodShip(ship);
-//   }
-
-//   destroyGoodShips() {
-//     for (let ship of this.goodShips) {
-//       this.destroyObject(ship);
-//     }
-//     this.goodShips = [];
-//   }
-
-//   destroyRocks() {
-//     /*
-//      * destroyObject will modify this.rocks so that cannot be forEach-ed directly as it will be changing under us.
-//      * Creating a flat map of this.rocks allows us to iterate over the rocks in the game and call destroyObject
-//      * on them
-//      */
-//     this.rocks.flat(Infinity).forEach((rock) => {
-//       this.destroyObject(rock);
-//     });
-//     this.rocks = [];
-//   }
-
-//   destroyBullets() {
-//     /*
-//      * destroyObject will modify this.bullets so that cannot be forEach-ed directly as it will be changing under us.
-//      * Creating a map of this.bullets allows us to iterate over the rocks in the game and call destroyObject
-//      * on them
-//      */
-//     this.bullets
-//       .map((b) => b)
-//       .forEach((rock) => {
-//         this.destroyObject(rock);
-//       });
-//     this.bullets = [];
 //   }
 // }

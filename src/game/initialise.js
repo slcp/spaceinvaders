@@ -8,10 +8,12 @@
 
 import {
   checkForCollisions,
+  endGame,
   moveBadShips,
   moveBullets,
   shootBadBullets,
   spawnGoodShip,
+  startNextLevel,
 } from ".";
 import { runFrame } from "../animation";
 import { newAnimationFrame } from "../animation/animationFrame";
@@ -104,8 +106,12 @@ export const initialiseBadShips = async (bus, game) => {
 
 export const initialiseGame = async (bus, game, context) => {
   await subscribeToEventBus(bus, NEW_GAME, () => {}); //this.newGame.bind(this));
-  await subscribeToEventBus(bus, START_NEXT_LEVEL, () => {}); //this.nextLevel.bind(this));
-  await subscribeToEventBus(bus, END_GAME, () => {}); //this.endGame.bind(this));
+  await subscribeToEventBus(
+    bus,
+    START_NEXT_LEVEL,
+    async () => await startNextLevel(bus, game, context)
+  );
+  await subscribeToEventBus(bus, END_GAME, async () => endGame(bus, game));
   await subscribeToEventBus(
     bus,
     RESPAWN_GOOD_SHIP,

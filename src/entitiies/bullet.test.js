@@ -84,19 +84,5 @@ describe("Bullet", () => {
         })
       );
     });
-    it("should not call move or draw object when ship has bullet in play", () => {
-      // Arrange
-      const bus = eventBus.newEventBus();
-      const ship = newGoodShip("an id");
-      ship.bulletInPlay = true;
-      const moveObjectSpy = jest.spyOn(moveObject, "default");
-
-      // Act
-      fireBullet(bus, ship);
-
-      // Assert
-      expect(moveObjectSpy).not.toHaveBeenCalled();
-      expect(drawObject).not.toHaveBeenCalled();
-    });
   });
 });

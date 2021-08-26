@@ -8,23 +8,20 @@ import moveObject from "../functional/moveObject";
 export const BULLET_TYPE = "_bullet";
 
 export const fireBullet = async (bus, { id, _type, bulletInPlay, shapes }) => {
-  if (!bulletInPlay /* || settings.continuousFire*/) {
-    const bullet = newBullet(_type, id);
-    const xValues = shapes.map((shape) => shape.x);
-    const minX = Math.min(...xValues);
-    const maxX = Math.max(...xValues);
-    const deltaX =
-      Math.max(...xValues) + shapes.find((s) => s.x === maxX).width;
-    const diff = deltaX - minX;
-    moveObject({
-      object: bullet,
-      // TODO: This assumes the bullet has one shape, will need a way to get bullets width
-      deltaX: minX + diff / 2 - bullet.shapes[0].width / 2,
-      deltaY: Math.min(...shapes.map((shape) => shape.y)),
-    });
-    await drawObject({ eventBus: bus, object: bullet });
-    await publishToEventBus(bus, BULLET_CREATED, bullet);
-  }
+  const bullet = newBullet(_type, id);
+  const xValues = shapes.map((shape) => shape.x);
+  const minX = Math.min(...xValues);
+  const maxX = Math.max(...xValues);
+  const deltaX = Math.max(...xValues) + shapes.find((s) => s.x === maxX).width;
+  const diff = deltaX - minX;
+  moveObject({
+    object: bullet,
+    // TODO: This assumes the bullet has one shape, will need a way to get bullets width
+    deltaX: minX + diff / 2 - bullet.shapes[0].width / 2,
+    deltaY: Math.min(...shapes.map((shape) => shape.y)),
+  });
+  await drawObject({ eventBus: bus, object: bullet });
+  await publishToEventBus(bus, BULLET_CREATED, bullet);
 };
 
 export const newBullet = (ownerType, ownerId) => ({

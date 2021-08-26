@@ -14,15 +14,15 @@ export const newGameState = () => ({
 });
 
 export const initialiseGameState = async (bus, state) => {
-  subscribeToEventBus(bus, PLAYER_LOST_LIFE, async (event) =>
+  await subscribeToEventBus(bus, PLAYER_LOST_LIFE, async (event) =>
     playerKilled(bus, state, event)
   );
-  subscribeToEventBus(
+  await subscribeToEventBus(
     bus,
     BAD_SHIP_KILLED_BY_GOOD_BULLET,
     async (event) => await badShipKilled(bus, state, event)
   );
-  subscribeToEventBus(
+  await subscribeToEventBus(
     bus,
     NEW_GAME,
     async () =>

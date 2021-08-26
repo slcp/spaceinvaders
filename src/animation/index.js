@@ -5,8 +5,8 @@ let lastActionFrame = {};
 
 export const runFrame = async (frames, frameStartTime = 0) => {
   // Request the next frame
-  const fid = window.requestAnimationFrame(async (newFrameStartTime) =>
-    await runFrame(frames, newFrameStartTime)
+  const fid = window.requestAnimationFrame(
+    async (newFrameStartTime) => await runFrame(frames, newFrameStartTime)
   );
 
   frames.map(({ id }) => (animationFrameIds[id] = fid));
@@ -31,3 +31,6 @@ export const runFrame = async (frames, frameStartTime = 0) => {
 
 export const cancelFrame = (actionId, frameIdsByActionId = animationFrameIds) =>
   window.cancelAnimationFrame(frameIdsByActionId[actionId]);
+
+export const cancelFrames = (...actionId) =>
+  actionId.forEach((f) => cancelFrame(f));
