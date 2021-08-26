@@ -65,6 +65,24 @@ export const startGame = async (bus, game, context) => {
   await initialiseRocks(bus, game, context);
 };
 
+export const startNewGame = async (bus, game, context) => {
+  await asyncForEach(game.goodShips, async (s) => {
+    await destroyObject(bus, game, s);
+  });
+  await asyncForEach(game.rocks, async (r) => {
+    await destroyObject(bus, game, r);
+  });
+  await asyncForEach(game.badShips, async (s) => {
+    await destroyObject(bus, game, s);
+  });
+  await asyncForEach(game.bullets, async (b) => {
+    await destroyObject(bus, game, b);
+  });
+  game.level = levelGen.next().value;
+  startGame(bus, game, context);
+};
+
+// TODO: Score and lives do not reset
 export const startNextLevel = async (bus, game, context) => {
   await asyncForEach(game.rocks, async (r) => {
     await destroyObject(bus, game, r);

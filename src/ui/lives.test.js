@@ -57,17 +57,6 @@ describe("lives", () => {
       expect(subscribeSpy).toHaveBeenCalledWith(
         expect.objectContaining({
           events: {
-            ADD_LIFE: [expect.any(Function)],
-            PLAYER_LOST_LIFE: [expect.any(Function)],
-          },
-        }),
-        "ADD_LIFE",
-        expect.any(Function)
-      );
-      expect(subscribeSpy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          events: {
-            ADD_LIFE: [expect.any(Function)],
             PLAYER_LOST_LIFE: [expect.any(Function)],
           },
         }),
@@ -93,7 +82,7 @@ describe("lives", () => {
         "life with id idx already initialised"
       );
     });
-    it("should call removeChild when responding to LOSE_LIFE event", async () => {
+    it("should call removeChild when responding to PLAYER_LOST_LIFE event", async () => {
       // Arrange
       const life = newLife({
         element: {
@@ -114,31 +103,6 @@ describe("lives", () => {
 
       // Assert
       expect(life.element.removeChild).toHaveBeenCalledWith("expected");
-    });
-    it("should call removeChild when responding to ADD_LIFE event", async () => {
-      // Arrange
-      const life = newLife({
-        element: {
-          removeChild: jest.fn(),
-          appendChild: jest.fn(),
-          lastChild: {
-            id: "loroem-5",
-          },
-        },
-        id: "an id3",
-      });
-      const bus = eventBus.newEventBus();
-
-      // Act
-      await initialiseLife(life, bus);
-      await eventBus.publishToEventBus(bus, "ADD_LIFE", {
-        id: "an id3",
-      });
-
-      // Assert
-      expect(life.element.appendChild).toHaveBeenCalledWith(
-        makeLifeRepresentation(6)
-      );
     });
   });
 });

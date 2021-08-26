@@ -1,25 +1,30 @@
 
+// Canvas
 export const CANVAS_DRAW = "CANVAS_DRAW";
 export const CANVAS_REMOVE = "CANVAS_REMOVE";
+
+// Game directives
 export const NEW_GAME = "NEW_GAME";
 export const END_GAME = "END_GAME";
+
 export const BAD_SHIP_KILLED_BY_GOOD_BULLET = "BAD_SHIP_KILLED_BY_GOOD_BULLET";
 export const GOOD_SHIP_KILLED_BY_BAD_BULLET = "GOOD_SHIP_KILLED_BY_BAD_BULLET";
 export const ROCK_SLICE_KILLED_BY_GOOD_BULLET = "ROCK_SLICE_KILLED_BY_GOOD_BULLET";
 export const ROCK_SLICE_KILLED_BY_BAD_BULLET = "ROCK_SLICE_KILLED_BY_BAD_BULLET";
-export const GOOD_SHIP_OUT_OF_LIVES = "GOOD_SHIP_OUT_OF_LIVES";
-export const LEVEL_OVER = "LEVEL_OVER";
-export const GAME_LOST = "GAME_LOST";
 export const START_NEXT_LEVEL = "START_NEXT_LEVEL";
-export const PLAYER_LOST_LIFE = 'PLAYER_LOST_LIFE';
-export const SET_MESSAGE = 'SET_MESSAGE';
-export const CLEAR_MESSAGE = 'CLEAR_MESSAGE';
-export const SET_SCORE = 'SET_SCORE';
-export const ADD_LIFE = 'ADD_LIFE';
-export const LOSE_LIFE = 'LOSE_LIFE';
 export const RESPAWN_GOOD_SHIP = 'RESPAWN_GOOD_SHIP';
 export const BULLET_CREATED = "BULLET_CREATED";
 export const BULLET_DESTROYED = "BULLET_DESTROYED";
+
+// Player state change
+export const SET_SCORE = 'SET_SCORE';
+
+// Good ship state changes
+export const PLAYER_LOST_LIFE = 'PLAYER_LOST_LIFE';
 export const GOOD_SHIP_DESTROYED = "GOOD_SHIP_DESTROYED";
 export const BAD_SHIP_DESTROYED = "BAD_SHIP_DESTROYED";
 export const BAD_SHIP_CREATED = "BAD_SHIP_CREATED";
+
+// Game UI state changes
+export const SET_MESSAGE = 'SET_MESSAGE';
+export const CLEAR_MESSAGE = 'CLEAR_MESSAGE';

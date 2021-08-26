@@ -1,16 +1,9 @@
 import { subscribeToEventBus } from "../events";
-import { ADD_LIFE, PLAYER_LOST_LIFE } from "../events/events";
-import { makeLifeRepresentation } from "./ui";
+import { PLAYER_LOST_LIFE } from "../events/events";
 
 let lives = [];
 
 export const LIFE_TYPE = "_life";
-
-export const addLife = ({ id }) => {
-  const { element } = lives.find((l) => l.id === id);
-  const index = parseInt(element.lastChild.id.split("-")[1], 10) + 1;
-  element.appendChild(makeLifeRepresentation(index));
-};
 
 export const loseLife = ({ id }) => {
   const { element } = lives.find((l) => l.id === id);
@@ -23,7 +16,6 @@ export const initialiseLife = async (life, bus) => {
   }
 
   lives = [...lives, life];
-  await subscribeToEventBus(bus, ADD_LIFE, addLife);
   await subscribeToEventBus(bus, PLAYER_LOST_LIFE, loseLife);
 };
 
